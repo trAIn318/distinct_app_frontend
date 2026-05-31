@@ -1,0 +1,222 @@
+.page {
+  background-color: var(--color-obsidian);
+  color: var(--color-ivory);
+  min-height: 100vh;
+  padding-top: 80px; /* Offset for nav */
+}
+
+/* Hero Section */
+.hero {
+  padding: var(--space-8) 0;
+  text-align: center;
+}
+
+.heroTag {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: var(--space-4);
+  display: inline-block;
+}
+
+.heroH1 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  line-height: 1.1;
+  margin-bottom: var(--space-4);
+  color: var(--color-ivory);
+}
+
+.heroSubLabel {
+  font-size: var(--text-base);
+  color: var(--color-smoke);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Founding Story Section */
+.contentSection {
+  padding: var(--space-12) 0;
+  background-color: var(--color-charcoal);
+}
+
+.storyContainer {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.storyHeadline {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--color-ivory);
+  margin-bottom: var(--space-6);
+}
+
+.storyBody {
+  font-size: var(--text-base);
+  line-height: 1.8;
+  color: var(--color-ivory);
+}
+
+.storyBody p {
+  margin-bottom: var(--space-4);
+}
+
+.storyHighlight {
+  font-size: var(--text-xl);
+  color: var(--color-gold);
+  margin-top: var(--space-6);
+}
+
+/* Mission Section */
+.missionSection {
+  padding: var(--space-12) 0;
+  background-color: var(--color-obsidian);
+  text-align: center;
+}
+
+.missionContainer {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.missionBody {
+  font-size: var(--text-base);
+  line-height: 1.8;
+  color: var(--color-ivory);
+  margin-top: var(--space-6);
+}
+
+.missionBody p {
+  margin-bottom: var(--space-4);
+}
+
+/* Team Section */
+.teamSection {
+  padding: var(--space-12) 0;
+  background-color: var(--color-charcoal);
+  text-align: center;
+}
+
+.teamHeadline {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--color-ivory);
+  margin-bottom: var(--space-10);
+}
+
+.teamGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+}
+
+.teamCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.teamImageWrapper {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+  border: 2px solid var(--color-platinum);
+}
+
+.teamImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.teamName {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--color-ivory);
+  margin-bottom: var(--space-1);
+}
+
+.teamRole {
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: var(--space-4);
+  display: block;
+}
+
+.teamBio {
+  font-size: var(--text-base);
+  color: var(--color-smoke);
+  line-height: 1.618;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.teamEmail {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.05em;
+  color: var(--color-gold);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.teamEmail:hover {
+  color: var(--color-ivory);
+}
+
+.teamEmail svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Markets Section */
+.marketsSection {
+  padding: var(--space-12) 0;
+  background-color: var(--color-obsidian);
+}
+
+.marketsContainer {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.marketsHeadline {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--color-ivory);
+  margin-bottom: var(--space-6);
+}
+
+.marketsBody {
+  font-size: var(--text-base);
+  line-height: 1.8;
+  color: var(--color-smoke);
+}
+
+@media (max-width: 768px) {
+  .heroH1 {
+    font-size: var(--text-xl);
+  }
+  .teamGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+  }
+  .teamImageWrapper {
+    width: 120px;
+    height: 120px;
+  }
+}

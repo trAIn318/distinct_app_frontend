@@ -1,0 +1,201 @@
+/* ── Hero Section ─────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 80px; /* offset for fixed nav */
+  overflow: hidden;
+  background-color: var(--color-obsidian);
+}
+
+/* ── Two-column inner layout ──────────────────────────────────────── */
+.heroInner {
+  display: grid;
+  /* Golden ratio: left 61.8% / right 38.2% → adjusted for breathing room */
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  align-items: center;
+  padding-top: var(--space-10);
+  padding-bottom: var(--space-10);
+}
+
+/* ── Left column — copy ───────────────────────────────────────────── */
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(24px);
+  padding-left: var(--space-12);
+}
+
+.eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  max-width: 500px;
+  margin-bottom: var(--space-3);
+  line-height: 1.618;
+}
+
+.subHeadline {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-3);
+  line-height: 1.1;
+  max-width: 520px;
+}
+
+.bodyCopy {
+  max-width: 480px;
+  font-size: var(--text-base);
+  color: var(--color-smoke);
+  margin-bottom: var(--space-6);
+  line-height: 1.618;
+}
+
+.ctaGroup {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* ── Right column — image ─────────────────────────────────────────── */
+.heroRight {
+  position: relative;
+  height: 70vh;
+  min-height: 480px;
+  animation: fadeUp 0.6s 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.heroImageWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.heroImage {
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Left-edge fade so image blends into the dark background */
+.heroImageFade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120px;
+  height: 100%;
+  background: linear-gradient(to right, var(--color-obsidian), transparent);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Full-width Ticker — below the grid ───────────────────────────── */
+.tickerContainer {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  padding: var(--space-6) 0;
+  border-top: 1px solid rgba(216, 216, 216, 0.1);
+  white-space: nowrap;
+}
+
+.ticker {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
+
+.ticker:hover {
+  animation-play-state: paused;
+}
+
+.tickerText {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  padding-right: var(--space-8);
+  color: var(--color-ivory);
+  opacity: 0.4;
+}
+
+/* ── Animations ───────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.3333%); }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ticker {
+    animation: none;
+  }
+  .heroLeft,
+  .heroRight {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Mobile ───────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .heroInner {
+    grid-template-columns: 1fr;
+    padding-top: var(--space-8);
+  }
+
+  .heroLeft {
+    text-align: center;
+    align-items: center;
+    padding-left: 0;
+  }
+
+  .heroRight {
+    height: 50vw;
+    min-height: 280px;
+  }
+  
+  .heroImageFade {
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(to bottom, var(--color-obsidian), transparent);
+  }
+
+  .tickerText {
+    font-size: var(--text-lg);
+  }
+
+  .ctaGroup {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .ctaGroup a {
+    width: 100%;
+  }
+}

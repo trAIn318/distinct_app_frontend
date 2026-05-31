@@ -1,0 +1,9 @@
+.trainWord {
+  color: var(--color-gold);
+  white-space: nowrap;
+  font-weight: inherit;
+}
+
+.ai {
+  color: var(--color-ivory);
+}

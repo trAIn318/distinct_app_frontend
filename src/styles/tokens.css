@@ -1,0 +1,51 @@
+:root {
+  /* ── Core Palette ────────────────────────────────────────── */
+  --color-obsidian:     #0A0A0A;   /* primary black — backgrounds, type */
+  --color-ivory:        #F7F4EF;   /* warm off-white — never pure white */
+  --color-gold:         #C9A96E;   /* accent — used sparingly, never flooding */
+  --color-platinum:     #D8D8D8;   /* borders, dividers */
+  --color-charcoal:     #1C1C1E;   /* secondary dark surfaces */
+  --color-smoke:        #6E6E73;   /* secondary text, labels */
+
+  /* ── Extended ─────────────────────────────────────────────── */
+  --color-gold-muted:   #A8895A;   /* gold on light backgrounds */
+  --color-surface-dark: #111111;   /* card backgrounds in dark mode */
+  --color-surface-light:#FAFAF8;   /* card backgrounds in light mode */
+
+  /* ── Semantic ─────────────────────────────────────────────── */
+  --color-text-primary:   var(--color-obsidian);
+  --color-text-secondary: var(--color-smoke);
+  --color-text-inverse:   var(--color-ivory);
+  --color-accent:         var(--color-gold);
+  --color-border:         var(--color-platinum);
+
+  /* ── Type Scale (Golden Ratio: base 16px × 1.618) ──────── */
+  --text-xs:   0.618rem;   /* 10px — legal, labels */
+  --text-sm:   0.764rem;   /* 12px — captions */
+  --text-base: 1rem;       /* 16px — body */
+  --text-md:   1.236rem;   /* ~20px — lead copy */
+  --text-lg:   1.618rem;   /* ~26px — sub-headlines */
+  --text-xl:   2rem;       /* 32px — section titles */
+  --text-2xl:  2.618rem;   /* ~42px — page headlines */
+  --text-3xl:  4.236rem;   /* ~68px — hero display */
+  --text-4xl:  6.854rem;   /* ~110px — large display / hero */
+
+  /* ── Font Families ──────────────────────────────────────── */
+  /* Provided by next/font via layout.js:
+     --font-display
+     --font-body
+     --font-label
+  */
+
+  /* ── Spacing (all derived from 8px base × φ) ───────────── */
+  --space-1:   0.25rem;    /* 4px */
+  --space-2:   0.5rem;     /* 8px */
+  --space-3:   0.75rem;    /* 12px */
+  --space-4:   1rem;       /* 16px */
+  --space-5:   1.618rem;   /* ~26px — φ × base */
+  --space-6:   2rem;       /* 32px */
+  --space-8:   3.236rem;   /* ~52px — φ² × base */
+  --space-10:  5.236rem;   /* ~84px */
+  --space-12:  8rem;       /* 128px — section padding */
+  --space-16:  12.944rem;  /* ~207px — hero breathing room */
+}

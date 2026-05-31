@@ -1,0 +1,525 @@
+PRODUCT REQUIREMENTS DOCUMENT
+Distinct Hospitality Solutions
+Website Redesign — 1:1 Rebuild
+Version: 1.0
+Status: Draft
+Prepared by: Drishti Studio
+Date: May 2026
+
+
+1. Project Overview
+This document is a complete Product Requirements Document (PRD) for a 1:1 pixel-faithful rebuild of the Distinct Hospitality Solutions website. All content, copy, structure, media references, and page flows are derived exclusively from live scraping of the production site. No assumptions have been made — where data could not be retrieved, it is flagged explicitly.
+
+Live Site
+https://distincthospitalitysolutions.com
+Platform (Current)
+GoDaddy Website Builder (Websites + Marketing) — identified by img1.wsimg.com CDN and blobby/go asset paths.
+Client / Owner
+Distinct Hospitality Solutions LLC — Based in Miami, FL. Operating across USA, Latin America, and Southeast Asia.
+Redesign Goal
+Rebuild the site 1:1 with exact same content, copy, links, and media — on a modern, maintainable stack — applying updated design system per claude.md guidelines.
+
+2. Site Map & Navigation
+The site has three public pages and one privacy policy stub page. Navigation is identical across all pages.
+Page
+URL
+Status
+Home
+https://distincthospitalitysolutions.com/
+Live — fully scraped
+About
+https://distincthospitalitysolutions.com/about
+Live — fully scraped
+Products
+https://distincthospitalitysolutions.com/products
+Live — fully scraped
+Privacy Policy
+https://distincthospitalitysolutions.com/privacy-policy
+Live — stub ("coming soon")
+
+Global Navigation (all pages)
+	•	Home — https://distincthospitalitysolutions.com/
+	•	About — https://distincthospitalitysolutions.com/about
+	•	PRODUCTS — https://distincthospitalitysolutions.com/products
+	•	"More" dropdown (mobile) — repeats same three links
+Logo links back to Home on all pages.
+Global Footer (all pages)
+	•	Privacy Policy — https://distincthospitalitysolutions.com/privacy-policy
+	•	Location: Based in Miami, FL. Operating across the USA, Latin America, and Southeast Asia.
+	•	Response time: We respond to all inquiries within 24 hours.
+	•	Copyright line: Copyright © 2026 Distinct Hospitality Solutions - All Rights Reserved.
+	•	Entity line: © 2026 Distinct Hospitality Solutions LLC
+	•	Subscribe email input + "Sign up" CTA (no confirmation page scraped — form endpoint unknown)
+
+3. Page: Home
+URL: https://distincthospitalitysolutions.com/
+3.1 Hero Section
+Eyebrow / Definition
+"Distinct" describes something clearly separate, different, or unmistakably noticeable
+Hero Image
+Full-width banner image — see Asset Inventory §7 for URL and scrape status.
+Headline (H2)
+DELIVER FIVE STAR EXPERIENCES CONSISTENTLY
+Headline (H1) — Animated Ticker
+The AI Platform Built for Hospitality
+(Text repeats in a horizontal scroll/ticker: "The AI Platform Built for Hospitality" × 3)
+Body Copy
+Distinct Hospitality trains your team, tracks what matters in front of house operations, and grows your revenue with the help of hospitality experts.
+CTAs
+	•	BOOK A DEMO — mailto:DEMO@distincthospitalitysolutions.com
+	•	JOIN THE WAITLIST — mailto:WAITLIST@distincthospitalitysolutions.com
+3.2 Value Proposition Bar
+Headline
+Turn Staff Training Into Measurable Revenue Growth
+CTA
+	•	Get in Touch — mailto:INFO@DISTINCTHOSPITALITYSOLUTION.COM
+3.3 Problem / Approach Section
+Section Headline
+Training Doesn't Fail. Measurement Does
+Problem Block Headline
+Most hospitality businesses invest in training, but can't answer:
+	•	Did it increase sales in the distinct hospitality sector?
+	•	Which behaviors in front of house operations actually drive revenue?
+	•	Who are your top performers, and why?
+	•	Without data, training in hospitality experts can become a cost center.
+Approach Block Headline
+Our Approach — A Performance System. Not Just Training
+Approach Body
+Distinct connects training directly to real-world results. We track what your team does, measure what matters, and show you exactly how performance impacts revenue.
+CTA
+	•	Get Started — mailto:INFO@DISTINCTHOSPITALITYSOLUTIONS.COM
+3.4 Solutions by Industry
+Section Headline
+Distinct Solutions by industry
+Card 1 — Hotels Bars and Restaurants
+Product Tag
+TR Ai N + GUESTSIGHT
+Tagline
+measurable performance, real revenue results
+CTA
+	•	Book a discovery call — tel:+13055481826
+Card 2 — Private Clients
+Product Tag
+BESPOKE / CONCIERGE
+Tagline
+Bespoke workforce solutions for discerning operations
+CTA
+	•	submit an inquiry — mailto:team@distincthospitalitysolutions.com
+Card 3 — Residential
+Product Tag
+(No product tag displayed — residential segment)
+Tagline
+Compliance, alignment, and scalable culture across every floor
+CTA
+	•	join the waitlist — mailto:info@traindistinct.com
+3.5 Platform Overview Section
+Section Headline
+trAIn smarter. Perform better. Earn more
+Sub-headline
+FROM MIAMI TO THE WORLD
+Body
+Distinct is an AI-powered performance platform that tracks employee behavior, connects it to guest experience, and drives revenue across hospitality operations at scale. We TR Ai N teams through our platform's immersive multilingual programs.
+3.6 Video Section
+Section Label
+trAIn REDUCES ONBOARDING TIME
+Video Thumbnail
+See Asset Inventory §7 — thumbnail image scraped; video source is a GoDaddy blobby asset (see scrape limitations §8).
+3.7 How It Works — 4-Step Flow
+Section Label
+HOW IT WORKS
+Section Headline
+trAIn → Track → Analyze → Increase Revenue
+Step 1 — Train
+AI-powered, role-specific training for servers, hosts, bartenders, and managers
+Step 2 — Track
+Capture real-world behaviors:
+	•	Greeting time
+	•	Upselling activity
+	•	Guest recovery actions
+Step 3 — Analyze
+(Step rendered but body copy lazy-loaded — not captured in scrape. See §8.)
+Step 4 — Optimize
+Connect behavior to GUESTSIGHT, which:
+	•	Surfaces guest sentiment in real time
+	•	Check averages
+	•	Guest satisfaction
+Deliver real-time feedback and continuously improve performance
+3.8 Contact Form
+Section Headline
+Contact Us — Let's Talk
+Fields
+	•	Name (text input)
+	•	Email* (required, email input)
+	•	Send (submit button)
+reCAPTCHA
+Protected by Google reCAPTCHA. Privacy Policy: https://policies.google.com/privacy | Terms: https://policies.google.com/terms
+Sidebar Copy
+Whether you're a hotel operator, investor, or potential partner in the distinct hospitality solutions sector, we want to hear from you and collaborate on enhancing front of house operations with our hospitality experts.
+WhatsApp CTA
+	•	Message us on WhatsApp — https://wa.me/13055481826
+3.9 Newsletter Subscribe
+Label
+Distinct — Subscribe, Stay Ahead of the Curve
+Body
+Get hospitality AI insights, platform updates, and industry intelligence delivered to your inbox.
+Field
+	•	Email Address input + Sign up button
+
+4. Page: About
+URL: https://distincthospitalitysolutions.com/about
+4.1 Hero
+H1
+Built for Hospitality. Designed for Scale.
+Sub-label
+Solutions for Your Business
+Tag
+One Platform
+4.2 About Us Block
+Sub-headline
+Performance infrastructure for hospitality teams
+Body
+Our commitment to excellence began with a simple desire. To provide every person we touched with the best possible experience through service.
+That cannot be automated.
+We strive for a real one on one valued moment, we wanted to replicate the best experiences and multiply them at scale without losing the essence of a client's message, culture and identity.
+How could we deliver this commitment?
+Our Team, Your Resource. Our Platform your Tool
+That is why we created DISTINCT.
+4.3 Our History
+Sub-headline
+Our history
+Body
+Distinct is a unique tool geared towards the service industries. We provide systems for training and development. DISTINCT is an immersive and gamefied platform to drive your team's success.
+4.4 Why Distinct
+Sub-headline
+WHY DISTINCT
+Body
+To bring you the most innovative and data driven solutions across all industry levels and department.
+4.5 Product Platform Block
+Headline
+OUR PRODUCT PLATFORM — One Platform. Total Operational Visibility.
+Sub-label
+AI-driven training and coaching engine:
+	•	TR Ai N
+	•	GuestSight
+	•	StaffLink
+	•	Multi language
+	•	Customized Distinct Intelligence Layer
+AI agents analyze, optimize, and improve performance across locations.
+Footer Note
+Distinct NeuroNerd (appears as a section label/product name — no further copy scraped)
+Screenshot
+Image: Distinct's registration page for TR Ai N — see Asset Inventory §7
+
+5. Page: Products
+URL: https://distincthospitalitysolutions.com/products
+5.1 Hero
+H1
+TWO PRODUCTS. ONE COMPETITIVE EDGE.
+CTA
+	•	Find out more — https://distincthospitalitysolutions.com/products (links to same page — anchor scroll implied)
+5.2 TR Ai N Product Block
+Sub-label
+Hello (eyebrow label as on page)
+Section Headline
+AI Microlearning for Hospitality Teams
+Body
+TR Ai N Delivers role-specific training your staff completes on any device, in any language.
+	•	Reduce onboarding time
+	•	Boost service scores
+	•	Build a culture of continuous excellence
+CTA
+	•	learn more about tr aI n — https://distincthospitalitysolutions.com/products
+5.3 TR Ai N Video
+Section Label
+TR Ai N APP
+Video
+Thumbnail + video player — same GoDaddy blobby asset as Home page. See Asset Inventory §7 and §8 for scrape limitations.
+5.4 GuestSight Product Block
+Sub-label
+LIVE GUEST SENTIMENT INTELLIGENCE
+Section Headline
+GUESTSIGHT
+Body
+Captures and analyzes guest feedback in real time. Before it becomes a bad review. Know what your guests feel, act before they leave, and turn every stay into a loyalty opportunity.
+CTA
+	•	learn more about guestsight — mailto:guestsight@distincthospitalitysolutions.com
+5.5 Training Modules — Hotels / Bars / Restaurants
+Section Label
+HOTELS BARS RESTAURANTS
+FRONT DESK
+Display Label
+FRONT DESK TRAINING
+Link
+https://distinct-app.onrender.com/#course-details-section
+CULINARY
+Display Label
+CULINARY TRAINING
+Link
+https://distinct-app.onrender.com/
+FRONT OF HOUSE
+Display Label
+FOH TRAINING
+Link
+https://distinct-app.onrender.com/
+BARS
+Display Label
+BAR PROGRAM TRAINING
+Link
+https://distinct-app.onrender.com/#course-details-section
+HOUSEKEEPING
+Display Label
+HOUSEKEEPING TRAINING
+Link
+https://distinct-app.onrender.com/
+POOL AND BEACH
+Display Label
+POOL AND BEACH
+Link
+https://distinct-app.onrender.com/
+5.6 Training Modules — Residences
+Section Label
+RESIDENCES: STAFF TRAINING  |  RESIDENT ONBOARDING  |  COMPLIANCE
+ESTATE STAFF & SOP'S
+Display Label
+EXECUTIVE AND DOMESTIC ESTATE STAFF TRAINING
+Link
+<#> (anchor — no external URL)
+RESIDENTIAL ONBOARDING
+Display Label
+CONDO OWNERS, HOUSE GUESTS
+Link
+https://distinct-app.onrender.com/
+COMPLIANCE
+Display Label
+COMPLIANCE & SAFETY TRAINING
+Link
+https://distinct-app.onrender.com/#course-details-section
+
+6. All External Links & Contact Points
+Purpose
+URL / Contact
+Page(s)
+Book a Demo
+mailto:DEMO@distincthospitalitysolutions.com
+Home
+Join Waitlist
+mailto:WAITLIST@distincthospitalitysolutions.com
+Home
+Get in Touch (bar)
+mailto:INFO@DISTINCTHOSPITALITYSOLUTION.COM
+Home
+Get Started (CTA)
+mailto:INFO@DISTINCTHOSPITALITYSOLUTIONS.COM
+Home
+Discovery Call
+tel:+13055481826
+Home
+Submit Inquiry
+mailto:team@distincthospitalitysolutions.com
+Home
+Residential Waitlist
+mailto:info@traindistinct.com
+Home
+WhatsApp
+https://wa.me/13055481826
+Home
+GuestSight Info
+mailto:guestsight@distincthospitalitysolutions.com
+Products
+TR Ai N App
+https://distinct-app.onrender.com/
+Products
+TR Ai N App (anchor)
+https://distinct-app.onrender.com/#course-details-section
+Products
+Google reCAPTCHA Privacy
+https://policies.google.com/privacy
+Home
+Google reCAPTCHA Terms
+https://policies.google.com/terms
+Home
+Privacy Policy
+https://distincthospitalitysolutions.com/privacy-policy
+All
+
+7. Media & Asset Inventory
+All assets below were identified from page scrapes. CDN base: img1.wsimg.com (GoDaddy). Assets served via GoDaddy's image CDN and blobby file storage — see §8 for what cannot be directly downloaded.
+
+Asset
+URL
+Type
+Scrapable
+Logo (nav — large)
+img1.wsimg.com/isteam/ip/c941c1b4-2638-46cf-9a59-c33b8e6b9290/brandmark-design%20(11).png/:/rs=h:194,cg:true,m/qt=q:95
+PNG
+YES
+Logo (nav — small)
+img1.wsimg.com/isteam/ip/c941c1b4-2638-46cf-9a59-c33b8e6b9290/brandmark-design%20(11).png/:/rs=h:104,cg:true,m/qt=q:95
+PNG
+YES
+Hero Background Image (Home)
+img1.wsimg.com/isteam/ip/c941c1b4-2638-46cf-9a59-c33b8e6b9290/brandmark-design-1800x0%20(8).png/:/cr=t:0%25,l:0%25,w:100%25,h:100%25
+PNG
+YES
+Video Thumbnail (Home + Products)
+img1.wsimg.com/isteam/ip/c941c1b4-2638-46cf-9a59-c33b8e6b9290/thumbnails/thumbnail-bc981d6c-9f43-4d1f-b2b7-005bfd2226c5.png
+PNG
+YES
+Video File (train1.mp4)
+img1.wsimg.com/blobby/go/c941c1b4-2638-46cf-9a59-c33b8e6b9290/video/train1.mp4
+MP4
+⚠️ CHECK
+Platform Section Image (Home)
+data:image/gif;base64,R0lGODlhAQABAAD... (lazy placeholder)
+GIF/IMG
+NO
+Step 1 Train Image
+data:image/gif;base64 (lazy placeholder)
+GIF/IMG
+NO
+Step 2 Track Image
+data:image/gif;base64 (lazy placeholder)
+GIF/IMG
+NO
+Step 4 Optimize Image
+data:image/gif;base64 (lazy placeholder)
+GIF/IMG
+NO
+Person Holding Smartphone Image
+data:image/gif;base64 (lazy placeholder)
+GIF/IMG
+NO
+About — Performance Infrastructure Image
+data:image/gif;base64 (lazy placeholder)
+GIF/IMG
+NO
+About — Our History Image
+data:image/gif;base64 (lazy placeholder)
+GIF/IMG
+NO
+About — Why Distinct Image
+data:image/gif;base64 (lazy placeholder)
+GIF/IMG
+NO
+About — TR Ai N Registration Screenshot
+data:image/gif;base64 (lazy placeholder)
+GIF/IMG
+NO
+Products — GuestSight Image
+data:image/gif;base64 (lazy placeholder)
+GIF/IMG
+NO
+Products — Residences Image
+data:image/gif;base64 (lazy placeholder)
+GIF/IMG
+NO
+
+8. What Cannot Be Scraped — Explicit Flags
+The following items were NOT successfully retrieved via web fetch. These require manual action from the client or a browser session with JavaScript enabled.
+
+8.1 Lazy-Loaded Images (Critical Gap)
+The GoDaddy builder uses JavaScript-driven lazy loading. ALL section images below the fold are rendered as 1×1px base64 GIF placeholders in the raw HTML:
+    data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=
+This applies to approximately 12–14 images across Home, About, and Products pages. The actual image URLs are injected at scroll-time via JS — they cannot be retrieved without a headless browser session.
+Action Required
+Client must either: (a) provide original image files directly, or (b) enable browser automation session so images can be captured via scroll-triggered screenshots.
+8.2 Video File — train1.mp4
+Video URL identified: //img1.wsimg.com/blobby/go/c941c1b4-2638-46cf-9a59-c33b8e6b9290/video/train1.mp4
+This is a GoDaddy blobby storage asset. Direct download may work (no auth required on some GoDaddy blobs) but must be verified. The mp4 was not downloaded during scraping — it requires explicit confirmation before downloading.
+Action Required
+Client to confirm and provide the video file, or authorize direct download from the blobby URL.
+8.3 Contact Form Endpoint
+The contact form on the Home page submits to an undisclosed endpoint (GoDaddy's hosted form handler). The form action URL and any server-side logic are not accessible via HTML scraping.
+Action Required
+New implementation must use a replacement form service (e.g. Formspree, Netlify Forms, or custom API). Client to confirm preferred solution.
+8.4 Email Subscribe Endpoint
+The footer newsletter subscribe form has an email input and "Sign up" button, but the form submission target and any mailing list integration (e.g. Mailchimp, Klaviyo) are not exposed in the HTML.
+Action Required
+Client to confirm email platform and provide integration credentials or API key.
+8.5 Cookie Consent Behavior
+The site shows a "This website uses cookies" banner with Accept/Decline buttons. The cookie categories, consent management platform (CMP), and analytics integrations (e.g. Google Analytics, Hotjar) are not identifiable from the HTML alone.
+Action Required
+Client to confirm analytics tools in use and desired CMP for the new build.
+8.6 Step 3 — "Analyze" Content
+In the How It Works section on the Home page, Step 3 (Analyze) is listed as a heading but has no visible body copy in the scraped HTML. This appears to be either collapsed/animated content or a CMS-side gap.
+Action Required
+Client to provide the intended copy for the Analyze step, or confirm it is intentionally blank.
+8.7 reCAPTCHA Site Key
+The Google reCAPTCHA integration is confirmed but the site key (data-sitekey attribute) is injected via JS and was not captured in the static scrape.
+Action Required
+New build requires its own reCAPTCHA site key. Client to register at https://www.google.com/recaptcha/admin.
+8.8 Meta Tags, OG Data, and SEO
+Page titles are visible from scrape but meta descriptions, Open Graph tags, Twitter Card tags, canonical URLs, and structured data (JSON-LD) were not fully captured in the markdown extraction.
+Action Required
+SEO audit pass needed. Recommended: provide access to GoDaddy SEO settings or share current meta descriptions.
+
+9. Functional Requirements
+9.1 Pages
+	•	Implement all 4 pages: Home, About, Products, Privacy Policy
+	•	Privacy Policy page: placeholder state confirmed — implement as empty page with "coming soon" copy until client provides content
+9.2 Navigation
+	•	Sticky/fixed nav on scroll
+	•	Logo left, nav links right
+	•	Mobile: hamburger menu with "More" dropdown pattern
+	•	Active page state on nav links
+9.3 Hero — Animated Ticker
+	•	Horizontal auto-scrolling ticker: "The AI Platform Built for Hospitality" repeating
+	•	CSS marquee or JS scroll animation — no external lib dependency preferred
+9.4 Video Player
+	•	Native HTML5 <video> player with thumbnail poster
+	•	Autoplay off; controls visible
+	•	Source: train1.mp4 (pending client delivery — see §8.2)
+9.5 Contact Form
+	•	Fields: Name, Email* (required)
+	•	reCAPTCHA v2 or v3 integration (new site key required — see §8.7)
+	•	Form backend: TBD — client decision required (see §8.3)
+9.6 Newsletter Subscribe
+	•	Email input + submit
+	•	Integration: TBD — client to confirm (see §8.4)
+9.7 WhatsApp CTA
+	•	Link: https://wa.me/13055481826
+	•	Opens in new tab
+9.8 Cookie Banner
+	•	Accept / Decline buttons
+	•	CMP platform: TBD (see §8.5)
+
+10. Out of Scope for This PRD
+	•	New design / visual redesign — handled by claude.md and design system
+	•	Content creation or copywriting changes
+	•	Backend / database / user authentication
+	•	TR Ai N app (https://distinct-app.onrender.com/) — separate application
+	•	New features not present on current site
+
+11. Open Questions for Client
+#
+Question
+Impact
+1
+Can you provide all original image files directly? (Lazy-loading blocked 12+ images)
+Critical — cannot rebuild without images
+2
+Can you provide the train1.mp4 video file or authorize download?
+Critical — video section empty without it
+3
+Which form backend do you prefer? (Formspree / Netlify / custom)
+High — contact form non-functional until decided
+4
+Which email marketing platform handles the newsletter subscribe?
+High — subscribe form non-functional until decided
+5
+What analytics/tracking tools are currently installed?
+Medium — affects cookie banner & CMP choice
+6
+What is the intended copy for the "Analyze" step in the How It Works section?
+Medium — section currently blank in scrape
+7
+Do you have a new reCAPTCHA site key, or should we create one?
+Medium — contact form requires this
+8
+What is the target tech stack for the rebuild? (Next.js, Astro, etc.)
+High — determines architecture decisions
+9
+Is the Privacy Policy content being written? What is the timeline?
+Low — currently "coming soon"
+
+— END OF PRD —

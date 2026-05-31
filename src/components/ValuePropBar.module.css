@@ -1,0 +1,34 @@
+.bar {
+  background-color: var(--color-charcoal);
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--color-ivory);
+  margin-bottom: 0;
+  max-width: none;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+  .headline {
+    font-size: var(--text-lg);
+  }
+}

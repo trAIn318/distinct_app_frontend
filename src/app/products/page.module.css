@@ -1,0 +1,244 @@
+.page {
+  background-color: var(--color-obsidian);
+  color: var(--color-ivory);
+  min-height: 100vh;
+  padding-top: 80px;
+  /* Offset for nav */
+}
+
+/* Hero Section */
+.hero {
+  padding: var(--space-8) 0;
+  text-align: center;
+}
+
+.heroH1 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  line-height: 1.1;
+  margin-bottom: var(--space-4);
+  color: var(--color-ivory);
+}
+
+.heroTag {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: var(--space-4);
+  display: inline-block;
+}
+
+.heroSubLabel {
+  font-size: var(--text-base);
+  color: var(--color-smoke);
+}
+
+/* Product Blocks */
+.productBlock {
+  padding: var(--space-12) 0;
+}
+
+.productBlock:nth-child(even) {
+  background-color: var(--color-charcoal);
+}
+
+.videoSectionDark {
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-12);
+  align-items: center;
+}
+
+.productGrid.reverse {
+  direction: rtl;
+  /* simple way to reverse columns visually */
+}
+
+.productGrid.reverse>* {
+  direction: ltr;
+  /* reset text direction inside */
+}
+
+.textContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.imageWrapper {
+  width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--color-platinum);
+  aspect-ratio: 4 / 3;
+}
+
+.ariaImageWrapper {
+  aspect-ratio: auto;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.subLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: var(--space-4);
+  display: block;
+}
+
+.sectionHeadline {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--color-ivory);
+  margin-bottom: var(--space-6);
+}
+
+.bodyCopy {
+  font-size: var(--text-base);
+  color: var(--color-smoke);
+  line-height: 1.618;
+  margin-bottom: var(--space-6);
+  max-width: 800px;
+}
+
+.bulletList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-8) 0;
+}
+
+.bulletItem {
+  position: relative;
+  padding-left: var(--space-5);
+  margin-bottom: var(--space-2);
+  font-size: var(--text-base);
+  color: var(--color-smoke);
+  line-height: 1.5;
+}
+
+.bulletItem::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--color-gold);
+}
+
+/* Modules Grid */
+.modulesSection {
+  padding: var(--space-12) 0;
+}
+
+.modulesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+}
+
+.moduleCard {
+  background-color: var(--color-obsidian);
+  border: 1px solid var(--color-platinum);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.moduleCard:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-gold);
+}
+
+.cardImageWrapper {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-platinum);
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.cardContent {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.moduleLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  color: var(--color-gold);
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+.moduleTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--color-ivory);
+  margin-bottom: var(--space-4);
+  flex-grow: 1;
+}
+
+.moduleLink {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  color: var(--color-ivory);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-ivory);
+  padding-bottom: 2px;
+  align-self: flex-start;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  text-transform: uppercase;
+}
+
+.moduleLink:hover {
+  color: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+@media (max-width: 1024px) {
+  .modulesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .productGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+
+  .productGrid.reverse {
+    direction: ltr;
+    /* reset reverse on mobile */
+  }
+}
+
+@media (max-width: 768px) {
+  .heroH1 {
+    font-size: var(--text-xl);
+  }
+
+  .modulesGrid {
+    grid-template-columns: 1fr;
+  }
+}

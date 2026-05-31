@@ -1,0 +1,37 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.main {
+  text-align: center;
+}
+
+.main h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.main p {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.main code {
+  background: #f4f4f4;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  .main p {
+    color: #aaa;
+  }
+  .main code {
+    background: #222;
+  }
+}

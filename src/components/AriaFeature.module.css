@@ -1,0 +1,52 @@
+.section {
+  padding-top: var(--space-12);
+  padding-bottom: var(--space-12);
+  background: radial-gradient(ellipse at center, var(--color-charcoal) 0%, var(--color-obsidian) 70%);
+  border-top: 1px solid var(--color-platinum);
+  border-bottom: 1px solid var(--color-platinum);
+}
+
+.content {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.label {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: var(--space-3);
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--color-ivory);
+  margin-bottom: var(--space-6);
+  line-height: 1.15;
+}
+
+.body {
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+  line-height: 1.7;
+  margin-bottom: var(--space-8);
+}
+
+.body p {
+  margin-bottom: var(--space-4);
+}
+
+.body p:last-child {
+  margin-bottom: 0;
+}
+
+.ctaWrapper {
+  display: flex;
+  justify-content: center;
+}

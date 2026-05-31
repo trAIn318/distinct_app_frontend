@@ -1,0 +1,132 @@
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 540px) {
+  .row2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Consent checkbox ─────────────────────────────────────────────────── */
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-platinum);
+  cursor: pointer;
+  padding: var(--space-3) 0;
+}
+
+.consent input[type="checkbox"] {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--color-gold);
+  cursor: pointer;
+}
+
+.policyLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.policyLink:hover {
+  color: var(--color-gold-muted);
+}
+
+/* ── Modal de política ───────────────────────────────────────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+}
+
+.modal {
+  background: var(--color-surface-dark);
+  border: 1px solid rgba(216, 216, 216, 0.12);
+  max-width: 720px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  color: var(--color-ivory);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid rgba(216, 216, 216, 0.08);
+}
+
+.modalTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  margin: 0;
+  color: var(--color-ivory);
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  color: var(--color-platinum);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  transition: color 0.2s;
+}
+
+.modalClose:hover {
+  color: var(--color-gold);
+}
+
+.modalBody {
+  padding: var(--space-5) var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.policyText {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: var(--color-platinum);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  font-family: var(--font-body); /* override pre default monospace */
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid rgba(216, 216, 216, 0.08);
+}

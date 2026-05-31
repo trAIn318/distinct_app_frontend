@@ -1,0 +1,174 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(216, 216, 216, 0.1);
+  transition: background 0.3s ease, padding 0.3s ease;
+}
+
+.navContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.logo {
+  max-width: 140px;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.userBadge {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  padding: 0 var(--space-2);
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navLink {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ivory);
+  padding: var(--space-2) 0;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.navLink:hover {
+  color: var(--color-gold);
+}
+
+.navLinkActive {
+  color: var(--color-gold);
+}
+
+.navLinkActive::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-gold);
+}
+
+.menuButton {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--color-ivory);
+  width: 24px;
+  height: 24px;
+  position: relative;
+  z-index: 200;
+  cursor: pointer;
+}
+
+.menuButtonLine {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: currentColor;
+  position: absolute;
+  left: 0;
+  transition: transform 0.3s ease, top 0.3s ease, opacity 0.3s ease;
+}
+
+.menuButtonLine:first-child {
+  top: 6px;
+}
+
+.menuButtonLine:last-child {
+  top: 16px;
+}
+
+.menuButtonOpen .menuButtonLine:first-child {
+  top: 11px;
+  transform: rotate(45deg);
+}
+
+.menuButtonOpen .menuButtonLine:last-child {
+  top: 11px;
+  transform: rotate(-45deg);
+}
+
+/* Mobile Menu Overlay */
+.mobileMenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: var(--color-obsidian);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-8);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.mobileMenuOpen {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.mobileMenu .navLink {
+  font-size: var(--text-lg);
+}
+
+.mobileActionGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+@media (max-width: 768px) {
+  .navLinks {
+    display: none;
+  }
+
+  .menuButton {
+    display: block;
+  }
+}
