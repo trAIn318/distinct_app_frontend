@@ -1,0 +1,178 @@
+.section {
+  padding: var(--space-12) 0;
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
+  border-top: 1px solid rgba(216, 216, 216, 0.08);
+  border-bottom: 1px solid rgba(216, 216, 216, 0.08);
+}
+
+.eyebrow {
+  display: block;
+  text-align: center;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: var(--space-3);
+}
+
+.headline {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-8) 0;
+}
+
+/* ── Card area with nav buttons ─────────────────────────────────────── */
+
+.cardWrap {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-5);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.navBtn {
+  background: transparent;
+  color: var(--color-platinum);
+  border: 1px solid rgba(216, 216, 216, 0.2);
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+
+.navBtn:hover {
+  color: var(--color-gold);
+  border-color: var(--color-gold);
+  background: rgba(201, 169, 110, 0.05);
+}
+
+.card {
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  animation: fadeIn 0.5s ease;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.stars {
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: var(--color-gold);
+}
+
+.starsEmpty {
+  color: rgba(201, 169, 110, 0.2);
+}
+
+.quote {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--color-ivory);
+  margin: 0;
+  font-style: italic;
+  position: relative;
+  padding: 0 var(--space-4);
+}
+
+.openMark,
+.closeMark {
+  color: var(--color-gold);
+  font-size: var(--text-xl);
+  font-style: normal;
+  line-height: 0;
+  padding: 0 var(--space-1);
+  vertical-align: -0.1em;
+}
+
+.attribution {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.name {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-ivory);
+  letter-spacing: 0.02em;
+}
+
+.meta {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-smoke);
+}
+
+/* ── Dots indicators ────────────────────────────────────────────────── */
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+
+.dot {
+  background: transparent;
+  border: 1px solid rgba(216, 216, 216, 0.3);
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.dot:hover {
+  border-color: var(--color-gold);
+}
+
+.dotActive {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+/* ── Animation ──────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: none; }
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .cardWrap {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  .navPrev { grid-row: 2; justify-self: start; }
+  .navNext { grid-row: 2; justify-self: end; }
+  .card { grid-row: 1; padding: var(--space-5) 0; }
+  .quote { font-size: var(--text-md); padding: 0; }
+}

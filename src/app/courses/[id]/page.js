@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCourse } from "../../../lib/api";
+import { getCourse, getReviews } from "../../../lib/api";
 import {
   MOODLE_URL,
   resolveCourseImage,
   buildOwnersOutlookCompose,
 } from "../../../lib/config";
+import TestimonialsCarousel from "../../../components/TestimonialsCarousel";
 import styles from "./page.module.css";
 
 export async function generateMetadata({ params }) {
@@ -45,6 +46,10 @@ export default async function CourseDetailPage({ params }) {
   if (!course) {
     notFound();
   }
+
+  // Testimonios: hoy son generales (no hay vínculo por curso en la tabla).
+  // Si más adelante se agrega `mcourse_id` a `testimonials`, aquí se filtra.
+  const testimonials = await getReviews({ limit: 8 }).catch(() => []);
 
   const imageSrc = resolveCourseImage(course.image_url);
   const videoEmbed = toYouTubeEmbed(course.video_url);
@@ -153,6 +158,13 @@ export default async function CourseDetailPage({ params }) {
           </div>
         </section>
       )}
+
+      {/* Testimonios rotando */}
+      <TestimonialsCarousel
+        testimonials={testimonials}
+        eyebrow="What our learners say"
+        title="Voices from the Floor"
+      />
 
       {/* Footer CTA */}
       <section className={styles.footerCta}>

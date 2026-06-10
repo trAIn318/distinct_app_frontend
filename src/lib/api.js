@@ -103,8 +103,13 @@ export async function getActivePolicy() {
 
 // ── Reviews / Partners / FAQ (preparado para futuras secciones) ────────────
 
-export async function getReviews() {
-  const data = await apiGet(`/reviews/`);
+/**
+ * GET /api/reviews/?limit=N
+ * Lista de testimonios aprobados.
+ */
+export async function getReviews({ limit } = {}) {
+  const qs = limit ? `?limit=${limit}` : "";
+  const data = await apiGet(`/reviews/${qs}`);
   return data?.reviews ?? [];
 }
 
