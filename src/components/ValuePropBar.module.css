@@ -1,7 +1,19 @@
 .bar {
+  position: relative;
   background-color: var(--color-charcoal);
   padding-top: var(--space-8);
   padding-bottom: var(--space-8);
+  border-top: 1px solid var(--gold-15);
+  border-bottom: 1px solid var(--gold-15);
+}
+
+/* Resplandor dorado muy tenue en el centro */
+.bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 50% 100% at 50% 50%, var(--gold-08), transparent 70%);
+  pointer-events: none;
 }
 
 .container {

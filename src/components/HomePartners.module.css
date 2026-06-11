@@ -1,0 +1,103 @@
+/* HomePartners — logos de partners al cierre de la home */
+
+.section {
+  padding: var(--space-12) 0;
+  /* sin background: deja pasar el GoldenThread */
+  border-top: 1px solid rgba(216, 216, 216, 0.08);
+  text-align: center;
+}
+
+.eyebrow {
+  display: block;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: var(--space-3);
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-10) 0;
+}
+
+.grid {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 220px;
+  padding: var(--space-6);
+  background: var(--color-surface-dark);
+  border: 1px solid var(--ivory-08);
+  transition:
+    transform var(--duration-base) var(--ease-luxe),
+    border-color var(--duration-base) var(--ease-smooth),
+    box-shadow var(--duration-base) var(--ease-smooth);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  border-color: var(--gold-30);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* Los logos son imágenes de fondo claro — placa ivory para integrarlos */
+.logo {
+  width: 100%;
+  height: 72px;
+  object-fit: contain;
+  background: var(--color-ivory);
+  padding: var(--space-3);
+  border-radius: 2px;
+  filter: grayscale(1);
+  opacity: 0.85;
+  transition: filter var(--duration-base) var(--ease-smooth), opacity var(--duration-base) var(--ease-smooth);
+}
+
+.card:hover .logo {
+  filter: grayscale(0);
+  opacity: 1;
+}
+
+.fallbackName {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--color-ivory);
+}
+
+.name {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-smoke);
+  transition: color var(--duration-fast) ease;
+}
+
+.card:hover .name {
+  color: var(--color-gold);
+}
+
+@media (max-width: 600px) {
+  .grid {
+    gap: var(--space-4);
+  }
+  .card {
+    width: 160px;
+    padding: var(--space-4);
+  }
+}

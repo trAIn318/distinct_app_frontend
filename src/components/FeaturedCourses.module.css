@@ -1,6 +1,6 @@
 .section {
   padding: var(--space-12) 0;
-  background: var(--color-obsidian);
+  /* sin background: deja ver el GoldenThread (el body ya es obsidian) */
   color: var(--color-text-inverse);
 }
 

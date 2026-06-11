@@ -1,0 +1,56 @@
+/* GoldenThread — lazo dorado de fondo que se dibuja con el scroll */
+
+.wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: -1; /* detrás del contenido, encima del fondo del body */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+}
+
+/* Halo difuso bajo la línea */
+.glow {
+  stroke: var(--gold-15);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+/* Línea principal */
+.line {
+  stroke: var(--color-gold);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.65;
+}
+
+/* Punta luminosa */
+.tip {
+  fill: var(--color-gold);
+  opacity: 0;
+  filter: drop-shadow(0 0 6px var(--color-gold))
+    drop-shadow(0 0 14px var(--gold-50));
+  transition: opacity 0.3s ease;
+}
+
+/* En pantallas pequeñas el lazo cruzaría el texto — se oculta */
+@media (max-width: 900px) {
+  .wrapper {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line {
+    opacity: 0.35;
+  }
+  .glow {
+    opacity: 0.5;
+  }
+}

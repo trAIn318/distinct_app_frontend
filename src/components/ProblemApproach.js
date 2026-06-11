@@ -1,15 +1,25 @@
+import { buildOwnersOutlookCompose } from "../lib/config";
+import Reveal from "./Reveal";
 import styles from "./ProblemApproach.module.css";
+
+// CTA unificado: igual que "I'm Interested" en cursos, contacta a los owners
+const contactUrl = buildOwnersOutlookCompose(
+  "General Inquiry — Distinct Hospitality Solutions",
+  "Hi Veronica, Luznedy, and Hugo,\n\nI'd like to learn more about Distinct and how it can help my property.\n\nThank you,\n"
+);
 
 export default function ProblemApproach() {
   return (
     <section className={styles.section} aria-labelledby="problem-approach-heading">
       <div className="container">
-        <span className={styles.sectionLabel}>The Real Cost of Inconsistency</span>
-        <h2 id="problem-approach-heading" className={styles.sectionHeadline}>
-          Training Doesn&apos;t Fail. Measurement Does.
-        </h2>
-        
-        <div className={styles.grid}>
+        <Reveal>
+          <span className={styles.sectionLabel}>The Real Cost of Inconsistency</span>
+          <h2 id="problem-approach-heading" className={styles.sectionHeadline}>
+            Training Doesn&apos;t Fail. <span className="emphasized gold">Measurement</span> Does.
+          </h2>
+        </Reveal>
+
+        <Reveal group className={styles.grid}>
           {/* Problem Block (~61.8%) */}
           <div className={styles.problemColumn}>
             <h3 className={styles.blockHeadline}>
@@ -41,14 +51,16 @@ export default function ProblemApproach() {
             </p>
             <div>
               <a
-                href="mailto:info@distincthospitalitysolutions.com"
+                href={contactUrl}
                 className="btn-primary"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                Get Started
+                Get in Touch
               </a>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

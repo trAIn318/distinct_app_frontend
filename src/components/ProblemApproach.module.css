@@ -1,7 +1,7 @@
 .section {
   padding-top: var(--space-12);
   padding-bottom: var(--space-12);
-  background-color: var(--color-obsidian);
+  /* sin background: deja ver el GoldenThread (el body ya es obsidian) */
 }
 
 .sectionLabel {
@@ -36,14 +36,29 @@
 }
 
 .approachColumn {
+  position: relative;
   flex: 1 1 35%; /* Roughly 38.2% */
   min-width: 300px;
-  background-color: var(--color-charcoal);
-  padding: var(--space-6);
-  border: 1px solid var(--color-platinum);
+  background:
+    linear-gradient(135deg, var(--gold-08), transparent 40%),
+    var(--color-charcoal);
+  padding: var(--space-8) var(--space-6);
+  border: 1px solid var(--ivory-08);
+  border-top: 2px solid var(--color-gold);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  transition:
+    border-color var(--duration-base) var(--ease-smooth),
+    box-shadow var(--duration-base) var(--ease-smooth),
+    transform var(--duration-base) var(--ease-smooth);
+}
+
+.approachColumn:hover {
+  border-color: var(--gold-30);
+  border-top-color: var(--color-gold);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-4px);
 }
 
 .blockHeadline {
@@ -64,10 +79,18 @@
 .problemItem {
   position: relative;
   padding-left: var(--space-5);
-  margin-bottom: var(--space-3);
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
   font-size: var(--text-md);
   color: var(--color-ivory);
   line-height: 1.5;
+  border-bottom: 1px solid var(--ivory-08);
+  transition: padding-left var(--duration-fast) var(--ease-smooth);
+}
+
+.problemItem:last-child {
+  border-bottom: none;
 }
 
 .problemItem::before {
@@ -75,6 +98,15 @@
   position: absolute;
   left: 0;
   color: var(--color-gold);
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+
+.problemItem:hover {
+  padding-left: var(--space-6);
+}
+
+.problemItem:hover::before {
+  transform: translateX(4px);
 }
 
 .approachBody {

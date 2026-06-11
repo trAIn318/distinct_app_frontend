@@ -1,63 +1,31 @@
-"use client";
-
-import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import styles from "./Footer.module.css";
 
+/**
+ * Footer global.
+ * Nota: el bloque "Subscribe" (newsletter) se eliminó jun-2026 — era un
+ * formulario simulado (nunca guardaba el email) y resultaba redundante
+ * con el Sign Up de cuentas. Si en el futuro hay un servicio real de
+ * newsletter, recuperar el bloque del historial de git y conectarlo.
+ */
 export default function Footer() {
-  const [email, setEmail] = useState("");
-
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (!email) return;
-    
-    // Form endpoint omitted pending client decision (PRD §8.4)
-    console.log("Newsletter subscription simulated:", email);
-    alert("Thank you for subscribing! (Simulated)");
-    setEmail("");
-  };
-
   return (
     <footer className={styles.footer} aria-label="Global Footer">
       <div className="container">
-        <div className={styles.footerLogo}>
-          <Link href="/">
-            <img
-              src="/img/logo_cropped.png"
-              alt="Distinct Hospitality Solutions"
-              className={styles.footerLogoImage}
-            />
-          </Link>
-        </div>
-
         <div className={styles.grid}>
-          {/* Newsletter Section */}
-          <div className={styles.newsletter}>
-            <span className={styles.newsletterLabel}>
-              Subscribe — Stay Ahead of the Curve
-            </span>
-            <p className={styles.newsletterBody}>
-              Get hospitality AI insights, platform updates, and industry intelligence delivered to your inbox.
-            </p>
-            <form onSubmit={handleSubscribe} className={styles.form}>
-              <label htmlFor="newsletter-email" className="sr-only">Email Address</label>
-              <input
-                type="email"
-                id="newsletter-email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email Address"
-                className={styles.input}
+          <div className={styles.brandColumn}>
+            <Link href="/">
+              <img
+                src="/img/logo_cropped.png"
+                alt="Distinct Hospitality Solutions"
+                className={styles.footerLogoImage}
               />
-              <button type="submit" className="btn-primary">
-                Sign up
-              </button>
-            </form>
+            </Link>
+            <p className={styles.tagline}>
+              The AI platform built for the people who run hospitality.
+            </p>
           </div>
 
-          {/* Info Section */}
           <div className={styles.infoColumn}>
             <p className={styles.infoText}>
               <Link href="/privacy-policy" className={styles.privacyLink}>

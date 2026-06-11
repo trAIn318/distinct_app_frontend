@@ -69,12 +69,27 @@ export function buildOwnersMailto(subject, body) {
  * Si el usuario no tiene cuenta Microsoft, Outlook le pedirá login (caso raro).
  */
 export function buildOwnersOutlookCompose(subject, body) {
+  // OJO: no usar URLSearchParams — codifica espacios como "+" y el composer
+  // de Outlook los muestra literales ("Hi+Veronica"). encodeURIComponent
+  // usa %20, que Outlook sí decodifica correctamente.
   const to = OWNER_EMAILS.join(",");
-  const params = new URLSearchParams();
-  params.set("to", to);
-  if (subject) params.set("subject", subject);
-  if (body) params.set("body", body);
-  return `https://outlook.office.com/mail/deeplink/compose?${params.toString()}`;
+  const parts = [`to=${encodeURIComponent(to)}`];
+  if (subject) parts.push(`subject=${encodeURIComponent(subject)}`);
+  if (body) parts.push(`body=${encodeURIComponent(body)}`);
+  return `https://outlook.office.com/mail/deeplink/compose?${parts.join("&")}`;
+}
+
+/**
+ * Resuelve la URL del logo de un partner. La DB guarda solo el filename
+ * (p.ej. "alani.png"); los archivos viven en los estáticos del backend,
+ * servidos por whitenoise tanto en local como en Render.
+ */
+export function resolvePartnerLogo(filename) {
+  if (!filename) return null;
+  if (filename.startsWith("http://") || filename.startsWith("https://")) {
+    return filename;
+  }
+  return `${API_URL}/static/images/${filename}`;
 }
 
 /**

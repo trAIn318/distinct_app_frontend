@@ -1,10 +1,11 @@
+import Reveal from "./Reveal";
 import styles from "./AriaFeature.module.css";
 
 export default function AriaFeature() {
   return (
     <section className={styles.section} aria-labelledby="aria-feature-heading">
       <div className="container">
-        <div className={styles.content}>
+        <Reveal className={styles.content}>
           <span className={styles.label}>Meet ARIA</span>
           <h2 id="aria-feature-heading" className={styles.headline}>
             The Mentor That Never Clocks Out.
@@ -27,7 +28,7 @@ export default function AriaFeature() {
               Talk to ARIA →
             </a>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

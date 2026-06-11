@@ -1,6 +1,7 @@
 import { getCourses } from "../../lib/api";
 import { MOODLE_URL } from "../../lib/config";
 import CourseCard from "../../components/CourseCard";
+import Reveal from "../../components/Reveal";
 import styles from "./page.module.css";
 
 export const metadata = {
@@ -16,7 +17,7 @@ export default async function CoursesPage() {
     <div className={styles.page}>
       {/* Hero */}
       <section className={styles.hero} aria-labelledby="courses-hero">
-        <div className="container">
+        <Reveal className="container">
           <span className={styles.heroTag}>Training Library</span>
           <h1 id="courses-hero" className={styles.heroH1}>
             Every Course.{" "}
@@ -37,7 +38,7 @@ export default async function CoursesPage() {
               Access Moodle
             </a>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* Courses grid */}
@@ -52,11 +53,11 @@ export default async function CoursesPage() {
               <p>The catalog is being updated. Please check back soon, or contact us directly.</p>
             </div>
           ) : (
-            <div className={styles.grid}>
+            <Reveal group className={styles.grid}>
               {courses.map((course) => (
                 <CourseCard key={course.id} course={course} />
               ))}
-            </div>
+            </Reveal>
           )}
         </div>
       </section>

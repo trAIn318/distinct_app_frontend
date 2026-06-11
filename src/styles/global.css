@@ -11,6 +11,38 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  background-color: var(--color-obsidian); /* evita flash blanco al cargar */
+  scroll-behavior: smooth;
+}
+
+/* Selección de texto — dorado sobre obsidiana */
+::selection {
+  background: var(--color-gold);
+  color: var(--color-obsidian);
+}
+
+/* Focus visible — accesible y coherente con la marca */
+:focus-visible {
+  outline: 1px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+/* Scrollbar discreto (WebKit) */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-obsidian);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-charcoal);
+  border: 2px solid var(--color-obsidian);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-muted);
+}
+
 body {
   background-color: var(--color-obsidian);
   color: var(--color-ivory);
@@ -47,6 +79,16 @@ button {
   border: none;
   cursor: pointer;
   font: inherit;
+}
+
+/* Las secciones quedan debajo del nav fijo al navegar con anchors/ScrollRail */
+main > section {
+  scroll-margin-top: 88px;
+}
+
+/* Ancla para elementos decorativos absolutos (GoldenThread) */
+main {
+  position: relative;
 }
 
 /* Base structural layout class */
@@ -92,4 +134,71 @@ button {
 
 .emphasized.gold {
   color: var(--color-gold);
+}
+
+/* ── Scroll Reveal System (ver components/Reveal.js) ─────────────── */
+/* Modo simple: el wrapper anima */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity var(--duration-reveal) var(--ease-luxe),
+    transform var(--duration-reveal) var(--ease-luxe);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Modo grupo: los hijos directos animan en cascada.
+   Usa animation con fill "backwards" (no "both") a propósito: al terminar,
+   el hijo vuelve a sus estilos naturales y sus propios hovers
+   (transform/transition de las cards) funcionan sin conflicto. */
+.reveal-group > * {
+  opacity: 0;
+}
+
+.reveal-group.is-visible > * {
+  opacity: 1;
+  animation: revealUp var(--duration-reveal) var(--ease-luxe) backwards;
+}
+
+.reveal-group.is-visible > *:nth-child(2) { animation-delay: 0.1s; }
+.reveal-group.is-visible > *:nth-child(3) { animation-delay: 0.2s; }
+.reveal-group.is-visible > *:nth-child(4) { animation-delay: 0.3s; }
+.reveal-group.is-visible > *:nth-child(5) { animation-delay: 0.4s; }
+.reveal-group.is-visible > *:nth-child(6) { animation-delay: 0.5s; }
+.reveal-group.is-visible > *:nth-child(n+7) { animation-delay: 0.6s; }
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Sin animación si el usuario lo prefiere — el contenido siempre es visible */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-group > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ── Hairline dorado decorativo ──────────────────────────────────── */
+.gold-hairline {
+  display: block;
+  width: 64px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  margin: 0 auto var(--space-5);
 }

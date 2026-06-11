@@ -1,7 +1,7 @@
 /* ── Hero Section ─────────────────────────────────────────────────── */
 .hero {
   position: relative;
-  min-height: 90vh;
+  min-height: 92vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -10,8 +10,33 @@
   background-color: var(--color-obsidian);
 }
 
+/* Atmósfera — resplandor dorado superior + viñeta inferior */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 75% 55% at 50% -12%, var(--gold-15), transparent 62%),
+    radial-gradient(ellipse 90% 45% at 50% 115%, rgba(0, 0, 0, 0.55), transparent 70%);
+  pointer-events: none;
+}
+
+/* Hairline dorado vertical que "cae" sobre el contenido */
+.hero::after {
+  content: "";
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  width: 1px;
+  height: var(--space-10);
+  background: linear-gradient(to bottom, transparent, var(--gold-50));
+  transform: translateX(-50%);
+  animation: drawDown 1.2s var(--ease-luxe) 0.2s both;
+}
+
 /* ── Centered single-column layout ────────────────────────────────── */
 .heroInner {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -25,9 +50,30 @@
   align-items: center;
   text-align: center;
   max-width: 760px;
-  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Entrada escalonada */
+.eyebrow,
+.subHeadline,
+.bodyCopy,
+.ctaGroup {
   opacity: 0;
   transform: translateY(24px);
+  animation: fadeUp 0.9s var(--ease-luxe) forwards;
+}
+
+.eyebrow     { animation-delay: 0.15s; }
+.subHeadline { animation-delay: 0.3s; }
+.bodyCopy    { animation-delay: 0.5s; }
+.ctaGroup    { animation-delay: 0.7s; }
+
+.eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: var(--space-5);
 }
 
 .subHeadline {
@@ -55,6 +101,25 @@
   justify-content: center;
 }
 
+/* ── Scroll cue — línea vertical que respira ──────────────────────── */
+.scrollCue {
+  position: absolute;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  animation: fadeUp 0.9s var(--ease-luxe) 1.4s forwards;
+}
+
+.scrollCueLine {
+  display: block;
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(to bottom, var(--gold-50), transparent);
+  transform-origin: top;
+  animation: breathe 2.6s ease-in-out 1.6s infinite;
+}
+
 /* ── Animations ───────────────────────────────────────────────────── */
 @keyframes fadeUp {
   to {
@@ -63,12 +128,36 @@
   }
 }
 
+@keyframes drawDown {
+  from {
+    transform: translateX(-50%) scaleY(0);
+    transform-origin: top;
+  }
+  to {
+    transform: translateX(-50%) scaleY(1);
+    transform-origin: top;
+  }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scaleY(1); opacity: 1; }
+  50%      { transform: scaleY(0.45); opacity: 0.5; }
+}
+
 /* ── Reduced motion ───────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .heroContent {
+  .eyebrow,
+  .subHeadline,
+  .bodyCopy,
+  .ctaGroup,
+  .scrollCue {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+  .hero::after,
+  .scrollCueLine {
+    animation: none;
   }
 }
 
@@ -76,6 +165,10 @@
 @media (max-width: 768px) {
   .subHeadline {
     font-size: var(--text-2xl);
+  }
+
+  .hero::after {
+    display: none;
   }
 
   .ctaGroup {

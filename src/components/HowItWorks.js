@@ -1,18 +1,19 @@
 import TrainWord from "./TrainWord";
+import Reveal from "./Reveal";
 import styles from "./HowItWorks.module.css";
 
 export default function HowItWorks() {
   return (
     <section className={styles.section} aria-labelledby="how-it-works-heading">
       <div className="container">
-        <header className={styles.header}>
+        <Reveal as="header" className={styles.header}>
           <span className={styles.eyebrow}>HOW IT WORKS</span>
           <h2 id="how-it-works-heading" className={styles.headline}>
             <TrainWord />{" "}→ Track → Analyze → Grow
           </h2>
-        </header>
+        </Reveal>
 
-        <div className={styles.grid}>
+        <Reveal group className={styles.grid}>
           {/* Step 1 */}
           <article className={styles.stepCard}>
             <div className={styles.imageWrapper}>
@@ -60,7 +61,7 @@ export default function HowItWorks() {
               Performance becomes revenue. Connect training completion to sales per cover, average check, upsell rate, and tip percentage. See exactly where your investment went and who it moved.
             </p>
           </article>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

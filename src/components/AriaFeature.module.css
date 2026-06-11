@@ -1,9 +1,12 @@
 .section {
+  position: relative;
   padding-top: var(--space-12);
   padding-bottom: var(--space-12);
-  background: radial-gradient(ellipse at center, var(--color-charcoal) 0%, var(--color-obsidian) 70%);
-  border-top: 1px solid var(--color-platinum);
-  border-bottom: 1px solid var(--color-platinum);
+  background:
+    radial-gradient(ellipse 55% 65% at 50% 50%, var(--gold-08), transparent 70%),
+    radial-gradient(ellipse at center, var(--color-charcoal) 0%, var(--color-obsidian) 70%);
+  border-top: 1px solid var(--gold-15);
+  border-bottom: 1px solid var(--gold-15);
 }
 
 .content {
@@ -13,7 +16,9 @@
 }
 
 .label {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 500;
@@ -21,6 +26,19 @@
   text-transform: uppercase;
   color: var(--color-gold);
   margin-bottom: var(--space-3);
+}
+
+/* Hairlines a ambos lados del label */
+.label::before,
+.label::after {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-50));
+}
+
+.label::after {
+  background: linear-gradient(90deg, var(--gold-50), transparent);
 }
 
 .headline {

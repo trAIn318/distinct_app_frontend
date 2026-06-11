@@ -12,6 +12,7 @@ const LOGO_URL = "/img/logo_cropped.png";
 export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -19,6 +20,14 @@ export default function Navigation() {
   useEffect(() => {
     setUser(getCurrentUser());
   }, [pathname]);
+
+  // Nav compacto + fondo más sólido al hacer scroll
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -55,7 +64,7 @@ export default function Navigation() {
     user?.first_name || user?.username || (user?.email ? user.email.split("@")[0] : "");
 
   return (
-    <header className={styles.nav}>
+    <header className={`${styles.nav} ${isScrolled ? styles.navScrolled : ""}`}>
       <div className={`container ${styles.navContainer}`}>
         <div className={styles.logoArea}>
           <Link href="/">

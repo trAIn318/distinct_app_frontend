@@ -107,8 +107,15 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  border: 1px solid rgba(216, 216, 216, 0.1);
+  border: 1px solid var(--ivory-15);
   background: var(--color-charcoal);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--duration-base) var(--ease-smooth), box-shadow var(--duration-base) var(--ease-smooth);
+}
+
+.heroImageWrapper:hover {
+  border-color: var(--gold-50);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 0 32px var(--gold-15);
 }
 
 .heroImage {
@@ -116,6 +123,11 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 1.2s var(--ease-luxe);
+}
+
+.heroImageWrapper:hover .heroImage {
+  transform: scale(1.04);
 }
 
 /* ── Sections ─────────────────────────────────────────────────────────── */
@@ -132,6 +144,16 @@
   letter-spacing: 0.02em;
   color: var(--color-ivory);
   margin: 0 0 var(--space-5) 0;
+}
+
+/* Hairline dorado bajo el título de sección */
+.sectionHeadline::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-gold), transparent);
+  margin-top: var(--space-3);
 }
 
 .body {

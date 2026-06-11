@@ -1,48 +1,87 @@
-/* Primary — gold fill */
-.btn-primary {
-  background: var(--color-gold);
-  color: var(--color-obsidian);
-  border: 1px solid var(--color-gold);
+/* ── Botones — base compartida ──────────────────────────────────── */
+.btn-primary,
+.btn-ghost,
+.btn-white {
+  position: relative;
+  overflow: hidden;
   padding: var(--space-3) var(--space-6);
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 0;
   box-shadow: none;
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-base) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth);
 }
+
+.btn-primary:active,
+.btn-ghost:active,
+.btn-white:active {
+  transform: translateY(1px);
+}
+
+/* Sheen — barrido de luz sutil al hacer hover */
+.btn-primary::before,
+.btn-white::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.7s var(--ease-smooth);
+  pointer-events: none;
+}
+
+.btn-primary:hover::before,
+.btn-white:hover::before {
+  left: 170%;
+}
+
+/* Primary — gold fill */
+.btn-primary {
+  background: var(--color-gold);
+  color: var(--color-obsidian);
+  border: 1px solid var(--color-gold);
+}
+
 .btn-primary:hover {
-  background: transparent;
+  background: var(--color-gold-muted);
   border-color: var(--color-gold);
-  color: var(--color-gold);
+  color: var(--color-obsidian);
+  box-shadow: var(--shadow-glow-gold);
+  transform: translateY(-1px);
 }
 
 /* Ghost — transparent */
 .btn-ghost {
   background: transparent;
   color: var(--color-ivory);
-  border: 1px solid var(--color-ivory);
-  padding: var(--space-3) var(--space-6);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transition: background 0.2s, color 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0;
-  box-shadow: none;
+  border: 1px solid rgba(247, 244, 239, 0.45);
+  box-shadow: inset 0 0 0 0 var(--color-ivory);
 }
+
 .btn-ghost:hover {
-  background: var(--color-ivory);
+  border-color: var(--color-ivory);
+  box-shadow: inset 0 -3.5em 0 0 var(--color-ivory);
   color: var(--color-obsidian);
+  transform: translateY(-1px);
 }
 
 /* White — solid white */
@@ -50,21 +89,28 @@
   background: var(--color-ivory);
   color: var(--color-obsidian);
   border: 1px solid var(--color-ivory);
-  padding: var(--space-3) var(--space-6);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0;
-  box-shadow: none;
 }
+
 .btn-white:hover {
   background: transparent;
   color: var(--color-ivory);
   border-color: var(--color-ivory);
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary,
+  .btn-ghost,
+  .btn-white {
+    transition: none;
+  }
+  .btn-primary::before,
+  .btn-white::before {
+    display: none;
+  }
+  .btn-primary:hover,
+  .btn-ghost:hover,
+  .btn-white:hover {
+    transform: none;
+  }
 }

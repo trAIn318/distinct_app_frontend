@@ -7,6 +7,8 @@ export default function Hero() {
     <section className={styles.hero} aria-labelledby="hero-heading">
       <div className={`container ${styles.heroInner}`}>
         <div className={styles.heroContent}>
+          <span className={styles.eyebrow}>Distinct Hospitality Solutions</span>
+
           <h1 id="hero-heading" className={styles.subHeadline}>
             The AI Platform Built for the People Who Run{" "}
             <span className="emphasized gold">Hospitality</span>.
@@ -40,6 +42,10 @@ export default function Hero() {
             </a>
           </div>
         </div>
+      </div>
+
+      <div className={styles.scrollCue} aria-hidden="true">
+        <span className={styles.scrollCueLine}></span>
       </div>
     </section>
   );

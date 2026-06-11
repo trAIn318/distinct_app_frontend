@@ -13,16 +13,26 @@ const DEFAULT_REVALIDATE = 60;
 
 async function apiGet(path, { revalidate = DEFAULT_REVALIDATE } = {}) {
   const url = `${API_URL}/api${path}`;
-  const res = await fetch(url, {
-    headers: { "Content-Type": "application/json" },
-    next: { revalidate },
-  });
-  if (!res.ok) {
-    // No tiramos el render — devolvemos null y dejamos que el caller maneje
-    console.error(`[api] GET ${url} → ${res.status}`);
+  try {
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      next: { revalidate },
+    });
+    if (!res.ok) {
+      // No tiramos el render — devolvemos null y dejamos que el caller maneje
+      console.error(`[api] GET ${url} → ${res.status}`);
+      return null;
+    }
+    return res.json();
+  } catch (err) {
+    // Backend inaccesible (apagado, dormido en Render, o durante `next build`
+    // sin API disponible). Sin este catch, el prerender de páginas que
+    // fetchean (p.ej. /courses) tumba el build completo con ECONNREFUSED.
+    // Devolvemos null: las secciones se ocultan y el ISR (revalidate 60s)
+    // recupera los datos reales en cuanto el backend responda.
+    console.error(`[api] GET ${url} → fetch failed: ${err?.message || err}`);
     return null;
   }
-  return res.json();
 }
 
 // ── Cursos ──────────────────────────────────────────────────────────────────

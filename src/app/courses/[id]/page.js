@@ -7,6 +7,7 @@ import {
   buildOwnersOutlookCompose,
 } from "../../../lib/config";
 import TestimonialsCarousel from "../../../components/TestimonialsCarousel";
+import Reveal from "../../../components/Reveal";
 import styles from "./page.module.css";
 
 export async function generateMetadata({ params }) {
@@ -75,7 +76,7 @@ export default async function CourseDetailPage({ params }) {
 
       {/* Hero del curso */}
       <section className={styles.hero} aria-labelledby="course-title">
-        <div className={`container ${styles.heroGrid}`}>
+        <Reveal group className={`container ${styles.heroGrid}`}>
           <div className={styles.heroCopy}>
             <span className={styles.code}>{course.code}</span>
             <h1 id="course-title" className={styles.title}>
@@ -124,25 +125,25 @@ export default async function CourseDetailPage({ params }) {
               className={styles.heroImage}
             />
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* Descripción */}
       {course.description && (
         <section className={styles.section} aria-labelledby="course-overview">
-          <div className="container">
+          <Reveal className="container">
             <h2 id="course-overview" className={styles.sectionHeadline}>
               Overview
             </h2>
             <p className={styles.body}>{course.description}</p>
-          </div>
+          </Reveal>
         </section>
       )}
 
       {/* Video preview (si hay YouTube) */}
       {videoEmbed && (
         <section className={styles.section} aria-labelledby="course-preview">
-          <div className="container">
+          <Reveal className="container">
             <h2 id="course-preview" className={styles.sectionHeadline}>
               Preview
             </h2>
@@ -155,7 +156,7 @@ export default async function CourseDetailPage({ params }) {
                 className={styles.videoFrame}
               />
             </div>
-          </div>
+          </Reveal>
         </section>
       )}
 
@@ -168,7 +169,7 @@ export default async function CourseDetailPage({ params }) {
 
       {/* Footer CTA */}
       <section className={styles.footerCta}>
-        <div className="container">
+        <Reveal className="container">
           <h2 className={styles.footerHeadline}>
             Ready to bring this training to your team?
           </h2>
@@ -194,7 +195,7 @@ export default async function CourseDetailPage({ params }) {
               I&apos;m Interested
             </a>
           </div>
-        </div>
+        </Reveal>
       </section>
     </div>
   );

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { getCourses } from "../lib/api";
 import { HOME_COURSES_COUNT } from "../lib/config";
 import CourseCard from "./CourseCard";
+import Reveal from "./Reveal";
 import styles from "./FeaturedCourses.module.css";
 
 export default async function FeaturedCourses() {
@@ -21,25 +22,27 @@ export default async function FeaturedCourses() {
   return (
     <section className={styles.section} aria-labelledby="featured-courses-heading">
       <div className="container">
-        <span className={styles.eyebrow}>Featured Courses</span>
-        <h2 id="featured-courses-heading" className={styles.headline}>
-          Training Built by <span className="emphasized gold">Hospitality Experts</span>.
-        </h2>
-        <p className={styles.intro}>
-          A curated preview of our programs. Every course is role-specific, multilingual, and built around the moments that drive real revenue.
-        </p>
+        <Reveal>
+          <span className={styles.eyebrow}>Featured Courses</span>
+          <h2 id="featured-courses-heading" className={styles.headline}>
+            Training Built by <span className="emphasized gold">Hospitality Experts</span>.
+          </h2>
+          <p className={styles.intro}>
+            A curated preview of our programs. Every course is role-specific, multilingual, and built around the moments that drive real revenue.
+          </p>
+        </Reveal>
 
-        <div className={styles.grid}>
+        <Reveal group className={styles.grid}>
           {courses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
-        </div>
+        </Reveal>
 
-        <div className={styles.viewAll}>
+        <Reveal className={styles.viewAll}>
           <Link href="/courses" className="btn-ghost">
             View All Courses →
           </Link>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

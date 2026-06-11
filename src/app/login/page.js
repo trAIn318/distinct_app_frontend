@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import LoginForm from "./LoginForm";
 import styles from "./page.module.css";
 
@@ -15,7 +16,12 @@ export default function LoginPage() {
         <p className={styles.copy}>
           Welcome back. Sign in with your email or username.
         </p>
-        <LoginForm />
+        {/* LoginForm usa useSearchParams() (lee ?next= tras el login).
+            Next exige envolverlo en Suspense para poder prerenderizar
+            la página — sin esto, `next build` falla. */}
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   );

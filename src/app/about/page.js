@@ -1,5 +1,6 @@
 import styles from "./page.module.css";
 import TeamCard from "../../components/TeamCard";
+import Reveal from "../../components/Reveal";
 
 export const metadata = {
   title: "About | Distinct Hospitality Solutions",
@@ -11,24 +12,26 @@ export default function About() {
     <div className={styles.page}>
       {/* Hero */}
       <section className={styles.hero} aria-labelledby="about-hero">
-        <div className="container">
+        <Reveal className="container">
           <span className={styles.heroTag}>Our Story</span>
           <h1 id="about-hero" className={styles.heroH1}>
             We Built Distinct Because We Lived the <span className="emphasized gold">Problem</span>.
           </h1>
           <p className={styles.heroSubLabel}>Two decades in hospitality. Every role. Every market. One problem that never went away.</p>
-        </div>
+        </Reveal>
       </section>
 
       {/* Team Section */}
       <section className={styles.teamSection} aria-labelledby="team-heading">
         <div className="container">
-          <span className={styles.heroTag}>The Team</span>
-          <h2 id="team-heading" className={styles.teamHeadline}>
-            Built by Operators. Powered by Intelligence.
-          </h2>
+          <Reveal>
+            <span className={styles.heroTag}>The Team</span>
+            <h2 id="team-heading" className={styles.teamHeadline}>
+              Built by Operators. Powered by Intelligence.
+            </h2>
+          </Reveal>
 
-          <div className={styles.teamGrid}>
+          <Reveal group className={styles.teamGrid}>
             <TeamCard 
               image="/img/Veronica.png"
               name="Veronica Straw"
@@ -50,13 +53,13 @@ export default function About() {
               email="Hugo@traindistinct.com"
               bio="The intelligence layer. Hugo owns the data models, KPI frameworks, and the system that turns every ARIA conversation into performance insight."
             />
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Founding Story — MOST IMPORTANT SECTION */}
       <section className={styles.contentSection}>
-        <div className={`container ${styles.storyContainer}`}>
+        <Reveal className={`container ${styles.storyContainer}`}>
           <h2 className={styles.storyHeadline}>The New Hire Story.</h2>
           <div className={styles.storyBody}>
             <p>
@@ -75,12 +78,12 @@ export default function About() {
               <strong>Distinct is that layer.</strong>
             </p>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* Mission Section */}
       <section className={styles.missionSection}>
-        <div className={`container ${styles.missionContainer}`}>
+        <Reveal className={`container ${styles.missionContainer}`}>
           <span className={styles.heroTag}>Why We Exist</span>
           <div className={styles.missionBody}>
             <p>
@@ -90,17 +93,17 @@ export default function About() {
               Our founding mission is to grow the hospitality workforce and make careers more purposeful. Not to replace workers with AI. To make every worker better at what they do — and visible for the value they create.
             </p>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* Markets Section */}
       <section className={styles.marketsSection} aria-labelledby="markets-heading">
-        <div className={`container ${styles.marketsContainer}`}>
+        <Reveal className={`container ${styles.marketsContainer}`}>
           <h2 id="markets-heading" className={styles.marketsHeadline}>Where We Operate.</h2>
           <p className={styles.marketsBody}>
             Based in Miami. Operating across the USA, Latin America, and Southeast Asia. Built for luxury and boutique hotels, restaurants, private clubs, residential properties, and HNW private clients. Expanding into corporate dining, transportation hospitality, J1 academies, and seasonal markets.
           </p>
-        </div>
+        </Reveal>
       </section>
     </div>
   );
