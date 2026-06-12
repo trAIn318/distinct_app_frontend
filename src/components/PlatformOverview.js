@@ -1,20 +1,21 @@
 import TrainWord from "./TrainWord";
 import Reveal from "./Reveal";
+import { getT } from "../i18n/server";
 import styles from "./PlatformOverview.module.css";
 
-export default function PlatformOverview() {
+export default async function PlatformOverview() {
+  const t = await getT("platform");
+
   return (
     <section className={styles.section} aria-labelledby="platform-overview-heading">
       <Reveal group className={`container ${styles.contentWrapper}`}>
         <div className={styles.textContent}>
-          <span className={styles.eyebrow}>
-            FROM MIAMI TO THE WORLD
-          </span>
+          <span className={styles.eyebrow}>{t("eyebrow")}</span>
           <h2 id="platform-overview-heading" className={styles.headline}>
-            <TrainWord />{" "}smarter. Perform better. Earn more
+            <TrainWord />{" "}{t("titleRest")}
           </h2>
           <p className={styles.bodyCopy}>
-            Distinct is an AI-powered performance platform that tracks employee behavior, connects it to guest experience, and drives revenue across hospitality operations at scale. We <TrainWord />{" "}teams through our platform&apos;s immersive multilingual programs.
+            {t("bodyPre")} <TrainWord />{" "}{t("bodyPost")}
           </p>
         </div>
 

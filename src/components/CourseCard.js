@@ -1,25 +1,33 @@
+"use client";
+
 /**
  * CourseCard
- * Renderiza un curso individual. Server component — solo recibe props.
+ * Renderiza un curso individual. Client component (usa el contexto i18n)
+ * para poder vivir dentro del CoursesExplorer interactivo.
  *
- * Las dos acciones del PRD del usuario:
- *   - "View more"          → /courses/<id>   (detalle, fase próxima)
- *   - "I'm interested"     → /login?next=/courses/<id>&intent=interest  (fase 2 con auth)
- *
- * Mientras la fase 2 no está, el botón "I'm interested" hace mailto a los owners.
+ * - Título/descripción: en el idioma de la UI (traducciones cacheadas en BD).
+ * - Badge de idioma original: idioma en que SE DICTA el curso (independiente
+ *   del idioma de la UI).
  */
 
 import Link from "next/link";
 import { resolveCourseImage, buildOwnersOutlookCompose } from "../lib/config";
+import { getCourseTitle, getCourseDescription } from "../lib/courseText";
+import { useT, useLocale } from "../i18n/client";
 import styles from "./CourseCard.module.css";
 
 export default function CourseCard({ course }) {
+  const t = useT("card");
+  const locale = useLocale();
+
   const imageSrc = resolveCourseImage(course.image_url);
+  const title = getCourseTitle(course, locale);
+  const description = getCourseDescription(course, locale);
+  const origLang = (course.original_language || "").toLowerCase();
 
   // "I'm interested" abre el composer web de Outlook con los 3 owners en
-  // destinatario y el curso pre-rellenado. No depende del mail handler del SO.
-  // Cuando Fase 2 esté lista, este href cambia a:
-  //   `/login?next=/courses/${course.id}&intent=interest`
+  // destinatario y el curso pre-rellenado (cuerpo en inglés — los owners
+  // operan en inglés; usamos el título original para que lo reconozcan).
   const interestUrl = buildOwnersOutlookCompose(
     `Interested in: ${course.title}`,
     `Hi Veronica, Luznedy, and Hugo,\n\nI'd like to know more about the course "${course.title}" (code: ${course.code}).\n\nThank you,\n`
@@ -32,29 +40,37 @@ export default function CourseCard({ course }) {
             sin tener que pre-configurar remotePatterns en next.config */}
         <img
           src={imageSrc}
-          alt={course.title}
+          alt={title}
           className={styles.image}
           loading="lazy"
         />
+        {origLang && (
+          <span
+            className={styles.langBadge}
+            title={t("taughtIn", { lang: t(`lang.${origLang}`) })}
+          >
+            {t(`lang.${origLang}`)}
+          </span>
+        )}
       </div>
 
       <div className={styles.body}>
         <span className={styles.code}>{course.code}</span>
         <h3 id={`course-${course.id}-title`} className={styles.title}>
-          {course.title}
+          {title}
         </h3>
 
-        {course.description && (
+        {description && (
           <p className={styles.desc}>
-            {course.description.length > 140
-              ? course.description.slice(0, 140).trimEnd() + "…"
-              : course.description}
+            {description.length > 140
+              ? description.slice(0, 140).trimEnd() + "…"
+              : description}
           </p>
         )}
 
         <div className={styles.actions}>
           <Link href={`/courses/${course.id}`} className="btn-ghost">
-            View More
+            {t("viewMore")}
           </Link>
           <a
             href={interestUrl}
@@ -62,7 +78,7 @@ export default function CourseCard({ course }) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            I&apos;m Interested
+            {t("interested")}
           </a>
         </div>
       </div>

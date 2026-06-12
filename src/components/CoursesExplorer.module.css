@@ -1,0 +1,287 @@
+/* CoursesExplorer — búsqueda, filtros y vistas del catálogo */
+
+.explorer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ── Toolbar: búsqueda + selector de vista ───────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.searchWrap {
+  flex: 1 1 320px;
+}
+
+.search {
+  width: 100%;
+  background: var(--color-surface-dark);
+  border: 1px solid var(--ivory-15);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.3s var(--ease-smooth), box-shadow 0.3s var(--ease-smooth);
+}
+
+.search::placeholder {
+  color: var(--color-smoke);
+}
+
+.search:focus {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 1px var(--gold-30), 0 0 16px var(--gold-08);
+}
+
+.viewToggle {
+  display: flex;
+  border: 1px solid var(--ivory-15);
+}
+
+.viewBtn {
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+  background: transparent;
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+
+.viewBtn + .viewBtn {
+  border-left: 1px solid var(--ivory-15);
+}
+
+.viewBtn:hover {
+  color: var(--color-ivory);
+  background: var(--gold-08);
+}
+
+.viewBtnActive,
+.viewBtnActive:hover {
+  background: var(--color-gold);
+  color: var(--color-obsidian);
+}
+
+/* ── Filtros ─────────────────────────────────────────────────────── */
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.select {
+  background: var(--color-surface-dark);
+  border: 1px solid var(--ivory-15);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 0;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.select:hover,
+.select:focus {
+  border-color: var(--gold-50);
+  outline: none;
+}
+
+.select option {
+  background: var(--color-surface-dark);
+  color: var(--color-ivory);
+}
+
+.clearBtn {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--duration-fast) ease;
+}
+
+.clearBtn:hover {
+  border-bottom-color: var(--color-gold);
+}
+
+/* ── Contador ────────────────────────────────────────────────────── */
+.count {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-smoke);
+  margin: 0;
+}
+
+/* ── Vista Cards ─────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-6);
+  align-items: stretch;
+}
+
+/* ── Vista List ──────────────────────────────────────────────────── */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--ivory-08);
+  transition: background var(--duration-fast) var(--ease-smooth);
+}
+
+.listRow:hover {
+  background: var(--gold-08);
+}
+
+.listMain {
+  min-width: 0;
+}
+
+.listCode {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  display: block;
+  margin-bottom: var(--space-1);
+}
+
+.listTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--color-ivory);
+  transition: color var(--duration-fast) ease;
+}
+
+.listTitle:hover {
+  color: var(--color-gold);
+}
+
+.listDesc {
+  font-size: var(--text-sm);
+  color: var(--color-smoke);
+  margin: var(--space-1) 0 0 0;
+}
+
+.listMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.chip {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  border: 1px solid var(--gold-30);
+  padding: 2px var(--space-3);
+  white-space: nowrap;
+}
+
+/* ── Vista Summary (tabla) ───────────────────────────────────────── */
+.summaryWrap {
+  overflow-x: auto;
+  border: 1px solid var(--ivory-08);
+}
+
+.summary {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.summary th {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--gold-30);
+  white-space: nowrap;
+}
+
+.summary td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--ivory-08);
+  color: var(--color-platinum);
+}
+
+.summary tbody tr {
+  transition: background var(--duration-fast) var(--ease-smooth);
+}
+
+.summary tbody tr:hover {
+  background: var(--gold-08);
+}
+
+.cellCode {
+  font-family: var(--font-label);
+  letter-spacing: 0.12em;
+  color: var(--color-gold);
+  white-space: nowrap;
+}
+
+.summaryLink {
+  color: var(--color-ivory);
+  transition: color var(--duration-fast) ease;
+}
+
+.summaryLink:hover {
+  color: var(--color-gold);
+}
+
+/* ── Vacío ───────────────────────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: var(--space-10) var(--space-4);
+  color: var(--color-platinum);
+  font-size: var(--text-md);
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .listRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  .viewToggle {
+    width: 100%;
+  }
+  .viewBtn {
+    flex: 1;
+  }
+}

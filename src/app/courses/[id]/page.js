@@ -8,6 +8,8 @@ import {
 } from "../../../lib/config";
 import TestimonialsCarousel from "../../../components/TestimonialsCarousel";
 import Reveal from "../../../components/Reveal";
+import { getT, getLocale } from "../../../i18n/server";
+import { getCourseTitle, getCourseDescription } from "../../../lib/courseText";
 import styles from "./page.module.css";
 
 export async function generateMetadata({ params }) {
@@ -41,12 +43,19 @@ function toYouTubeEmbed(url) {
 }
 
 export default async function CourseDetailPage({ params }) {
+  const t = await getT("courseDetail");
+  const tTesti = await getT("testimonials");
+  const locale = await getLocale();
   const { id } = await params;
   const course = await getCourse(id);
 
   if (!course) {
     notFound();
   }
+
+  // Contenido en el idioma de la UI (con fallback al original)
+  const displayTitle = getCourseTitle(course, locale);
+  const displayDescription = getCourseDescription(course, locale);
 
   // Testimonios: hoy son generales (no hay vínculo por curso en la tabla).
   // Si más adelante se agrega `mcourse_id` a `testimonials`, aquí se filtra.
@@ -70,7 +79,7 @@ export default async function CourseDetailPage({ params }) {
       {/* Breadcrumb */}
       <div className={`container ${styles.breadcrumbWrapper}`}>
         <Link href="/courses" className={styles.breadcrumb}>
-          ← All Courses
+          {t("breadcrumb")}
         </Link>
       </div>
 
@@ -80,12 +89,12 @@ export default async function CourseDetailPage({ params }) {
           <div className={styles.heroCopy}>
             <span className={styles.code}>{course.code}</span>
             <h1 id="course-title" className={styles.title}>
-              {course.title}
+              {displayTitle}
             </h1>
 
             {course.modules > 0 && (
               <p className={styles.meta}>
-                <span className={styles.metaLabel}>Modules</span>
+                <span className={styles.metaLabel}>{t("modules")}</span>
                 <span className={styles.metaValue}>{course.modules}</span>
               </p>
             )}
@@ -97,7 +106,7 @@ export default async function CourseDetailPage({ params }) {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Enroll & Pay
+                {t("enrollPay")}
               </a>
               <a
                 href={interestUrl}
@@ -105,7 +114,7 @@ export default async function CourseDetailPage({ params }) {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                I&apos;m Interested
+                {t("interested")}
               </a>
               <a
                 href={MOODLE_URL}
@@ -113,7 +122,7 @@ export default async function CourseDetailPage({ params }) {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Access Moodle
+                {t("accessMoodle")}
               </a>
             </div>
           </div>
@@ -129,13 +138,13 @@ export default async function CourseDetailPage({ params }) {
       </section>
 
       {/* Descripción */}
-      {course.description && (
+      {displayDescription && (
         <section className={styles.section} aria-labelledby="course-overview">
           <Reveal className="container">
             <h2 id="course-overview" className={styles.sectionHeadline}>
-              Overview
+              {t("overview")}
             </h2>
-            <p className={styles.body}>{course.description}</p>
+            <p className={styles.body}>{displayDescription}</p>
           </Reveal>
         </section>
       )}
@@ -145,7 +154,7 @@ export default async function CourseDetailPage({ params }) {
         <section className={styles.section} aria-labelledby="course-preview">
           <Reveal className="container">
             <h2 id="course-preview" className={styles.sectionHeadline}>
-              Preview
+              {t("preview")}
             </h2>
             <div className={styles.videoWrapper}>
               <iframe
@@ -163,20 +172,15 @@ export default async function CourseDetailPage({ params }) {
       {/* Testimonios rotando */}
       <TestimonialsCarousel
         testimonials={testimonials}
-        eyebrow="What our learners say"
-        title="Voices from the Floor"
+        eyebrow={tTesti("eyebrow")}
+        title={tTesti("title")}
       />
 
       {/* Footer CTA */}
       <section className={styles.footerCta}>
         <Reveal className="container">
-          <h2 className={styles.footerHeadline}>
-            Ready to bring this training to your team?
-          </h2>
-          <p className={styles.footerCopy}>
-            Reach out and our team will walk you through enrollment, pricing,
-            and rollout.
-          </p>
+          <h2 className={styles.footerHeadline}>{t("ctaTitle")}</h2>
+          <p className={styles.footerCopy}>{t("ctaBody")}</p>
           <div className={styles.actions}>
             <a
               href={payUrl}
@@ -184,7 +188,7 @@ export default async function CourseDetailPage({ params }) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Enroll & Pay
+              {t("enrollPay")}
             </a>
             <a
               href={interestUrl}
@@ -192,7 +196,7 @@ export default async function CourseDetailPage({ params }) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              I&apos;m Interested
+              {t("interested")}
             </a>
           </div>
         </Reveal>

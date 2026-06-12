@@ -4,10 +4,10 @@
   left: 0;
   width: 100%;
   z-index: 100;
-  background: rgba(10, 10, 10, 0.72);
+  background: var(--nav-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(216, 216, 216, 0.1);
+  border-bottom: 1px solid var(--ivory-08);
   transition:
     background 0.4s var(--ease-smooth),
     border-color 0.4s var(--ease-smooth),
@@ -15,7 +15,7 @@
 }
 
 .navScrolled {
-  background: rgba(10, 10, 10, 0.92);
+  background: var(--nav-bg-scrolled);
   border-bottom-color: var(--gold-15);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
@@ -43,6 +43,7 @@
   width: 100%;
   height: auto;
   display: block;
+  filter: var(--logo-filter);
   transition: max-width 0.4s var(--ease-smooth), opacity 0.3s ease;
 }
 
@@ -52,6 +53,12 @@
 
 .navScrolled .logo {
   max-width: 118px;
+}
+
+.rightCluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
 }
 
 .navLinks {

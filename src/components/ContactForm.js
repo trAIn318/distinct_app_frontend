@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "../i18n/client";
 import styles from "./ContactForm.module.css";
 
 export default function ContactForm() {
+  const t = useT("contact");
   const [formData, setFormData] = useState({ name: "", email: "" });
   const [isVerified, setIsVerified] = useState(false);
   const [errors, setErrors] = useState({});
@@ -18,17 +20,17 @@ export default function ContactForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Inline validation
     const newErrors = {};
     if (!formData.email) {
-      newErrors.email = "Email is required.";
+      newErrors.email = t("emailRequired");
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address.";
+      newErrors.email = t("emailInvalid");
     }
 
     if (!isVerified) {
-      newErrors.recaptcha = "Please verify that you are human.";
+      newErrors.recaptcha = t("recaptchaRequired");
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -38,7 +40,7 @@ export default function ContactForm() {
 
     // Form endpoint omitted pending client decision (PRD §8.3)
     console.log("Form submission simulated:", formData);
-    alert("Thank you! Your message has been sent. (Simulated)");
+    alert(t("success"));
     setFormData({ name: "", email: "" });
     setIsVerified(false);
   };
@@ -47,22 +49,20 @@ export default function ContactForm() {
     <section className={styles.section} aria-labelledby="contact-heading">
       <div className="container">
         <h2 id="contact-heading" className={styles.headline}>
-          Let&apos;s Talk.
+          {t("title")}
         </h2>
 
         <div className={styles.grid}>
           {/* Sidebar */}
           <div className={styles.sidebar}>
-            <p className={styles.sidebarCopy}>
-              Whether you&apos;re a hotel operator, investor, or potential partner — we want to hear from you. Distinct moves fast and so do we.
-            </p>
+            <p className={styles.sidebarCopy}>{t("sidebar")}</p>
             <a
               href="https://wa.me/13055481826"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.whatsappLink}
             >
-              Message us on WhatsApp →
+              {t("whatsapp")}
             </a>
           </div>
 
@@ -70,7 +70,7 @@ export default function ContactForm() {
           <div className={styles.formContainer}>
             <form onSubmit={handleSubmit} noValidate>
               <div className={styles.formGroup}>
-                <label htmlFor="name" className={styles.label}>Name</label>
+                <label htmlFor="name" className={styles.label}>{t("name")}</label>
                 <input
                   type="text"
                   id="name"
@@ -78,13 +78,13 @@ export default function ContactForm() {
                   value={formData.name}
                   onChange={handleChange}
                   className={styles.input}
-                  placeholder="Your Name"
+                  placeholder={t("namePlaceholder")}
                 />
               </div>
 
               <div className={styles.formGroup}>
                 <label htmlFor="email" className={styles.label}>
-                  Email <span className={styles.required} aria-hidden="true">*</span>
+                  {t("email")} <span className={styles.required} aria-hidden="true">*</span>
                 </label>
                 <input
                   type="email"
@@ -94,7 +94,7 @@ export default function ContactForm() {
                   value={formData.email}
                   onChange={handleChange}
                   className={styles.input}
-                  placeholder="your.email@example.com"
+                  placeholder={t("emailPlaceholder")}
                   aria-invalid={errors.email ? "true" : "false"}
                   aria-describedby={errors.email ? "email-error" : undefined}
                 />
@@ -117,7 +117,7 @@ export default function ContactForm() {
                     }}
                     className={styles.checkbox}
                   />
-                  <span className={styles.recaptchaText}>I am not a robot</span>
+                  <span className={styles.recaptchaText}>{t("notRobot")}</span>
                 </label>
                 {errors.recaptcha && (
                   <span className={styles.errorText} role="alert">
@@ -142,7 +142,7 @@ export default function ContactForm() {
                 className={`btn-primary ${styles.submitBtn}`}
                 disabled={!isVerified}
               >
-                Send
+                {t("send")}
               </button>
             </form>
           </div>

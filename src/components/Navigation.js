@@ -5,11 +5,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { MOODLE_URL } from "../lib/config";
 import { getCurrentUser, clearSession } from "../lib/session";
+import SettingsPanel from "./SettingsPanel";
+import { useT } from "../i18n/client";
 import styles from "./Navigation.module.css";
 
 const LOGO_URL = "/img/logo_cropped.png";
 
 export default function Navigation() {
+  const t = useT("nav");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -55,9 +58,9 @@ export default function Navigation() {
   };
 
   const navLinks = [
-    { label: "Home", href: "/" },
-    { label: "Courses", href: "/courses" },
-    { label: "About", href: "/about" },
+    { label: t("home"), href: "/" },
+    { label: t("courses"), href: "/courses" },
+    { label: t("about"), href: "/about" },
   ];
 
   const displayName =
@@ -76,6 +79,7 @@ export default function Navigation() {
           </Link>
         </div>
 
+        <div className={styles.rightCluster}>
         {/* Desktop Navigation */}
         <nav className={styles.navLinks} aria-label="Main Navigation">
           {navLinks.map((link) => {
@@ -98,7 +102,7 @@ export default function Navigation() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Meet ARIA
+              {t("meetAria")}
             </a>
             <a
               href={MOODLE_URL}
@@ -106,28 +110,31 @@ export default function Navigation() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Access Moodle
+              {t("accessMoodle")}
             </a>
             {user ? (
               <>
                 <span className={styles.userBadge} title={user.email || ""}>
-                  Hi, {displayName}
+                  {t("hi", { name: displayName })}
                 </span>
                 <button
                   type="button"
                   onClick={handleSignOut}
                   className="btn-primary"
                 >
-                  Sign Out
+                  {t("signOut")}
                 </button>
               </>
             ) : (
               <Link href="/login" className="btn-primary">
-                Sign In
+                {t("signIn")}
               </Link>
             )}
           </div>
         </nav>
+
+        {/* Settings (⚙) — visible en desktop y móvil */}
+        <SettingsPanel />
 
         {/* Mobile Menu Toggle */}
         <button
@@ -139,6 +146,7 @@ export default function Navigation() {
           <span className={styles.menuButtonLine}></span>
           <span className={styles.menuButtonLine}></span>
         </button>
+        </div>
       </div>
 
       {/* Mobile Overlay */}
@@ -173,7 +181,7 @@ export default function Navigation() {
               rel="noopener noreferrer"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Meet ARIA
+              {t("meetAria")}
             </a>
             <a
               href={MOODLE_URL}
@@ -182,7 +190,7 @@ export default function Navigation() {
               rel="noopener noreferrer"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Access Moodle
+              {t("accessMoodle")}
             </a>
             {user ? (
               <button
@@ -190,7 +198,7 @@ export default function Navigation() {
                 className="btn-primary"
                 onClick={handleSignOut}
               >
-                Sign Out ({displayName})
+                {t("signOut")} ({displayName})
               </button>
             ) : (
               <Link
@@ -198,7 +206,7 @@ export default function Navigation() {
                 className="btn-primary"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Sign In
+                {t("signIn")}
               </Link>
             )}
           </div>

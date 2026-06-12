@@ -10,9 +10,11 @@
  */
 
 import { getReviews } from "../lib/api";
+import { getT } from "../i18n/server";
 import TestimonialsCarousel from "./TestimonialsCarousel";
 
 export default async function HomeTestimonials() {
+  const t = await getT("testimonials");
   const testimonials = await getReviews({ limit: 8 }).catch(() => []);
 
   if (!testimonials || testimonials.length === 0) {
@@ -22,8 +24,8 @@ export default async function HomeTestimonials() {
   return (
     <TestimonialsCarousel
       testimonials={testimonials}
-      eyebrow="What our learners say"
-      title="Voices from the Floor"
+      eyebrow={t("eyebrow")}
+      title={t("title")}
     />
   );
 }

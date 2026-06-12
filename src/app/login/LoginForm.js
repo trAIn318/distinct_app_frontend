@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { loginApi } from "../../lib/api";
 import { saveSession } from "../../lib/session";
+import { loadServerPreferences } from "../../lib/preferences";
 import styles from "./page.module.css";
 
 export default function LoginForm() {
@@ -34,6 +35,9 @@ export default function LoginForm() {
         refresh: data.refresh,
         user: data.user,
       });
+      // Aplica inmediatamente las preferencias de la cuenta (idioma + tema):
+      // el servidor manda sobre lo que hubiera elegido como invitado.
+      await loadServerPreferences();
       router.push(nextPath);
       router.refresh();
     } catch (err) {

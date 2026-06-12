@@ -1,28 +1,28 @@
 import Link from "next/link";
 import { MOODLE_URL } from "../lib/config";
+import { getT } from "../i18n/server";
 import styles from "./Hero.module.css";
 
-export default function Hero() {
+export default async function Hero() {
+  const t = await getT("hero");
+
   return (
     <section className={styles.hero} aria-labelledby="hero-heading">
       <div className={`container ${styles.heroInner}`}>
         <div className={styles.heroContent}>
-          <span className={styles.eyebrow}>Distinct Hospitality Solutions</span>
+          <span className={styles.eyebrow}>{t("eyebrow")}</span>
 
           <h1 id="hero-heading" className={styles.subHeadline}>
-            The AI Platform Built for the People Who Run{" "}
-            <span className="emphasized gold">Hospitality</span>.
+            {t("titlePre")}{" "}
+            <span className="emphasized gold">{t("titleEmphasis")}</span>
+            {t("titlePost")}
           </h1>
 
-          <p className={styles.bodyCopy}>
-            Distinct trains your team, tracks what matters, and turns staff
-            performance into measurable revenue — across every shift, every
-            property, every market.
-          </p>
+          <p className={styles.bodyCopy}>{t("body")}</p>
 
           <div className={styles.ctaGroup}>
             <Link href="/register" className="btn-primary">
-              Get Started
+              {t("getStarted")}
             </Link>
             <a
               href="https://aria-distinct.onrender.com"
@@ -30,7 +30,7 @@ export default function Hero() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Meet ARIA
+              {t("meetAria")}
             </a>
             <a
               href={MOODLE_URL}
@@ -38,7 +38,7 @@ export default function Hero() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Access Moodle
+              {t("accessMoodle")}
             </a>
           </div>
         </div>

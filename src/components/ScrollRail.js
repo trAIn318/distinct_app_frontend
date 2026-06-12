@@ -17,23 +17,25 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { useT } from "../i18n/client";
 import styles from "./ScrollRail.module.css";
 
-/** Etiquetas cortas por id de heading (aria-labelledby de cada sección). */
-const SECTION_LABELS = {
-  "hero-heading": "Home",
-  "value-prop-heading": "Get in Touch",
-  "problem-approach-heading": "The Problem",
-  "featured-courses-heading": "Courses",
-  "testimonials-heading": "Testimonials",
-  "platform-overview-heading": "Platform",
-  "how-it-works-heading": "How It Works",
-  "aria-feature-heading": "ARIA",
-  "contact-heading": "Contact",
-  "partners-heading": "Partners",
+/** Clave de traducción (namespace "rail") por id de heading de cada sección. */
+const SECTION_LABEL_KEYS = {
+  "hero-heading": "home",
+  "value-prop-heading": "getInTouch",
+  "problem-approach-heading": "problem",
+  "featured-courses-heading": "courses",
+  "testimonials-heading": "testimonials",
+  "platform-overview-heading": "platform",
+  "how-it-works-heading": "howItWorks",
+  "aria-feature-heading": "aria",
+  "contact-heading": "contact",
+  "partners-heading": "partners",
 };
 
 export default function ScrollRail() {
+  const t = useT("rail");
   const [sections, setSections] = useState([]); // [{ label }]
   const [activeIndex, setActiveIndex] = useState(0);
   const [progress, setProgress] = useState(0); // 0..1 — llenado de la línea
@@ -47,8 +49,8 @@ export default function ScrollRail() {
     nodesRef.current = els;
     setSections(
       els.map((el, i) => ({
-        label:
-          SECTION_LABELS[el.getAttribute("aria-labelledby")] || `Section ${i + 1}`,
+        labelKey: SECTION_LABEL_KEYS[el.getAttribute("aria-labelledby")] || null,
+        index: i,
       }))
     );
 
@@ -127,6 +129,7 @@ export default function ScrollRail() {
         {sections.map((s, i) => {
           const passed = i <= activeIndex;
           const isCurrent = i === activeIndex;
+          const label = s.labelKey ? t(s.labelKey) : t("section", { n: i + 1 });
           return (
             <li key={i} className={styles.dotItem}>
               <button
@@ -135,10 +138,10 @@ export default function ScrollRail() {
                 className={`${styles.dot} ${passed ? styles.dotPassed : ""} ${
                   isCurrent ? styles.dotCurrent : ""
                 }`}
-                aria-label={`Go to ${s.label}`}
+                aria-label={t("goTo", { label })}
                 aria-current={isCurrent ? "true" : undefined}
               >
-                <span className={styles.dotLabel}>{s.label}</span>
+                <span className={styles.dotLabel}>{label}</span>
               </button>
             </li>
           );

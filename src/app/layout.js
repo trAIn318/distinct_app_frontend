@@ -31,25 +31,44 @@ const dmMono = DM_Mono({
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
 import CookieBanner from "../components/CookieBanner";
+import { getLocale, getMessages } from "../i18n/server";
+import { I18nProvider } from "../i18n/client";
 
 export const metadata = {
   title: "Distinct Hospitality Solutions",
   description: "The AI Platform Built for Hospitality",
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // Idioma: cookie dx_lang (elección del usuario) > Accept-Language > 'en'
+  const locale = await getLocale();
+  const messages = getMessages(locale);
+
   return (
-    <html lang="en" className={`${cormorant.variable} ${dmSans.variable} ${dmMono.variable} ${playfair.variable}`}>
+    <html
+      lang={locale}
+      className={`${cormorant.variable} ${dmSans.variable} ${dmMono.variable} ${playfair.variable}`}
+      suppressHydrationWarning
+    >
       <body>
-        <Navigation />
-        
-        {/* Main Content */}
-        <main>
-          {children}
-        </main>
-        
-        <Footer />
-        <CookieBanner />
+        {/* Anti-flash de tema: aplica el tema guardado ANTES del primer paint.
+            Sin esto, los usuarios con tema claro verían un destello oscuro. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("dx_theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}`,
+          }}
+        />
+        <I18nProvider locale={locale} messages={messages}>
+          <Navigation />
+
+          {/* Main Content */}
+          <main>
+            {children}
+          </main>
+
+          <Footer />
+          <CookieBanner />
+        </I18nProvider>
       </body>
     </html>
   );

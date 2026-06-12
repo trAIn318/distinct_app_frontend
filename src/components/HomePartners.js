@@ -10,10 +10,12 @@
 
 import { getPartners } from "../lib/api";
 import { resolvePartnerLogo } from "../lib/config";
+import { getT } from "../i18n/server";
 import Reveal from "./Reveal";
 import styles from "./HomePartners.module.css";
 
 export default async function HomePartners() {
+  const t = await getT("partners");
   const partners = await getPartners().catch(() => []);
 
   if (!partners || partners.length === 0) {
@@ -24,9 +26,11 @@ export default async function HomePartners() {
     <section className={styles.section} aria-labelledby="partners-heading">
       <div className="container">
         <Reveal>
-          <span className={styles.eyebrow}>Trusted Collaborations</span>
+          <span className={styles.eyebrow}>{t("eyebrow")}</span>
           <h2 id="partners-heading" className={styles.headline}>
-            Our <span className="emphasized gold">Partners</span>.
+            {t("titlePre")}{" "}
+            <span className="emphasized gold">{t("titleEmphasis")}</span>
+            {t("titlePost")}
           </h2>
         </Reveal>
 

@@ -49,6 +49,8 @@ body {
   font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: 1.618;
+  /* Cambio de tema suave (dark ↔ light) */
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {

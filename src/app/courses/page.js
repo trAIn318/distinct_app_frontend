@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { getCourses } from "../../lib/api";
 import { MOODLE_URL } from "../../lib/config";
-import CourseCard from "../../components/CourseCard";
+import { getT } from "../../i18n/server";
+import CoursesExplorer from "../../components/CoursesExplorer";
 import Reveal from "../../components/Reveal";
 import styles from "./page.module.css";
 
@@ -11,6 +13,7 @@ export const metadata = {
 };
 
 export default async function CoursesPage() {
+  const t = await getT("coursesPage");
   const courses = await getCourses();
 
   return (
@@ -18,16 +21,13 @@ export default async function CoursesPage() {
       {/* Hero */}
       <section className={styles.hero} aria-labelledby="courses-hero">
         <Reveal className="container">
-          <span className={styles.heroTag}>Training Library</span>
+          <span className={styles.heroTag}>{t("tag")}</span>
           <h1 id="courses-hero" className={styles.heroH1}>
-            Every Course.{" "}
-            <span className="emphasized gold">Every Role.</span>{" "}
-            Every Shift.
+            {t("titlePre")}{" "}
+            <span className="emphasized gold">{t("titleEmphasis")}</span>{" "}
+            {t("titlePost")}
           </h1>
-          <p className={styles.heroSubLabel}>
-            Role-specific hospitality programs, multilingual, ready for your team.
-            Browse the catalog or jump straight into Moodle if you&apos;re already enrolled.
-          </p>
+          <p className={styles.heroSubLabel}>{t("subtitle")}</p>
           <div className={styles.heroActions}>
             <a
               href={MOODLE_URL}
@@ -35,29 +35,28 @@ export default async function CoursesPage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Access Moodle
+              {t("accessMoodle")}
             </a>
           </div>
         </Reveal>
       </section>
 
-      {/* Courses grid */}
+      {/* Catálogo interactivo: búsqueda + filtros + 3 vistas */}
       <section className={styles.gridSection} aria-labelledby="courses-grid-heading">
         <div className="container">
           <h2 id="courses-grid-heading" className="sr-only">
-            All Courses
+            {t("allCourses")}
           </h2>
 
           {courses.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>The catalog is being updated. Please check back soon, or contact us directly.</p>
+              <p>{t("empty")}</p>
             </div>
           ) : (
-            <Reveal group className={styles.grid}>
-              {courses.map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </Reveal>
+            // Suspense: CoursesExplorer usa useSearchParams (estado en la URL)
+            <Suspense fallback={null}>
+              <CoursesExplorer courses={courses} />
+            </Suspense>
           )}
         </div>
       </section>

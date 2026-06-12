@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "../i18n/client";
 import styles from "./TeamCard.module.css";
 
 export default function TeamCard({ image, name, role, bio, email }) {
+  const t = useT("team");
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -24,7 +26,7 @@ export default function TeamCard({ image, name, role, bio, email }) {
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
       >
-        {expanded ? "Hide Bio" : "Read Bio"}
+        {expanded ? t("hideBio") : t("readBio")}
         <svg 
           className={`${styles.chevron} ${expanded ? styles.expanded : ""}`} 
           viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"

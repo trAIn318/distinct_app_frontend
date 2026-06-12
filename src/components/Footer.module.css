@@ -16,6 +16,7 @@
   height: auto;
   display: block;
   opacity: 0.9;
+  filter: var(--logo-filter);
   transition: opacity 0.2s ease;
 }
 

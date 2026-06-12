@@ -1,0 +1,228 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "courses": "Cursos",
+    "about": "Nosotros",
+    "meetAria": "Conoce a ARIA",
+    "accessMoodle": "Acceder a Moodle",
+    "signIn": "Iniciar Sesión",
+    "signOut": "Cerrar Sesión",
+    "hi": "Hola, {name}"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "theme": "Tema",
+    "dark": "Oscuro",
+    "light": "Claro",
+    "note": "Tus preferencias se guardan en este dispositivo — y en tu cuenta cuando inicias sesión."
+  },
+  "rail": {
+    "home": "Inicio",
+    "getInTouch": "Contacto",
+    "problem": "El Problema",
+    "courses": "Cursos",
+    "testimonials": "Testimonios",
+    "platform": "Plataforma",
+    "howItWorks": "Cómo Funciona",
+    "aria": "ARIA",
+    "contact": "Contacto",
+    "partners": "Aliados",
+    "section": "Sección {n}",
+    "goTo": "Ir a {label}"
+  },
+  "hero": {
+    "eyebrow": "Distinct Hospitality Solutions",
+    "titlePre": "La Plataforma de IA Creada para Quienes Dirigen la",
+    "titleEmphasis": "Hospitalidad",
+    "titlePost": ".",
+    "body": "Distinct capacita a tu equipo, mide lo que importa y convierte el desempeño del personal en ingresos medibles — en cada turno, cada propiedad y cada mercado.",
+    "getStarted": "Comienza Ahora",
+    "meetAria": "Conoce a ARIA",
+    "accessMoodle": "Acceder a Moodle"
+  },
+  "valueProp": {
+    "titlePre": "Convierte la Capacitación de tu Equipo en Crecimiento",
+    "titleEmphasis": "Medible",
+    "titlePost": "de Ingresos",
+    "getInTouch": "Contáctanos"
+  },
+  "problem": {
+    "label": "El Costo Real de la Inconsistencia",
+    "titlePre": "La Capacitación No Falla. La",
+    "titleEmphasis": "Medición",
+    "titlePost": "Sí.",
+    "blockHeadline": "Todo hotel, restaurante y club privado invierte en capacitación. La mayoría no puede responder tres preguntas:",
+    "q1": "¿La capacitación aumentó los ingresos?",
+    "q2": "¿Qué comportamientos impulsan la satisfacción del huésped?",
+    "q3": "¿Quiénes son tus mejores empleados y qué los hace diferentes?",
+    "q4": "Sin datos, estás invirtiendo en esperanza.",
+    "approachTitle": "Nuestro Enfoque — Un Sistema de Desempeño. No Solo Capacitación",
+    "approachBody": "Sin esa inteligencia, la capacitación es un centro de costos. Con Distinct, se convierte en una ventaja competitiva.",
+    "cta": "Contáctanos"
+  },
+  "featured": {
+    "eyebrow": "Cursos Destacados",
+    "titlePre": "Formación Creada por",
+    "titleEmphasis": "Expertos en Hospitalidad",
+    "titlePost": ".",
+    "intro": "Una selección de nuestros programas. Cada curso es específico por rol, multilingüe y está construido alrededor de los momentos que generan ingresos reales.",
+    "viewAll": "Ver Todos los Cursos →"
+  },
+  "testimonials": {
+    "eyebrow": "Lo que dicen nuestros estudiantes",
+    "title": "Voces desde la Operación"
+  },
+  "platform": {
+    "eyebrow": "DE MIAMI PARA EL MUNDO",
+    "titleRest": "más inteligente. Rinde mejor. Gana más",
+    "bodyPre": "Distinct es una plataforma de desempeño impulsada por IA que mide el comportamiento del personal, lo conecta con la experiencia del huésped y genera ingresos en operaciones de hospitalidad a escala. Capacitamos",
+    "bodyPost": "equipos a través de los programas inmersivos y multilingües de nuestra plataforma."
+  },
+  "howItWorks": {
+    "eyebrow": "CÓMO FUNCIONA",
+    "titleRest": "→ Mide → Analiza → Crece",
+    "stepLabel": "Paso {n}",
+    "step1Title": "trAIn",
+    "step1Body": "Tus estándares. Cada empleado. Cada turno. Microaprendizaje específico por rol, impulsado por IA, que tu equipo completa en cualquier dispositivo y en cualquier idioma. ARIA — nuestra agente inteligente de coaching — guía cada sesión.",
+    "step2Title": "Mide",
+    "step2Body": "El comportamiento se conecta con los resultados. Captura lo que realmente sucede en la operación: conversiones de venta adicional, estándares de bienvenida, acciones de recuperación de servicio, calidad de la interacción con el huésped. Datos reales de turnos reales.",
+    "step3Title": "Analiza",
+    "step3Body": "Sabe lo que sienten tus huéspedes antes de que lo publiquen. GuestSight revela el sentimiento en tiempo real — por turno, por departamento, por empleado. Actúa mientras el huésped sigue en el edificio. Convierte una queja en un regreso leal.",
+    "step4Title": "Crece",
+    "step4Body": "El desempeño se convierte en ingresos. Conecta la capacitación completada con ventas por cubierto, ticket promedio, tasa de venta adicional y porcentaje de propinas. Ve exactamente a dónde fue tu inversión y a quién impulsó."
+  },
+  "aria": {
+    "label": "Conoce a ARIA",
+    "title": "La Mentora Que Nunca Termina Su Turno.",
+    "p1": "ARIA es la agente de coaching con IA de Distinct — creada específicamente para el personal de hospitalidad. Responde preguntas antes de un turno, guía decisiones durante el mismo y ayuda a los equipos a practicar los momentos que más importan.",
+    "p2": "Habla cualquier idioma. Se adapta a la forma de pensar de cada persona. Recuerda cada conversación y la usa para dar mejor orientación con el tiempo. Y construye un perfil de desempeño de cada empleado — para que los gerentes vean no solo lo que su equipo sabe, sino en quién se está convirtiendo.",
+    "cta": "Habla con ARIA →"
+  },
+  "contact": {
+    "title": "Hablemos.",
+    "sidebar": "Seas operador hotelero, inversionista o aliado potencial — queremos escucharte. Distinct se mueve rápido, y nosotros también.",
+    "whatsapp": "Escríbenos por WhatsApp →",
+    "name": "Nombre",
+    "namePlaceholder": "Tu Nombre",
+    "email": "Correo",
+    "emailPlaceholder": "tu.correo@ejemplo.com",
+    "notRobot": "No soy un robot",
+    "send": "Enviar",
+    "emailRequired": "El correo es obligatorio.",
+    "emailInvalid": "Ingresa una dirección de correo válida.",
+    "recaptchaRequired": "Por favor verifica que eres humano.",
+    "success": "¡Gracias! Tu mensaje ha sido enviado. (Simulado)"
+  },
+  "partners": {
+    "eyebrow": "Colaboraciones de Confianza",
+    "titlePre": "Nuestros",
+    "titleEmphasis": "Aliados",
+    "titlePost": "."
+  },
+  "footer": {
+    "tagline": "La plataforma de IA creada para quienes dirigen la hospitalidad.",
+    "privacy": "Política de Privacidad",
+    "location": "Ubicación: Con sede en Miami, FL. Operando en EE. UU., Latinoamérica y el Sudeste Asiático.",
+    "response": "Tiempo de respuesta: Respondemos todas las consultas en menos de 24 horas.",
+    "copyright": "© 2026 Distinct Hospitality Solutions LLC — Todos los Derechos Reservados."
+  },
+  "card": {
+    "viewMore": "Ver Más",
+    "interested": "Me Interesa",
+    "taughtIn": "Se dicta en {lang}",
+    "lang": {
+      "en": "English",
+      "es": "Español"
+    }
+  },
+  "coursesPage": {
+    "tag": "Biblioteca de Formación",
+    "titlePre": "Cada Curso.",
+    "titleEmphasis": "Cada Rol.",
+    "titlePost": "Cada Turno.",
+    "subtitle": "Programas de hospitalidad específicos por rol, multilingües, listos para tu equipo. Explora el catálogo o entra directo a Moodle si ya estás inscrito.",
+    "accessMoodle": "Acceder a Moodle",
+    "empty": "El catálogo se está actualizando. Vuelve pronto o contáctanos directamente.",
+    "allCourses": "Todos los Cursos"
+  },
+  "courseDetail": {
+    "breadcrumb": "← Todos los Cursos",
+    "modules": "Módulos",
+    "enrollPay": "Inscríbete y Paga",
+    "interested": "Me Interesa",
+    "accessMoodle": "Acceder a Moodle",
+    "overview": "Descripción",
+    "preview": "Vista Previa",
+    "ctaTitle": "¿Listo para llevar esta formación a tu equipo?",
+    "ctaBody": "Escríbenos y nuestro equipo te guiará en la inscripción, precios e implementación."
+  },
+  "login": {
+    "eyebrow": "Cuenta",
+    "title": "Iniciar Sesión",
+    "copy": "Bienvenido de nuevo. Inicia sesión con tu correo o usuario."
+  },
+  "explorer": {
+    "searchPlaceholder": "Busca por nombre, descripción o código…",
+    "viewMode": "Modo de vista",
+    "view": {
+      "cards": "Tarjetas",
+      "list": "Lista",
+      "summary": "Resumen"
+    },
+    "category": "Categoría",
+    "allCategories": "Todas las categorías",
+    "level": "Nivel",
+    "allLevels": "Todos los niveles",
+    "levels": {
+      "beginner": "Principiante",
+      "intermediate": "Intermedio",
+      "advanced": "Avanzado"
+    },
+    "language": "Idioma del curso",
+    "allLanguages": "Todos los idiomas",
+    "price": "Precio",
+    "allPrices": "Cualquier precio",
+    "free": "Gratis",
+    "paid": "De pago",
+    "clear": "Limpiar filtros",
+    "results": "{n} curso(s)",
+    "noResults": "Ningún curso coincide con tu búsqueda. Ajusta los filtros.",
+    "colCode": "Código",
+    "colTitle": "Curso",
+    "colCategory": "Categoría",
+    "colLevel": "Nivel",
+    "colLanguage": "Idioma",
+    "colModules": "Módulos"
+  },
+  "team": {
+    "readBio": "Leer Bio",
+    "hideBio": "Ocultar Bio"
+  },
+  "aboutPage": {
+    "heroTag": "Nuestra Historia",
+    "heroTitlePre": "Construimos Distinct Porque Vivimos el",
+    "heroTitleEmphasis": "Problema",
+    "heroTitlePost": ".",
+    "heroSub": "Dos décadas en hospitalidad. Cada rol. Cada mercado. Un problema que nunca desapareció.",
+    "teamTag": "El Equipo",
+    "teamTitle": "Construido por Operadores. Impulsado por Inteligencia.",
+    "roleVeronica": "Fundadora & CEO",
+    "bioVeronica": "Casi dos décadas construyendo, transformando y liderando operaciones de hospitalidad en EE. UU., Latinoamérica y el Sudeste Asiático. Veronica fundó Distinct porque pasó veinte años viendo cómo el gran talento se desperdiciaba por culpa de malos sistemas.",
+    "roleLuznedy": "CTO",
+    "bioLuznedy": "La arquitectura técnica detrás de la plataforma de Distinct. Construye la infraestructura que hace posible la inteligencia en tiempo real a escala.",
+    "roleHugo": "CDO & Director de Ciencia de Datos",
+    "bioHugo": "La capa de inteligencia. Hugo es dueño de los modelos de datos, los marcos de KPIs y el sistema que convierte cada conversación con ARIA en información de desempeño.",
+    "storyTitle": "La Historia del Nuevo Empleado.",
+    "storyP1": "Un nuevo empleado comienza su primer día. Está motivado, listo y lleno de potencial. Entonces llega la realidad: nadie tiene tiempo. El gerente está gestionando una crisis. El entrenador tiene doble agenda. Así que al nuevo lo entregan a quien esté disponible — y pasa sus primeras dos semanas absorbiendo los hábitos de esa persona, sus atajos, su versión de los estándares.",
+    "storyP2": "No los estándares de la empresa. Los estándares de un empleado.",
+    "storyP3": "Al tercer mes, la propiedad tiene un nuevo miembro del equipo que cree que fue capacitado. El gerente no tiene idea de lo que realmente sabe. Y la experiencia del huésped sigue tan inconsistente como siempre.",
+    "storyP4": "Vimos esto en resorts cinco estrellas. En restaurantes con estrellas Michelin. En clubes privados y residencias de lujo. Las propiedades más sofisticadas del mundo tenían la misma brecha: ninguna capa inteligente para los humanos que hacen el trabajo.",
+    "storyHighlight": "Distinct es esa capa.",
+    "missionTag": "Por Qué Existimos",
+    "missionP1": "Distinct no reemplaza a tu equipo. Trabaja en su nombre — constantemente. Somos el operador silencioso que funciona por ti, las 24 horas, para que tu gente se concentre en lo que solo los humanos pueden hacer: hacer sentir algo a los huéspedes.",
+    "missionP2": "Nuestra misión fundacional es hacer crecer la fuerza laboral de la hospitalidad y darle más propósito a sus carreras. No reemplazar trabajadores con IA. Hacer que cada trabajador sea mejor en lo que hace — y visible por el valor que crea.",
+    "marketsTitle": "Dónde Operamos.",
+    "marketsBody": "Con sede en Miami. Operando en EE. UU., Latinoamérica y el Sudeste Asiático. Construido para hoteles de lujo y boutique, restaurantes, clubes privados, propiedades residenciales y clientes privados de alto patrimonio. Expandiéndonos a comedores corporativos, hospitalidad en transporte, academias J1 y mercados estacionales."
+  }
+}

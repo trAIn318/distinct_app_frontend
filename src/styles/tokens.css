@@ -68,4 +68,43 @@
   --shadow-card:       0 8px 24px rgba(0, 0, 0, 0.35);
   --shadow-card-hover: 0 20px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--gold-30);
   --shadow-glow-gold:  0 4px 24px rgba(201, 169, 110, 0.25);
+
+  /* ── Superficies especiales ──────────────────────────────── */
+  --nav-bg:          rgba(10, 10, 10, 0.72);
+  --nav-bg-scrolled: rgba(10, 10, 10, 0.92);
+  --logo-filter:     none;   /* el logo es claro; en tema light se invierte */
+}
+
+/* ════════════════════════════════════════════════════════════
+   TEMA CLARO — [data-theme="light"] en <html>.
+   Estrategia: se redefinen los tokens de la paleta invirtiendo
+   roles (obsidian pasa a ser el fondo claro, ivory el texto
+   oscuro). Así los componentes existentes se adaptan sin tocarlos.
+   El dorado pasa a su variante "muted" para mantener contraste.
+   ════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  --color-obsidian:     #F4F1EA;   /* fondos principales */
+  --color-ivory:        #1B1A17;   /* texto principal */
+  --color-gold:         #A8895A;   /* dorado con contraste sobre claro */
+  --color-gold-muted:   #8C714A;
+  --color-platinum:     #44434A;   /* texto secundario */
+  --color-charcoal:     #FFFFFF;   /* paneles/cards claras */
+  --color-smoke:        #6E6E73;
+  --color-surface-dark: #FFFFFF;
+  --color-surface-light:#FAFAF8;
+
+  --gold-08:  rgba(168, 137, 90, 0.10);
+  --gold-15:  rgba(168, 137, 90, 0.18);
+  --gold-30:  rgba(168, 137, 90, 0.35);
+  --gold-50:  rgba(168, 137, 90, 0.55);
+  --ivory-08: rgba(27, 26, 23, 0.08);
+  --ivory-15: rgba(27, 26, 23, 0.15);
+
+  --shadow-card:       0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 20px 48px rgba(0, 0, 0, 0.14), 0 0 0 1px var(--gold-30);
+  --shadow-glow-gold:  0 4px 24px rgba(168, 137, 90, 0.3);
+
+  --nav-bg:          rgba(247, 244, 239, 0.8);
+  --nav-bg-scrolled: rgba(247, 244, 239, 0.95);
+  --logo-filter:     invert(0.88) sepia(0.12);
 }

@@ -1,0 +1,228 @@
+{
+  "nav": {
+    "home": "Home",
+    "courses": "Courses",
+    "about": "About",
+    "meetAria": "Meet ARIA",
+    "accessMoodle": "Access Moodle",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "hi": "Hi, {name}"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "dark": "Dark",
+    "light": "Light",
+    "note": "Preferences are saved on this device — and to your account when you're signed in."
+  },
+  "rail": {
+    "home": "Home",
+    "getInTouch": "Get in Touch",
+    "problem": "The Problem",
+    "courses": "Courses",
+    "testimonials": "Testimonials",
+    "platform": "Platform",
+    "howItWorks": "How It Works",
+    "aria": "ARIA",
+    "contact": "Contact",
+    "partners": "Partners",
+    "section": "Section {n}",
+    "goTo": "Go to {label}"
+  },
+  "hero": {
+    "eyebrow": "Distinct Hospitality Solutions",
+    "titlePre": "The AI Platform Built for the People Who Run",
+    "titleEmphasis": "Hospitality",
+    "titlePost": ".",
+    "body": "Distinct trains your team, tracks what matters, and turns staff performance into measurable revenue — across every shift, every property, every market.",
+    "getStarted": "Get Started",
+    "meetAria": "Meet ARIA",
+    "accessMoodle": "Access Moodle"
+  },
+  "valueProp": {
+    "titlePre": "Turn Staff Training Into",
+    "titleEmphasis": "Measurable",
+    "titlePost": "Revenue Growth",
+    "getInTouch": "Get in Touch"
+  },
+  "problem": {
+    "label": "The Real Cost of Inconsistency",
+    "titlePre": "Training Doesn't Fail.",
+    "titleEmphasis": "Measurement",
+    "titlePost": "Does.",
+    "blockHeadline": "Every hotel, restaurant, and private club invests in training. Most can't answer three questions:",
+    "q1": "Did training increase revenue?",
+    "q2": "Which behaviors drive guest satisfaction?",
+    "q3": "Who are your top performers and what makes them different?",
+    "q4": "Without data, you're investing in hope.",
+    "approachTitle": "Our Approach — A Performance System. Not Just Training",
+    "approachBody": "Without that intelligence, training is a cost center. With Distinct, it becomes a competitive advantage.",
+    "cta": "Get in Touch"
+  },
+  "featured": {
+    "eyebrow": "Featured Courses",
+    "titlePre": "Training Built by",
+    "titleEmphasis": "Hospitality Experts",
+    "titlePost": ".",
+    "intro": "A curated preview of our programs. Every course is role-specific, multilingual, and built around the moments that drive real revenue.",
+    "viewAll": "View All Courses →"
+  },
+  "testimonials": {
+    "eyebrow": "What our learners say",
+    "title": "Voices from the Floor"
+  },
+  "platform": {
+    "eyebrow": "FROM MIAMI TO THE WORLD",
+    "titleRest": "smarter. Perform better. Earn more",
+    "bodyPre": "Distinct is an AI-powered performance platform that tracks employee behavior, connects it to guest experience, and drives revenue across hospitality operations at scale. We",
+    "bodyPost": "teams through our platform's immersive multilingual programs."
+  },
+  "howItWorks": {
+    "eyebrow": "HOW IT WORKS",
+    "titleRest": "→ Track → Analyze → Grow",
+    "stepLabel": "Step {n}",
+    "step1Title": "trAIn",
+    "step1Body": "Your standards. Every employee. Every shift. AI-powered, role-specific microlearning your team completes on any device, in any language. ARIA — our intelligent coaching agent — guides every session.",
+    "step2Title": "Track",
+    "step2Body": "Behavior connects to results. Capture what actually happens on the floor: upsell conversions, greeting standards, service recovery actions, guest interaction quality. Real data from real shifts.",
+    "step3Title": "Analyze",
+    "step3Body": "Know what your guests feel before they post it. GuestSight surfaces sentiment in real time — by shift, by department, by employee. Act while the guest is still in the building. Turn a complaint into a loyal return.",
+    "step4Title": "Grow",
+    "step4Body": "Performance becomes revenue. Connect training completion to sales per cover, average check, upsell rate, and tip percentage. See exactly where your investment went and who it moved."
+  },
+  "aria": {
+    "label": "Meet ARIA",
+    "title": "The Mentor That Never Clocks Out.",
+    "p1": "ARIA is Distinct's AI coaching agent — built specifically for hospitality staff. She answers questions before a shift, guides decisions during one, and helps teams practice the moments that matter most.",
+    "p2": "She speaks any language. She adapts to how each person thinks. She remembers every conversation and uses it to give better guidance over time. And she builds a performance profile of every employee — so managers see not just what their team knows, but who they're becoming.",
+    "cta": "Talk to ARIA →"
+  },
+  "contact": {
+    "title": "Let's Talk.",
+    "sidebar": "Whether you're a hotel operator, investor, or potential partner — we want to hear from you. Distinct moves fast and so do we.",
+    "whatsapp": "Message us on WhatsApp →",
+    "name": "Name",
+    "namePlaceholder": "Your Name",
+    "email": "Email",
+    "emailPlaceholder": "your.email@example.com",
+    "notRobot": "I am not a robot",
+    "send": "Send",
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Please enter a valid email address.",
+    "recaptchaRequired": "Please verify that you are human.",
+    "success": "Thank you! Your message has been sent. (Simulated)"
+  },
+  "partners": {
+    "eyebrow": "Trusted Collaborations",
+    "titlePre": "Our",
+    "titleEmphasis": "Partners",
+    "titlePost": "."
+  },
+  "footer": {
+    "tagline": "The AI platform built for the people who run hospitality.",
+    "privacy": "Privacy Policy",
+    "location": "Location: Based in Miami, FL. Operating across the USA, Latin America, and Southeast Asia.",
+    "response": "Response time: We respond to all inquiries within 24 hours.",
+    "copyright": "© 2026 Distinct Hospitality Solutions LLC — All Rights Reserved."
+  },
+  "card": {
+    "viewMore": "View More",
+    "interested": "I'm Interested",
+    "taughtIn": "Taught in {lang}",
+    "lang": {
+      "en": "English",
+      "es": "Español"
+    }
+  },
+  "coursesPage": {
+    "tag": "Training Library",
+    "titlePre": "Every Course.",
+    "titleEmphasis": "Every Role.",
+    "titlePost": "Every Shift.",
+    "subtitle": "Role-specific hospitality programs, multilingual, ready for your team. Browse the catalog or jump straight into Moodle if you're already enrolled.",
+    "accessMoodle": "Access Moodle",
+    "empty": "The catalog is being updated. Please check back soon, or contact us directly.",
+    "allCourses": "All Courses"
+  },
+  "courseDetail": {
+    "breadcrumb": "← All Courses",
+    "modules": "Modules",
+    "enrollPay": "Enroll & Pay",
+    "interested": "I'm Interested",
+    "accessMoodle": "Access Moodle",
+    "overview": "Overview",
+    "preview": "Preview",
+    "ctaTitle": "Ready to bring this training to your team?",
+    "ctaBody": "Reach out and our team will walk you through enrollment, pricing, and rollout."
+  },
+  "login": {
+    "eyebrow": "Account",
+    "title": "Sign In",
+    "copy": "Welcome back. Sign in with your email or username."
+  },
+  "explorer": {
+    "searchPlaceholder": "Search by name, description, or code…",
+    "viewMode": "View mode",
+    "view": {
+      "cards": "Cards",
+      "list": "List",
+      "summary": "Summary"
+    },
+    "category": "Category",
+    "allCategories": "All categories",
+    "level": "Level",
+    "allLevels": "All levels",
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "language": "Course language",
+    "allLanguages": "All languages",
+    "price": "Price",
+    "allPrices": "Any price",
+    "free": "Free",
+    "paid": "Paid",
+    "clear": "Clear filters",
+    "results": "{n} course(s)",
+    "noResults": "No courses match your search. Try adjusting the filters.",
+    "colCode": "Code",
+    "colTitle": "Course",
+    "colCategory": "Category",
+    "colLevel": "Level",
+    "colLanguage": "Language",
+    "colModules": "Modules"
+  },
+  "team": {
+    "readBio": "Read Bio",
+    "hideBio": "Hide Bio"
+  },
+  "aboutPage": {
+    "heroTag": "Our Story",
+    "heroTitlePre": "We Built Distinct Because We Lived the",
+    "heroTitleEmphasis": "Problem",
+    "heroTitlePost": ".",
+    "heroSub": "Two decades in hospitality. Every role. Every market. One problem that never went away.",
+    "teamTag": "The Team",
+    "teamTitle": "Built by Operators. Powered by Intelligence.",
+    "roleVeronica": "Founder & CEO",
+    "bioVeronica": "Nearly two decades building, turning around, and leading hospitality operations across the USA, Latin America, and Southeast Asia. Veronica founded Distinct because she spent twenty years watching great talent get wasted by bad systems.",
+    "roleLuznedy": "CTO",
+    "bioLuznedy": "The technical architecture behind Distinct's platform. Building the infrastructure that makes real-time intelligence possible at scale.",
+    "roleHugo": "CDO & Chief Data Science Officer",
+    "bioHugo": "The intelligence layer. Hugo owns the data models, KPI frameworks, and the system that turns every ARIA conversation into performance insight.",
+    "storyTitle": "The New Hire Story.",
+    "storyP1": "A new hire starts their first day. They're motivated, ready, and full of potential. Then reality hits: no one has time. The manager is managing a crisis. The trainer is double-booked. So the new hire gets handed off to whoever is available — and spends their first two weeks absorbing that person's habits, their shortcuts, their version of the standards.",
+    "storyP2": "Not the company's standards. One employee's standards.",
+    "storyP3": "By month three, the property has a new team member who thinks they were trained. The manager has no idea what they actually know. And the guest experience is as inconsistent as ever.",
+    "storyP4": "We saw this in five-star resorts. In Michelin-starred restaurants. In private clubs and luxury residences. The most sophisticated properties in the world had the same gap: no intelligent layer for the humans doing the work.",
+    "storyHighlight": "Distinct is that layer.",
+    "missionTag": "Why We Exist",
+    "missionP1": "Distinct doesn't replace your team. It works on their behalf — constantly. We are the silent operator running on your behalf, around the clock, so your people can focus on what only humans can do: making guests feel something.",
+    "missionP2": "Our founding mission is to grow the hospitality workforce and make careers more purposeful. Not to replace workers with AI. To make every worker better at what they do — and visible for the value they create.",
+    "marketsTitle": "Where We Operate.",
+    "marketsBody": "Based in Miami. Operating across the USA, Latin America, and Southeast Asia. Built for luxury and boutique hotels, restaurants, private clubs, residential properties, and HNW private clients. Expanding into corporate dining, transportation hospitality, J1 academies, and seasonal markets."
+  }
+}

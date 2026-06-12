@@ -9,9 +9,11 @@ import { getCourses } from "../lib/api";
 import { HOME_COURSES_COUNT } from "../lib/config";
 import CourseCard from "./CourseCard";
 import Reveal from "./Reveal";
+import { getT } from "../i18n/server";
 import styles from "./FeaturedCourses.module.css";
 
 export default async function FeaturedCourses() {
+  const t = await getT("featured");
   const courses = await getCourses({ limit: HOME_COURSES_COUNT });
 
   // Si el backend no responde, no rompemos el render — escondemos la sección
@@ -23,13 +25,13 @@ export default async function FeaturedCourses() {
     <section className={styles.section} aria-labelledby="featured-courses-heading">
       <div className="container">
         <Reveal>
-          <span className={styles.eyebrow}>Featured Courses</span>
+          <span className={styles.eyebrow}>{t("eyebrow")}</span>
           <h2 id="featured-courses-heading" className={styles.headline}>
-            Training Built by <span className="emphasized gold">Hospitality Experts</span>.
+            {t("titlePre")}{" "}
+            <span className="emphasized gold">{t("titleEmphasis")}</span>
+            {t("titlePost")}
           </h2>
-          <p className={styles.intro}>
-            A curated preview of our programs. Every course is role-specific, multilingual, and built around the moments that drive real revenue.
-          </p>
+          <p className={styles.intro}>{t("intro")}</p>
         </Reveal>
 
         <Reveal group className={styles.grid}>
@@ -40,7 +42,7 @@ export default async function FeaturedCourses() {
 
         <Reveal className={styles.viewAll}>
           <Link href="/courses" className="btn-ghost">
-            View All Courses →
+            {t("viewAll")}
           </Link>
         </Reveal>
       </div>
