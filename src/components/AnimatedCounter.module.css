@@ -1,0 +1,5 @@
+.counter {
+  font-family: var(--font-label);
+  font-variant-numeric: tabular-nums; /* ancho fijo: no "salta" al contar */
+  letter-spacing: 0.02em;
+}
