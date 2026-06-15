@@ -64,6 +64,16 @@
   --ivory-08: rgba(247, 244, 239, 0.08);
   --ivory-15: rgba(247, 244, 239, 0.15);
 
+  /* ── Living Elegance — efectos reactivos (parametrizables) ──────── */
+  --duotone-tint:          var(--color-gold);   /* color del overlay duotono */
+  --duotone-opacity:       0.55;                /* intensidad del tinte en reposo */
+  --reactive-zoom:         1.05;                /* escala de imagen en reposo */
+  --reactive-duration:     0.5s;                /* transición duotono/zoom */
+  --reactive-ease:         var(--ease-luxe);    /* expo-out, ya existe */
+  --underline-grow:        0.35s;               /* subrayado de enlaces */
+  --btn-hover-tracking:    0.22em;              /* letter-spacing en hover */
+  --counter-duration:      2.2s;                /* duración del conteo */
+
   /* ── Elevation (dark surfaces) ───────────────────────────── */
   --shadow-card:       0 8px 24px rgba(0, 0, 0, 0.35);
   --shadow-card-hover: 0 20px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--gold-30);
@@ -107,4 +117,8 @@
   --nav-bg:          rgba(247, 244, 239, 0.8);
   --nav-bg-scrolled: rgba(247, 244, 239, 0.95);
   --logo-filter:     invert(0.88) sepia(0.12);
+
+  /* Living Elegance — tinte más suave sobre fondos claros */
+  --duotone-tint:    var(--color-gold-muted);
+  --duotone-opacity: 0.45;
 }
