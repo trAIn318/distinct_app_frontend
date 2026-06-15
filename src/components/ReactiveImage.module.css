@@ -17,7 +17,7 @@
     filter var(--reactive-duration) var(--reactive-ease);
 }
 
-/* Overlay de tinte dorado (duotono) */
+/* Overlay de tinte dorado (duotono) sobre la imagen en reposo */
 .frame[data-effect="duotone"]::after {
   content: "";
   position: absolute;
@@ -29,19 +29,40 @@
   pointer-events: none;
 }
 
-/* Estado revelado: por hover (desktop) o por inview (móvil) */
-.frame[data-effect="duotone"][data-trigger="hover"]:hover .img,
-.frame[data-effect="duotone"][data-trigger="both"]:hover .img,
-.frame[data-effect="duotone"][data-trigger="inview"][data-inview="true"] .img,
-.frame[data-effect="duotone"][data-trigger="both"][data-inview="true"] .img {
+/* ── Estado revelado: imagen a color, sin tinte, sin zoom ──────────── */
+/* Mixin lógico repetido por selector (CSS no permite agrupar @media + :hover). */
+
+/* Dispositivos con hover (desktop): el hover revela (triggers hover|both). */
+@media (hover: hover) {
+  .frame[data-effect="duotone"][data-trigger="hover"]:hover .img,
+  .frame[data-effect="duotone"][data-trigger="both"]:hover .img {
+    filter: grayscale(0) contrast(1);
+    transform: scale(1);
+  }
+  .frame[data-effect="duotone"][data-trigger="hover"]:hover::after,
+  .frame[data-effect="duotone"][data-trigger="both"]:hover::after {
+    opacity: 0;
+  }
+}
+
+/* Dispositivos táctiles (sin hover): se revela al entrar en viewport
+   (triggers both|hover|inview), porque el hover nunca ocurrirá. */
+@media (hover: none) {
+  .frame[data-effect="duotone"][data-inview="true"] .img {
+    filter: grayscale(0) contrast(1);
+    transform: scale(1);
+  }
+  .frame[data-effect="duotone"][data-inview="true"]::after {
+    opacity: 0;
+  }
+}
+
+/* trigger="inview": revela al entrar en viewport en cualquier dispositivo. */
+.frame[data-effect="duotone"][data-trigger="inview"][data-inview="true"] .img {
   filter: grayscale(0) contrast(1);
   transform: scale(1);
 }
-
-.frame[data-effect="duotone"][data-trigger="hover"]:hover::after,
-.frame[data-effect="duotone"][data-trigger="both"]:hover::after,
-.frame[data-effect="duotone"][data-trigger="inview"][data-inview="true"]::after,
-.frame[data-effect="duotone"][data-trigger="both"][data-inview="true"]::after {
+.frame[data-effect="duotone"][data-trigger="inview"][data-inview="true"]::after {
   opacity: 0;
 }
 
