@@ -1,0 +1,12 @@
+{
+  "note": "Lighthouse no ejecutable en el entorno sandbox (sin Chrome headless / sin servidor persistente). Ejecutar manualmente para comparar con baseline.",
+  "howToMeasure": "cd distinct_app_frontend && npm run build && npm start, luego: npx lighthouse http://localhost:3000 --only-categories=performance,accessibility --chrome-flags=\"--headless\"",
+  "expectedImprovement": "El peso de imágenes baja ~90% en los assets convertidos (p.ej. card_culinary 1.46MB→85KB, platform_overview 1.52MB→93KB, Veronica 914KB→90KB) y Solutions ahora usa next/image (AVIF/WebP + lazy + width/height → menos CLS). Performance debería subir respecto al baseline.",
+  "verifiedInSandbox": {
+    "productionBuild": "OK (next build compila sin errores)",
+    "unitTests": "15/15 passing (Vitest)",
+    "reducedMotionFallbacks": "presentes en ReactiveImage, AnimatedCounter, CourseCard, TeamCard, buttons, link-underline, magnetic",
+    "manualPending": ["Lighthouse perf/a11y", "verificación visual reduced-motion en navegador", "responsive 375/768/1280/1440"]
+  },
+  "lighthouseTargets": { "performance": 90, "accessibility": 95, "bestPractices": 95, "seo": 90 }
+}
