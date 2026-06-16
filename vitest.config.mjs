@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
@@ -11,5 +11,7 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.js"],
+    // Evita escanear worktrees aislados (.worktrees/) — duplicarían los tests.
+    exclude: [...configDefaults.exclude, "**/.worktrees/**"],
   },
 });
