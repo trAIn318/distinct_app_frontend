@@ -21,7 +21,7 @@ export default async function PlatformOverview() {
 
         <div className={styles.imageWrapper}>
           <img
-            src="/img/platform_overview.png"
+            src="/img/platform_overview.webp"
             alt="High-end luxury hotel front desk with professional staff"
             className={styles.image}
             loading="lazy"

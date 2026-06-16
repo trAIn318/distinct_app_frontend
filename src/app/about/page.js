@@ -13,21 +13,21 @@ export default async function About() {
 
   const team = [
     {
-      image: "/img/Veronica.png",
+      image: "/img/Veronica.webp",
       name: "Veronica Straw",
       role: t("roleVeronica"),
       email: "Veronica@distincthospitalitysolutions.com",
       bio: t("bioVeronica"),
     },
     {
-      image: "/img/Luznedy.png",
+      image: "/img/Luznedy.webp",
       name: "Luznedy Gomez",
       role: t("roleLuznedy"),
       email: "Luznedy@traindistinct.com",
       bio: t("bioLuznedy"),
     },
     {
-      image: "/img/Hugo.png",
+      image: "/img/Hugo.webp",
       name: "Hugo F.",
       role: t("roleHugo"),
       email: "Hugo@traindistinct.com",
