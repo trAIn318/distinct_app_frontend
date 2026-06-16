@@ -71,7 +71,7 @@
   --reactive-duration:     0.5s;                /* transición duotono/zoom */
   --reactive-ease:         var(--ease-luxe);    /* expo-out, ya existe */
   --underline-grow:        0.35s;               /* subrayado de enlaces */
-  --btn-hover-tracking:    0.22em;              /* letter-spacing en hover */
+  --btn-hover-tracking:    0.14em;              /* letter-spacing en hover (sutil) */
   --counter-duration:      2.2s;                /* duración del conteo */
 
   /* ── Elevation (dark surfaces) ───────────────────────────── */

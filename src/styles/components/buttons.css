@@ -20,7 +20,15 @@
     color var(--duration-fast) var(--ease-smooth),
     border-color var(--duration-fast) var(--ease-smooth),
     box-shadow var(--duration-base) var(--ease-smooth),
-    transform var(--duration-fast) var(--ease-smooth);
+    transform var(--duration-fast) var(--ease-smooth),
+    letter-spacing var(--duration-fast) var(--ease-smooth);
+}
+
+/* Micro-interacción: las letras se abren levemente al hacer hover */
+.btn-primary:hover,
+.btn-ghost:hover,
+.btn-white:hover {
+  letter-spacing: var(--btn-hover-tracking);
 }
 
 .btn-primary:active,
