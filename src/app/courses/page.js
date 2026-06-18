@@ -28,7 +28,8 @@ export default async function CoursesPage() {
             {t("titlePost")}
           </h1>
           <p className={styles.heroSubLabel}>{t("subtitle")}</p>
-          <div className={styles.heroActions}>
+          {/* Botón de acceso a Moodle ocultado temporalmente (puede reactivarse). */}
+          {/* <div className={styles.heroActions}>
             <a
               href={MOODLE_URL}
               className="btn-white"
@@ -37,7 +38,7 @@ export default async function CoursesPage() {
             >
               {t("accessMoodle")}
             </a>
-          </div>
+          </div> */}
         </Reveal>
       </section>
 

@@ -116,14 +116,15 @@ export default async function CourseDetailPage({ params }) {
               >
                 {t("interested")}
               </a>
-              <a
+              {/* Botón de acceso a Moodle ocultado temporalmente (puede reactivarse). */}
+              {/* <a
                 href={MOODLE_URL}
                 className="btn-white"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 {t("accessMoodle")}
-              </a>
+              </a> */}
             </div>
           </div>
 

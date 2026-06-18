@@ -32,14 +32,15 @@ export default async function Hero() {
             >
               {t("meetAria")}
             </a>
-            <a
+            {/* Botón de acceso a Moodle ocultado temporalmente (puede reactivarse). */}
+            {/* <a
               href={MOODLE_URL}
               className="btn-ghost"
               target="_blank"
               rel="noopener noreferrer"
             >
               {t("accessMoodle")}
-            </a>
+            </a> */}
           </div>
         </div>
       </div>
