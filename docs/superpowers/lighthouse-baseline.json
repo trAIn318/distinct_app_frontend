@@ -1,0 +1,5 @@
+{
+  "note": "Baseline de Lighthouse no capturado automáticamente: el entorno sandbox no dispone de Chrome headless ni puede mantener un servidor para auditar. Capturar manualmente con `npx lighthouse http://localhost:3000 --only-categories=performance,accessibility` tras `npm run build && npm start`.",
+  "buildBaseline": "pendiente de confirmar en este commit vía `npm run build`",
+  "lighthouseTargets": { "performance": 90, "accessibility": 95, "bestPractices": 95, "seo": 90 }
+}

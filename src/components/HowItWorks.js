@@ -4,10 +4,10 @@ import { getT } from "../i18n/server";
 import styles from "./HowItWorks.module.css";
 
 const STEP_IMAGES = [
-  { src: "/img/step_train.png", alt: "Bartender training on a tablet" },
-  { src: "/img/step_track.png", alt: "Sleek modern POS system showing analytics" },
-  { src: "/img/step_analyze.png", alt: "Luxury hotel guest smiling warmly" },
-  { src: "/img/step_optimize.png", alt: "Restaurant manager coaching staff" },
+  { src: "/img/step_train.webp", alt: "Bartender training on a tablet" },
+  { src: "/img/step_track.webp", alt: "Sleek modern POS system showing analytics" },
+  { src: "/img/step_analyze.webp", alt: "Luxury hotel guest smiling warmly" },
+  { src: "/img/step_optimize.webp", alt: "Restaurant manager coaching staff" },
 ];
 
 export default async function HowItWorks() {

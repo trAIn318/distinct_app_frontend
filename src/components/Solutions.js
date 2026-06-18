@@ -1,4 +1,5 @@
 import TrainWord from "./TrainWord";
+import ReactiveImage from "./ReactiveImage";
 import styles from "./Solutions.module.css";
 
 export default function Solutions() {
@@ -14,7 +15,7 @@ export default function Solutions() {
           {/* Card 1 */}
           <article className={styles.card}>
             <div className={styles.cardImageWrapper}>
-              <img src="/img/card_culinary.png" alt="Lively upscale high-end restaurant scene" className={styles.cardImage} loading="lazy" />
+              <ReactiveImage src="/img/card_culinary.webp" alt="Lively upscale high-end restaurant scene" ratio="16:9" className={styles.cardImage} />
             </div>
             <div className={styles.cardContent}>
               <div className={styles.eyebrow}><TrainWord /> + GUESTSIGHT</div>
@@ -31,7 +32,7 @@ export default function Solutions() {
           {/* Card 2 */}
           <article className={styles.card}>
             <div className={styles.cardImageWrapper}>
-              <img src="/img/card_estate.png" alt="Luxury concierge or bespoke private event setting" className={styles.cardImage} loading="lazy" />
+              <ReactiveImage src="/img/card_estate.webp" alt="Luxury concierge or bespoke private event setting" ratio="16:9" className={styles.cardImage} />
             </div>
             <div className={styles.cardContent}>
               <div className={styles.eyebrow}>BESPOKE / CONCIERGE</div>
@@ -48,7 +49,7 @@ export default function Solutions() {
           {/* Card 3 */}
           <article className={styles.card}>
             <div className={styles.cardImageWrapper}>
-              <img src="/img/card_resident.png" alt="Luxury high-rise condominium lobby" className={styles.cardImage} loading="lazy" />
+              <ReactiveImage src="/img/card_resident.webp" alt="Luxury high-rise condominium lobby" ratio="16:9" className={styles.cardImage} />
             </div>
             <div className={styles.cardContent}>
               <div className={styles.eyebrow} aria-hidden="true"></div>

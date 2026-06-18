@@ -1,0 +1,248 @@
+/* Página de cuenta — mismo lenguaje visual obsidian/ivory/gold. */
+
+.page {
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
+  min-height: calc(100vh - 80px);
+  padding: var(--space-12) 0;
+}
+
+.wrapper {
+  max-width: 720px;
+  margin: 0 auto;
+  animation: formEnter 0.9s var(--ease-luxe) both;
+}
+
+@keyframes formEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrapper {
+    animation: none;
+  }
+}
+
+.eyebrow {
+  display: block;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: var(--space-4);
+}
+
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin: 0 0 var(--space-3) 0;
+  color: var(--color-ivory);
+}
+
+.copy {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.618;
+  color: var(--color-platinum);
+  margin: 0 0 var(--space-8) 0;
+}
+
+/* ── Tarjetas de sección ─────────────────────────────────────────────── */
+
+.card {
+  background: var(--color-surface-dark);
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  border-top: 2px solid var(--color-gold);
+  padding: var(--space-8);
+  margin-bottom: var(--space-6);
+}
+
+.cardDanger {
+  border-top-color: #dc2626;
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.cardBody {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  color: var(--color-platinum);
+  margin: 0 0 var(--space-5) 0;
+}
+
+.detail {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid rgba(216, 216, 216, 0.08);
+}
+
+.detailLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-smoke);
+}
+
+.detailValue {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+  text-align: right;
+}
+
+/* ── Inputs (modal de borrado) ───────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.fieldLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+.input {
+  background: var(--color-obsidian);
+  border: 1px solid rgba(216, 216, 216, 0.15);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 0;
+  transition: border-color 0.2s ease;
+  width: 100%;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 1px var(--gold-30), 0 0 16px var(--gold-08);
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  background: rgba(220, 38, 38, 0.1);
+  border-left: 2px solid #dc2626;
+  color: #fca5a5;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+}
+
+.success {
+  background: rgba(201, 169, 110, 0.1);
+  border-left: 2px solid var(--color-gold);
+  color: var(--color-ivory);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+}
+
+.dangerButton {
+  background: transparent;
+  color: #fca5a5;
+  border: 1px solid #dc2626;
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dangerButton:hover {
+  background: #dc2626;
+  color: var(--color-ivory);
+}
+
+.dangerButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Modal de confirmación ───────────────────────────────────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+}
+
+.modal {
+  background: var(--color-surface-dark);
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  border-top: 2px solid #dc2626;
+  padding: var(--space-8);
+  max-width: 480px;
+  width: 100%;
+}
+
+.modalActions {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: var(--space-5);
+}
+
+.ghostButton {
+  background: transparent;
+  color: var(--color-ivory);
+  border: 1px solid var(--color-ivory);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ghostButton:hover {
+  background: var(--color-ivory);
+  color: var(--color-obsidian);
+}

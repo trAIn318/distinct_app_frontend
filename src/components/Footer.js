@@ -29,8 +29,13 @@ export default async function Footer() {
 
           <div className={styles.infoColumn}>
             <p className={styles.infoText}>
-              <Link href="/privacy-policy" className={styles.privacyLink}>
+              <Link href="/privacy-policy" className={`${styles.privacyLink} link-underline`}>
                 {t("privacy")}
+              </Link>
+            </p>
+            <p className={styles.infoText}>
+              <Link href="/cookie-policy" className={`${styles.privacyLink} link-underline`}>
+                {t("cookies")}
               </Link>
             </p>
             <p className={styles.infoText}>{t("location")}</p>

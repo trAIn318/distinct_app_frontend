@@ -1,0 +1,79 @@
+.frame {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  line-height: 0;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(var(--reactive-zoom));
+  filter: grayscale(1) contrast(1.03);
+  transition:
+    transform var(--reactive-duration) var(--reactive-ease),
+    filter var(--reactive-duration) var(--reactive-ease);
+}
+
+/* Overlay de tinte dorado (duotono) sobre la imagen en reposo */
+.frame[data-effect="duotone"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--duotone-tint);
+  mix-blend-mode: multiply;
+  opacity: var(--duotone-opacity);
+  transition: opacity var(--reactive-duration) var(--reactive-ease);
+  pointer-events: none;
+}
+
+/* ── Estado revelado: imagen a color, sin tinte, sin zoom ──────────── */
+/* Mixin lógico repetido por selector (CSS no permite agrupar @media + :hover). */
+
+/* Dispositivos con hover (desktop): el hover revela (triggers hover|both). */
+@media (hover: hover) {
+  .frame[data-effect="duotone"][data-trigger="hover"]:hover .img,
+  .frame[data-effect="duotone"][data-trigger="both"]:hover .img {
+    filter: grayscale(0) contrast(1);
+    transform: scale(1);
+  }
+  .frame[data-effect="duotone"][data-trigger="hover"]:hover::after,
+  .frame[data-effect="duotone"][data-trigger="both"]:hover::after {
+    opacity: 0;
+  }
+}
+
+/* Dispositivos táctiles (sin hover): se revela al entrar en viewport
+   (triggers both|hover|inview), porque el hover nunca ocurrirá. */
+@media (hover: none) {
+  .frame[data-effect="duotone"][data-inview="true"] .img {
+    filter: grayscale(0) contrast(1);
+    transform: scale(1);
+  }
+  .frame[data-effect="duotone"][data-inview="true"]::after {
+    opacity: 0;
+  }
+}
+
+/* trigger="inview": revela al entrar en viewport en cualquier dispositivo. */
+.frame[data-effect="duotone"][data-trigger="inview"][data-inview="true"] .img {
+  filter: grayscale(0) contrast(1);
+  transform: scale(1);
+}
+.frame[data-effect="duotone"][data-trigger="inview"][data-inview="true"]::after {
+  opacity: 0;
+}
+
+/* effect="none": imagen plana, sin filtro ni overlay */
+.frame[data-effect="none"] .img {
+  filter: none;
+  transform: none;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .img { filter: none; transform: none; transition: none; }
+  .frame[data-effect="duotone"]::after { opacity: 0; }
+}

@@ -54,11 +54,12 @@
   margin-bottom: var(--space-4);
 }
 
+/* Aplicado al <figure> de ReactiveImage: llena el wrapper 16:9.
+   El object-fit vive en la <img> interna del componente. */
 .cardImage {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
 }
 
 .cardContent {

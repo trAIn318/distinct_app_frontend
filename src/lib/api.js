@@ -8,6 +8,7 @@
  */
 
 import { API_URL } from "./config";
+import { getAccessToken } from "./session";
 
 const DEFAULT_REVALIDATE = 60;
 
@@ -104,11 +105,108 @@ export async function registerApi(payload) {
 }
 
 /**
+ * POST /api/auth/forgot-password/
+ * Paso 1 del flujo OTP: solicita el envío de un código de 6 dígitos al email.
+ * El backend SIEMPRE responde 200 con el mismo mensaje (no revela si la cuenta
+ * existe) para evitar enumeración de cuentas. Devuelve { detail }.
+ */
+export async function requestPasswordResetApi(email) {
+  const res = await fetch(`${API_URL}/api/auth/forgot-password/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || "Could not start password reset.");
+  }
+  return data;
+}
+
+/**
+ * POST /api/auth/reset-password/
+ * Paso 2 del flujo OTP: valida el código y fija la nueva contraseña.
+ * Mismo mensaje de error para OTP inválido/expirado. Devuelve { detail }.
+ */
+export async function resetPasswordApi({ email, otp, newPassword, confirmPassword }) {
+  const res = await fetch(`${API_URL}/api/auth/reset-password/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      otp,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    }),
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (data.detail) throw new Error(data.detail);
+    const firstField = Object.keys(data)[0];
+    if (firstField) {
+      const value = data[firstField];
+      throw new Error(Array.isArray(value) ? value[0] : String(value));
+    }
+    throw new Error("Could not reset password.");
+  }
+  return data;
+}
+
+// ── Derechos del titular (autenticado) ─────────────────────────────────────
+
+/**
+ * GET /api/user/data-export/
+ * Portabilidad: devuelve todos los datos personales del usuario en JSON.
+ */
+export async function exportMyDataApi() {
+  const token = getAccessToken();
+  if (!token) throw new Error("You must be signed in.");
+  const res = await fetch(`${API_URL}/api/user/data-export/`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || "Could not export your data.");
+  return data;
+}
+
+/**
+ * DELETE /api/user/account/
+ * Supresión: anonimiza la cuenta. Requiere reconfirmar la contraseña.
+ */
+export async function deleteAccountApi(password) {
+  const token = getAccessToken();
+  if (!token) throw new Error("You must be signed in.");
+  const res = await fetch(`${API_URL}/api/user/account/`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password }),
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || "Could not delete your account.");
+  return data;
+}
+
+/**
  * GET /api/policies/active/
  * Devuelve la política de tratamiento de datos vigente.
  */
 export async function getActivePolicy() {
   return apiGet(`/policies/active/`, { revalidate: 300 });
+}
+
+/**
+ * GET /api/policies/form/<name>/
+ * Devuelve la finalidad de tratamiento de un formulario (ej. 'cookie').
+ */
+export async function getFormPolicy(formName) {
+  return apiGet(`/policies/form/${formName}/`, { revalidate: 300 });
 }
 
 // ── Reviews / Partners / FAQ (preparado para futuras secciones) ────────────
