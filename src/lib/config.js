@@ -6,8 +6,12 @@
 
 // ── Backend ────────────────────────────────────────────────────────────────
 
+// Si NEXT_PUBLIC_API_URL está definida (p.ej. .env.local en desarrollo o una
+// variable en Vercel), manda esa. Si no, cae al backend de producción en Render
+// — así el despliegue funciona sin tener que configurar la variable en Vercel.
+// La URL es pública (no es secreto). En local se usa .env.local con localhost.
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL || "https://distinct-app-backend.onrender.com";
 
 // ── Moodle ─────────────────────────────────────────────────────────────────
 
