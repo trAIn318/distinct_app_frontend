@@ -91,6 +91,19 @@ export default function LoginForm() {
       </button>
 
       <p className={styles.smallNote}>
+        <Link
+          href={`/forgot-password${
+            identifier.includes("@")
+              ? `?email=${encodeURIComponent(identifier.trim())}`
+              : ""
+          }`}
+          className={styles.inlineLink}
+        >
+          Forgot your password?
+        </Link>
+      </p>
+
+      <p className={styles.smallNote}>
         Don&apos;t have an account?{" "}
         <Link href="/register" className={styles.inlineLink}>
           Sign up

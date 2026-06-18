@@ -114,9 +114,13 @@ export default function Navigation() {
             </a>
             {user ? (
               <>
-                <span className={styles.userBadge} title={user.email || ""}>
+                <Link
+                  href="/account"
+                  className={styles.userBadge}
+                  title={user.email || ""}
+                >
                   {t("hi", { name: displayName })}
-                </span>
+                </Link>
                 <button
                   type="button"
                   onClick={handleSignOut}
@@ -193,13 +197,22 @@ export default function Navigation() {
               {t("accessMoodle")}
             </a>
             {user ? (
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handleSignOut}
-              >
-                {t("signOut")} ({displayName})
-              </button>
+              <>
+                <Link
+                  href="/account"
+                  className="btn-ghost"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t("myAccount")}
+                </Link>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleSignOut}
+                >
+                  {t("signOut")} ({displayName})
+                </button>
+              </>
             ) : (
               <Link
                 href="/login"

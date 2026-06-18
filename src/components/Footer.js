@@ -33,6 +33,11 @@ export default async function Footer() {
                 {t("privacy")}
               </Link>
             </p>
+            <p className={styles.infoText}>
+              <Link href="/cookie-policy" className={`${styles.privacyLink} link-underline`}>
+                {t("cookies")}
+              </Link>
+            </p>
             <p className={styles.infoText}>{t("location")}</p>
             <p className={styles.infoText}>{t("response")}</p>
           </div>

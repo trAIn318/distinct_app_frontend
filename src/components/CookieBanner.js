@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import styles from "./CookieBanner.module.css";
 
 export default function CookieBanner() {
@@ -33,7 +34,12 @@ export default function CookieBanner() {
     <div className={`${styles.banner} ${isVisible ? styles.bannerVisible : ""}`} role="dialog" aria-live="polite" aria-label="Cookie consent">
       <div className={`container ${styles.container}`}>
         <p className={styles.text}>
-          This website uses cookies to ensure you get the best experience on our platform.
+          We use only essential cookies to keep you signed in and remember your
+          preferences. No advertising or third-party tracking. See our{" "}
+          <Link href="/cookie-policy" className="link-underline">
+            Cookie Policy
+          </Link>
+          .
         </p>
         <div className={styles.actions}>
           <button onClick={handleDecline} className="btn-ghost">

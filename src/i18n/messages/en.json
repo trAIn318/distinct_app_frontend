@@ -7,6 +7,7 @@
     "accessMoodle": "Access Moodle",
     "signIn": "Sign In",
     "signOut": "Sign Out",
+    "myAccount": "My Account",
     "hi": "Hi, {name}"
   },
   "settings": {
@@ -123,6 +124,7 @@
   "footer": {
     "tagline": "The AI platform built for the people who run hospitality.",
     "privacy": "Privacy Policy",
+    "cookies": "Cookie Policy",
     "location": "Location: Based in Miami, FL. Operating across the USA, Latin America, and Southeast Asia.",
     "response": "Response time: We respond to all inquiries within 24 hours.",
     "copyright": "© 2026 Distinct Hospitality Solutions LLC — All Rights Reserved."
@@ -161,6 +163,16 @@
     "eyebrow": "Account",
     "title": "Sign In",
     "copy": "Welcome back. Sign in with your email or username."
+  },
+  "forgotPassword": {
+    "eyebrow": "Account",
+    "title": "Reset Password",
+    "copy": "Enter your email and we will send a 6-digit code to set a new password."
+  },
+  "account": {
+    "eyebrow": "Account",
+    "title": "My Account",
+    "copy": "Manage your profile and your personal data."
   },
   "explorer": {
     "searchPlaceholder": "Search by name, description, or code…",
