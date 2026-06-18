@@ -104,14 +104,15 @@ export default function Navigation() {
             >
               {t("meetAria")}
             </a>
-            <a
+            {/* Botón de acceso a Moodle ocultado temporalmente (puede reactivarse). */}
+            {/* <a
               href={MOODLE_URL}
               className="btn-ghost"
               target="_blank"
               rel="noopener noreferrer"
             >
               {t("accessMoodle")}
-            </a>
+            </a> */}
             {user ? (
               <>
                 <Link
@@ -187,7 +188,8 @@ export default function Navigation() {
             >
               {t("meetAria")}
             </a>
-            <a
+            {/* Botón de acceso a Moodle ocultado temporalmente (puede reactivarse). */}
+            {/* <a
               href={MOODLE_URL}
               className="btn-ghost"
               target="_blank"
@@ -195,7 +197,7 @@ export default function Navigation() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {t("accessMoodle")}
-            </a>
+            </a> */}
             {user ? (
               <>
                 <Link
