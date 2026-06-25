@@ -105,6 +105,31 @@ export async function registerApi(payload) {
 }
 
 /**
+ * POST /api/auth/verify-register-otp/
+ * Paso 2 del registro: valida el código de activación enviado al email y, si es
+ * correcto, activa la cuenta y devuelve { access, refresh, user }.
+ */
+export async function verifyRegisterOtpApi(email, otp) {
+  const res = await fetch(`${API_URL}/api/auth/verify-register-otp/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp }),
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (data.detail) throw new Error(data.detail);
+    const firstField = Object.keys(data)[0];
+    if (firstField) {
+      const value = data[firstField];
+      throw new Error(Array.isArray(value) ? value[0] : String(value));
+    }
+    throw new Error("Could not verify your code.");
+  }
+  return data;
+}
+
+/**
  * POST /api/auth/forgot-password/
  * Paso 1 del flujo OTP: solicita el envío de un código de 6 dígitos al email.
  * El backend SIEMPRE responde 200 con el mismo mensaje (no revela si la cuenta

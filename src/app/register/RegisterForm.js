@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { registerApi } from "../../lib/api";
+import { registerApi, verifyRegisterOtpApi } from "../../lib/api";
 import { saveSession } from "../../lib/session";
+import { useT } from "../../i18n/client";
 import styles from "../login/page.module.css";
 import registerStyles from "./register.module.css";
 
@@ -15,6 +16,7 @@ import registerStyles from "./register.module.css";
  *   policy: { policy_id, policy_version, policy_text } | null
  */
 export default function RegisterForm({ policy }) {
+  const t = useT("register");
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -31,25 +33,30 @@ export default function RegisterForm({ policy }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Paso "form" pide los datos; paso "otp" pide el código de activación.
+  const [step, setStep] = useState("form");
+  const [otp, setOtp] = useState("");
+  const [info, setInfo] = useState(null);
+
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
   }
 
   function validate() {
     if (!form.username.trim() || form.username.length < 3) {
-      return "Username must be at least 3 characters.";
+      return t("errUsername");
     }
     if (!form.email.includes("@")) {
-      return "Please enter a valid email address.";
+      return t("errEmail");
     }
     if (form.password.length < 8) {
-      return "Password must be at least 8 characters.";
+      return t("errPassword");
     }
     if (form.password !== form.confirm_password) {
-      return "Passwords do not match.";
+      return t("errPasswordMatch");
     }
     if (!form.accept_policy) {
-      return "You must accept the Data Processing Policy to continue.";
+      return t("errPolicy");
     }
     return null;
   }
@@ -64,16 +71,44 @@ export default function RegisterForm({ policy }) {
     }
     setLoading(true);
     try {
-      const data = await registerApi({
-        username: form.username.trim(),
-        email: form.email.trim().toLowerCase(),
-        first_name: form.first_name.trim(),
-        last_name: form.last_name.trim(),
-        phone: form.phone.trim(),
-        password: form.password,
-        confirm_password: form.confirm_password,
-        accept_policy: true,
-      });
+      await registerApi(registerPayload());
+      // El backend NO entrega sesión todavía: exige activación por OTP.
+      setStep("otp");
+      setInfo(t("otpInfo"));
+    } catch (err) {
+      setError(err.message || t("errRegister"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function registerPayload() {
+    return {
+      username: form.username.trim(),
+      email: form.email.trim().toLowerCase(),
+      first_name: form.first_name.trim(),
+      last_name: form.last_name.trim(),
+      phone: form.phone.trim(),
+      password: form.password,
+      confirm_password: form.confirm_password,
+      accept_policy: true,
+    };
+  }
+
+  async function handleVerify(e) {
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
+    if (!/^\d{6}$/.test(otp.trim())) {
+      setError(t("errCode"));
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await verifyRegisterOtpApi(
+        form.email.trim().toLowerCase(),
+        otp.trim()
+      );
       saveSession({
         access: data.access,
         refresh: data.refresh,
@@ -82,7 +117,22 @@ export default function RegisterForm({ policy }) {
       router.push("/");
       router.refresh();
     } catch (err) {
-      setError(err.message || "Registration failed.");
+      setError(err.message || t("errVerify"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    setError(null);
+    setInfo(null);
+    setLoading(true);
+    try {
+      // Reenviar el registro de una cuenta sin confirmar reemite el OTP.
+      await registerApi(registerPayload());
+      setInfo(t("otpResent"));
+    } catch (err) {
+      setError(err.message || t("errResend"));
     } finally {
       setLoading(false);
     }
@@ -90,10 +140,21 @@ export default function RegisterForm({ policy }) {
 
   return (
     <>
+      <div className={registerStyles.steps}>
+        <span className={step === "form" ? registerStyles.stepActive : undefined}>
+          {t("step1")}
+        </span>
+        <span className={registerStyles.stepDivider} aria-hidden="true" />
+        <span className={step === "otp" ? registerStyles.stepActive : undefined}>
+          {t("step2")}
+        </span>
+      </div>
+
+      {step === "form" ? (
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <div className={registerStyles.row2}>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>First name</span>
+            <span className={styles.fieldLabel}>{t("firstName")}</span>
             <input
               type="text"
               value={form.first_name}
@@ -104,7 +165,7 @@ export default function RegisterForm({ policy }) {
             />
           </label>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Last name</span>
+            <span className={styles.fieldLabel}>{t("lastName")}</span>
             <input
               type="text"
               value={form.last_name}
@@ -117,7 +178,7 @@ export default function RegisterForm({ policy }) {
         </div>
 
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>Username</span>
+          <span className={styles.fieldLabel}>{t("username")}</span>
           <input
             type="text"
             value={form.username}
@@ -131,7 +192,7 @@ export default function RegisterForm({ policy }) {
         </label>
 
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>Email</span>
+          <span className={styles.fieldLabel}>{t("email")}</span>
           <input
             type="email"
             value={form.email}
@@ -144,7 +205,7 @@ export default function RegisterForm({ policy }) {
         </label>
 
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>Phone (optional)</span>
+          <span className={styles.fieldLabel}>{t("phone")}</span>
           <input
             type="tel"
             value={form.phone}
@@ -157,7 +218,7 @@ export default function RegisterForm({ policy }) {
 
         <div className={registerStyles.row2}>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Password</span>
+            <span className={styles.fieldLabel}>{t("password")}</span>
             <input
               type="password"
               value={form.password}
@@ -170,7 +231,7 @@ export default function RegisterForm({ policy }) {
             />
           </label>
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Confirm password</span>
+            <span className={styles.fieldLabel}>{t("confirmPassword")}</span>
             <input
               type="password"
               value={form.confirm_password}
@@ -194,13 +255,13 @@ export default function RegisterForm({ policy }) {
             required
           />
           <span>
-            I have read and accept the{" "}
+            {t("consentPre")}{" "}
             <button
               type="button"
               className={registerStyles.policyLink}
               onClick={() => setShowPolicy(true)}
             >
-              Data Processing Policy
+              {t("consentLink")}
             </button>
             {policy?.policy_version ? ` (v${policy.policy_version})` : ""}.
           </span>
@@ -218,16 +279,67 @@ export default function RegisterForm({ policy }) {
           disabled={loading}
           style={{ width: "100%", marginTop: "var(--space-2)" }}
         >
-          {loading ? "Creating account…" : "Create Account"}
+          {loading ? t("submitLoading") : t("submit")}
         </button>
 
         <p className={styles.smallNote}>
-          Already have an account?{" "}
+          {t("haveAccount")}{" "}
           <Link href="/login" className={styles.inlineLink}>
-            Sign in
+            {t("signIn")}
           </Link>
         </p>
       </form>
+      ) : (
+      <form className={styles.form} onSubmit={handleVerify} noValidate>
+        {info && (
+          <div className={registerStyles.success} role="status">
+            {info}
+          </div>
+        )}
+
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>{t("code")}</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            value={otp}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+            className={`${styles.input} ${registerStyles.otpInput}`}
+            required
+            disabled={loading}
+          />
+        </label>
+
+        {error && (
+          <div className={styles.error} role="alert">
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          className="btn-primary"
+          disabled={loading}
+          style={{ width: "100%", marginTop: "var(--space-2)" }}
+        >
+          {loading ? t("verifyLoading") : t("verify")}
+        </button>
+
+        <p className={styles.smallNote}>
+          {t("noCode")}{" "}
+          <button
+            type="button"
+            className={registerStyles.linkButton}
+            onClick={handleResend}
+            disabled={loading}
+          >
+            {t("resend")}
+          </button>
+        </p>
+      </form>
+      )}
 
       {/* Policy modal */}
       {showPolicy && (
@@ -244,7 +356,7 @@ export default function RegisterForm({ policy }) {
           >
             <header className={registerStyles.modalHeader}>
               <h2 id="policy-title" className={registerStyles.modalTitle}>
-                Data Processing Policy
+                {t("modalTitle")}
                 {policy?.policy_version ? ` — v${policy.policy_version}` : ""}
               </h2>
               <button
@@ -262,12 +374,7 @@ export default function RegisterForm({ policy }) {
                   {policy.policy_text}
                 </pre>
               ) : (
-                <p>
-                  The policy text is currently being loaded. By continuing you
-                  agree to our data processing practices in accordance with
-                  Colombia&apos;s Habeas Data Law (Ley 1581/2012) and applicable
-                  US privacy laws (including CCPA).
-                </p>
+                <p>{t("modalFallback")}</p>
               )}
             </div>
             <footer className={registerStyles.modalFooter}>
@@ -276,7 +383,7 @@ export default function RegisterForm({ policy }) {
                 className="btn-ghost"
                 onClick={() => setShowPolicy(false)}
               >
-                Close
+                {t("close")}
               </button>
               <button
                 type="button"
@@ -286,7 +393,7 @@ export default function RegisterForm({ policy }) {
                   setShowPolicy(false);
                 }}
               >
-                I Accept
+                {t("accept")}
               </button>
             </footer>
           </div>
