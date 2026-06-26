@@ -35,7 +35,7 @@ export default function DashboardClient() {
       const url = await startTraining();
       window.location.href = url;
     } catch (err) {
-      setTrainError(err.message || t("trainError"));
+      setTrainError(t("trainError"));
       setTraining(false);
     }
   }
