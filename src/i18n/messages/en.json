@@ -214,6 +214,19 @@
     "title": "My Account",
     "copy": "Manage your profile and your personal data."
   },
+  "dashboard": {
+    "eyebrow": "Your training",
+    "title": "Dashboard",
+    "copy": "Your enrolled courses and progress.",
+    "trainCta": "Train",
+    "trainLoading": "Opening Moodle…",
+    "trainError": "Training is unavailable right now.",
+    "coursesTitle": "My courses",
+    "progress": "Progress",
+    "empty": "You have no courses in Moodle yet.",
+    "menuTitle": "Quick links",
+    "open": "Open"
+  },
   "explorer": {
     "searchPlaceholder": "Search by name, description, or code…",
     "viewMode": "View mode",
