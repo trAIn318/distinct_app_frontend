@@ -255,3 +255,51 @@ export async function getFaq() {
   const data = await apiGet(`/chatbot/faq/`);
   return data?.faqs ?? [];
 }
+
+// ── Dashboard / Menú (autenticado) ─────────────────────────────────────────
+
+/** GET /api/menu/ — opciones de menú del rol del usuario. [] si falla. */
+export async function getMenu() {
+  const token = getAccessToken();
+  if (!token) return [];
+  try {
+    const res = await fetch(`${API_URL}/api/menu/`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data?.menu ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** GET /api/dashboard/courses/ — cursos + avances. */
+export async function getDashboardCourses() {
+  const token = getAccessToken();
+  if (!token) return { courses: [], moodle_linked: false };
+  try {
+    const res = await fetch(`${API_URL}/api/dashboard/courses/`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return { courses: [], moodle_linked: false };
+    return await res.json();
+  } catch {
+    return { courses: [], moodle_linked: false };
+  }
+}
+
+/** GET /api/dashboard/training/ — devuelve la loginurl SSO de Moodle. */
+export async function startTraining() {
+  const token = getAccessToken();
+  if (!token) throw new Error("You must be signed in.");
+  const res = await fetch(`${API_URL}/api/dashboard/training/`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || "Training is unavailable right now.");
+  return data.loginurl;
+}
