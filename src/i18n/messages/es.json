@@ -8,6 +8,7 @@
     "signIn": "Iniciar Sesión",
     "signOut": "Cerrar Sesión",
     "myAccount": "Mi Cuenta",
+    "dashboard": "Tablero",
     "hi": "Hola, {name}"
   },
   "settings": {

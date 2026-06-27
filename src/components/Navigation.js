@@ -116,6 +116,13 @@ export default function Navigation() {
             {user ? (
               <>
                 <Link
+                  href="/dashboard"
+                  className={`${styles.navLink} ${pathname === "/dashboard" ? styles.navLinkActive : ""}`}
+                  aria-current={pathname === "/dashboard" ? "page" : undefined}
+                >
+                  {t("dashboard")}
+                </Link>
+                <Link
                   href="/account"
                   className={styles.userBadge}
                   title={user.email || ""}
@@ -200,6 +207,13 @@ export default function Navigation() {
             </a> */}
             {user ? (
               <>
+                <Link
+                  href="/dashboard"
+                  className="btn-ghost"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t("dashboard")}
+                </Link>
                 <Link
                   href="/account"
                   className="btn-ghost"

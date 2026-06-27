@@ -8,6 +8,7 @@
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "myAccount": "My Account",
+    "dashboard": "Dashboard",
     "hi": "Hi, {name}"
   },
   "settings": {
