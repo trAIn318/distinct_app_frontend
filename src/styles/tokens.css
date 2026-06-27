@@ -19,6 +19,11 @@
   --color-accent:         var(--color-gold);
   --color-border:         var(--color-platinum);
 
+  /* ── Semantic danger (dark theme) ───────────────────────── */
+  /* text/border: #FF8A8A on surface #1F0A0A → 8.37:1 (WCAG AA ✓) */
+  --color-danger:         #FF8A8A;
+  --color-danger-surface: #1F0A0A;
+
   /* ── Type Scale (Golden Ratio: base 16px × 1.618) ──────── */
   --text-xs:   0.618rem;   /* 10px — legal, labels */
   --text-sm:   0.764rem;   /* 12px — captions */
@@ -117,6 +122,11 @@
   --nav-bg:          rgba(247, 244, 239, 0.8);
   --nav-bg-scrolled: rgba(247, 244, 239, 0.95);
   --logo-filter:     invert(0.88) sepia(0.12);
+
+  /* ── Semantic danger (light theme) ──────────────────────── */
+  /* text/border: #B91C1C on surface #FDECEA → 5.66:1 (WCAG AA ✓) */
+  --color-danger:         #B91C1C;
+  --color-danger-surface: #FDECEA;
 
   /* Living Elegance — tinte más suave sobre fondos claros */
   --duotone-tint:    var(--color-gold-muted);

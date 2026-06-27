@@ -11,7 +11,7 @@ export default function DashboardClient() {
   const t = useT("dashboard");
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState(null);
   const [menu, setMenu] = useState([]);
   const [training, setTraining] = useState(false);
   const [trainError, setTrainError] = useState(null);
@@ -33,6 +33,11 @@ export default function DashboardClient() {
     setTraining(true);
     try {
       const url = await startTraining();
+      if (!url) {
+        setTrainError(t("trainError"));
+        setTraining(false);
+        return;
+      }
       window.location.href = url;
     } catch (err) {
       setTrainError(t("trainError"));
@@ -58,7 +63,7 @@ export default function DashboardClient() {
 
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>{t("coursesTitle")}</h2>
-        {courses.length === 0 ? (
+        {courses === null ? null : courses.length === 0 ? (
           <p className={styles.cardBody}>{t("empty")}</p>
         ) : (
           <ul className={styles.courseList}>
