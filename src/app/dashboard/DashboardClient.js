@@ -7,6 +7,21 @@ import { isAuthenticated } from "../../lib/session";
 import { useT } from "../../i18n/client";
 import styles from "./dashboard.module.css";
 
+// Mapeo de las opciones de menú (page de la BD compartida, en formato de la app
+// vieja) a su comportamiento en el frontend nuevo. Lo que no esté aquí cae a
+// /coming-soon (En construcción) en vez de dar 404. NO tocamos roles_menu/menu:
+// son tablas compartidas con la app antigua (rol 3 = 74 usuarios).
+const MENU_TARGETS = {
+  "dashboard/dash": { type: "route", href: "/dashboard" },
+  "dashboard/trainy": { type: "train" },
+  "settings/language": { type: "settings" },
+};
+
+function resolveMenuTarget(url) {
+  const key = (url || "").replace(/^\//, "");
+  return MENU_TARGETS[key] || { type: "route", href: "/coming-soon" };
+}
+
 export default function DashboardClient() {
   const t = useT("dashboard");
   const router = useRouter();
@@ -43,6 +58,10 @@ export default function DashboardClient() {
       setTrainError(t("trainError"));
       setTraining(false);
     }
+  }
+
+  function openSettings() {
+    window.dispatchEvent(new Event("distinct:open-settings"));
   }
 
   return (
@@ -87,13 +106,35 @@ export default function DashboardClient() {
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>{t("menuTitle")}</h2>
           <ul className={styles.menuList}>
-            {menu.map((item) => (
-              <li key={item.url} className={styles.menuItem}>
-                <a className={styles.menuLink} href={`/${item.url.replace(/^\//, "")}`}>
-                  {item.title}
-                </a>
-              </li>
-            ))}
+            {menu.map((item) => {
+              const target = resolveMenuTarget(item.url);
+              return (
+                <li key={item.url} className={styles.menuItem}>
+                  {target.type === "train" ? (
+                    <button
+                      type="button"
+                      className={styles.menuLink}
+                      onClick={handleTrain}
+                      disabled={training}
+                    >
+                      {item.title}
+                    </button>
+                  ) : target.type === "settings" ? (
+                    <button
+                      type="button"
+                      className={styles.menuLink}
+                      onClick={openSettings}
+                    >
+                      {item.title}
+                    </button>
+                  ) : (
+                    <a className={styles.menuLink} href={target.href}>
+                      {item.title}
+                    </a>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}

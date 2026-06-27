@@ -228,6 +228,12 @@
     "menuTitle": "Quick links",
     "open": "Open"
   },
+  "comingSoon": {
+    "eyebrow": "Coming soon",
+    "title": "Under construction",
+    "copy": "This section isn't ready yet. We're building it — please check back soon.",
+    "back": "Back to dashboard"
+  },
   "explorer": {
     "searchPlaceholder": "Search by name, description, or code…",
     "viewMode": "View mode",

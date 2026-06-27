@@ -228,6 +228,12 @@
     "menuTitle": "Accesos rápidos",
     "open": "Abrir"
   },
+  "comingSoon": {
+    "eyebrow": "Próximamente",
+    "title": "En construcción",
+    "copy": "Esta sección aún no está lista. La estamos construyendo — vuelve pronto.",
+    "back": "Volver al tablero"
+  },
   "explorer": {
     "searchPlaceholder": "Busca por nombre, descripción o código…",
     "viewMode": "Modo de vista",
