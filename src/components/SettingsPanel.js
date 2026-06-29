@@ -57,6 +57,13 @@ export default function SettingsPanel() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  // Abrir desde otros componentes (p. ej. el acceso "Language" del dashboard)
+  useEffect(() => {
+    const openPanel = () => setOpen(true);
+    window.addEventListener("distinct:open-settings", openPanel);
+    return () => window.removeEventListener("distinct:open-settings", openPanel);
+  }, []);
+
   const handleTheme = useCallback((t) => {
     setThemeState(t);
     persistTheme(t);

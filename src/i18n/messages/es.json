@@ -8,6 +8,7 @@
     "signIn": "Iniciar Sesión",
     "signOut": "Cerrar Sesión",
     "myAccount": "Mi Cuenta",
+    "dashboard": "Tablero",
     "hi": "Hola, {name}"
   },
   "settings": {
@@ -213,6 +214,25 @@
     "eyebrow": "Cuenta",
     "title": "Mi Cuenta",
     "copy": "Gestiona tu perfil y tus datos personales."
+  },
+  "dashboard": {
+    "eyebrow": "Tu formación",
+    "title": "Tablero",
+    "copy": "Tus cursos matriculados y tu avance.",
+    "trainCta": "Entrenar",
+    "trainLoading": "Abriendo Moodle…",
+    "trainError": "Entrenar no está disponible ahora mismo.",
+    "coursesTitle": "Mis cursos",
+    "progress": "Avance",
+    "empty": "Aún no tienes cursos en Moodle.",
+    "menuTitle": "Accesos rápidos",
+    "open": "Abrir"
+  },
+  "comingSoon": {
+    "eyebrow": "Próximamente",
+    "title": "En construcción",
+    "copy": "Esta sección aún no está lista. La estamos construyendo — vuelve pronto.",
+    "back": "Volver al tablero"
   },
   "explorer": {
     "searchPlaceholder": "Busca por nombre, descripción o código…",

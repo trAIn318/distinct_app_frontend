@@ -8,6 +8,7 @@
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "myAccount": "My Account",
+    "dashboard": "Dashboard",
     "hi": "Hi, {name}"
   },
   "settings": {
@@ -213,6 +214,25 @@
     "eyebrow": "Account",
     "title": "My Account",
     "copy": "Manage your profile and your personal data."
+  },
+  "dashboard": {
+    "eyebrow": "Your training",
+    "title": "Dashboard",
+    "copy": "Your enrolled courses and progress.",
+    "trainCta": "Train",
+    "trainLoading": "Opening Moodle…",
+    "trainError": "Training is unavailable right now.",
+    "coursesTitle": "My courses",
+    "progress": "Progress",
+    "empty": "You have no courses in Moodle yet.",
+    "menuTitle": "Quick links",
+    "open": "Open"
+  },
+  "comingSoon": {
+    "eyebrow": "Coming soon",
+    "title": "Under construction",
+    "copy": "This section isn't ready yet. We're building it — please check back soon.",
+    "back": "Back to dashboard"
   },
   "explorer": {
     "searchPlaceholder": "Search by name, description, or code…",
