@@ -80,6 +80,26 @@ export async function loginApi(identifier, password) {
 }
 
 /**
+ * POST /api/auth/verify-login-otp/
+ * Segundo paso del login cuando la cuenta requiere OTP por inactividad.
+ * Acepta el mismo identificador (email o username) usado en el login.
+ * Devuelve { access, refresh, user }.
+ */
+export async function verifyLoginOtpApi(identifier, otp) {
+  const res = await fetch(`${API_URL}/api/auth/verify-login-otp/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ usr_name: identifier, otp }),
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || "Invalid or expired code.");
+  }
+  return data;
+}
+
+/**
  * POST /api/auth/register/
  * Crea usuario en nuestra DB + Moodle (best-effort) + registra policy_agreement.
  */

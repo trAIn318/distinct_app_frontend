@@ -20,7 +20,12 @@ export default function ForgotPasswordForm() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [info, setInfo] = useState(null);
+  // Si llegamos desde un login con contraseña vencida, explicamos por qué.
+  const [info, setInfo] = useState(
+    searchParams?.get("expired") === "1"
+      ? "Your password has expired. Reset it now to sign in again."
+      : null
+  );
 
   async function handleRequest(e) {
     e.preventDefault();
@@ -108,6 +113,12 @@ export default function ForgotPasswordForm() {
 
       {step === "email" ? (
         <form className={styles.form} onSubmit={handleRequest} noValidate>
+          {info && (
+            <div className={styles.success} role="status">
+              {info}
+            </div>
+          )}
+
           <label className={styles.field}>
             <span className={styles.fieldLabel}>Email</span>
             <input
