@@ -47,6 +47,10 @@
 
 .courseItem {
   border-bottom: 1px solid var(--ivory-08);
+  /* Salta el renderizado de los cursos fuera de vista → scroll fluido en
+     listas largas. La altura estimada evita saltos del scrollbar. */
+  content-visibility: auto;
+  contain-intrinsic-size: 0 69px;
 }
 
 .courseItem:last-child {
@@ -128,11 +132,10 @@
   color: var(--color-smoke);
 }
 
-.linkList {
+.headerLinks {
   list-style: none;
-  padding: var(--space-4) 0 0;
+  padding: 0;
   margin: 0;
-  border-top: 1px solid var(--ivory-08);
   display: flex;
   gap: var(--space-3);
 }

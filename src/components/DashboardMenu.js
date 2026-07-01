@@ -84,6 +84,19 @@ export default function DashboardMenu({ menu = [] }) {
       width="min(520px, 94vw)"
       triggerClassName={styles.trigger}
       trigger={<span>{t("title")}</span>}
+      headerActions={
+        extraLinks.length > 0 ? (
+          <ul className={styles.headerLinks}>
+            {extraLinks.map((it) => (
+              <li key={it.url}>
+                <a className={styles.link} href={resolveMenuTarget(it.url).href}>
+                  {it.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : null
+      }
     >
       <div className={styles.panelInner}>
         <h2 className={styles.sectionTitle}>{t("coursesTitle")}</h2>
@@ -145,18 +158,6 @@ export default function DashboardMenu({ menu = [] }) {
         </button>
         {trainError && (
           <div className={styles.error} role="alert">{trainError}</div>
-        )}
-
-        {extraLinks.length > 0 && (
-          <ul className={styles.linkList}>
-            {extraLinks.map((it) => (
-              <li key={it.url}>
-                <a className={styles.link} href={resolveMenuTarget(it.url).href}>
-                  {it.title}
-                </a>
-              </li>
-            ))}
-          </ul>
         )}
       </div>
     </NavDrawer>

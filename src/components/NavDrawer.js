@@ -19,6 +19,7 @@ export default function NavDrawer({
   onOpenChange,
   label,
   title,
+  headerActions,
   trigger,
   triggerClassName = "",
   width,
@@ -79,7 +80,10 @@ export default function NavDrawer({
         {...(!open ? { inert: "" } : {})}
       >
         <div className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>{title}</h2>
+          <div className={styles.panelHeaderLeft}>
+            <h2 className={styles.panelTitle}>{title}</h2>
+            {headerActions}
+          </div>
           <button
             ref={closeRef}
             type="button"
