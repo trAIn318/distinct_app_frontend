@@ -43,8 +43,6 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 320px;
-  overflow-y: auto;
 }
 
 .courseItem {
@@ -132,21 +130,35 @@
 
 .linkList {
   list-style: none;
-  padding: var(--space-3) 0 0;
+  padding: var(--space-4) 0 0;
   margin: 0;
   border-top: 1px solid var(--ivory-08);
   display: flex;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
+/* Eval / Pay como chips ghost: bordeados y en versal para que destaquen,
+   se rellenan de gold al pasar el cursor (coherente con .btn-primary). */
 .link {
-  color: var(--color-platinum);
+  display: inline-block;
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid var(--gold-30);
+  color: var(--color-ivory);
   text-decoration: none;
-  font-size: var(--text-sm);
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth);
 }
 
 .link:hover {
-  color: var(--color-gold);
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-obsidian);
 }
 
 .error {
