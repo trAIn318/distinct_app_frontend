@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * SettingsPanel — engranaje ⚙ como desplegable de la barra.
+ * SettingsPanel — engranaje ⚙ como panel deslizante desde la derecha.
  * Contiene secciones plegables:
  *   - RECLUTADOR: accesos del grupo RECRUITER del rol (→ /coming-soon).
  *   - CONFIGURACIÓN: accesos del grupo SETTINGS (→ /coming-soon) + los
@@ -21,7 +21,7 @@ import {
   loadServerPreferences,
 } from "../lib/preferences";
 import { splitMenuByGroup, resolveMenuTarget } from "../lib/menuTargets";
-import NavDropdown from "./NavDropdown";
+import NavDrawer from "./NavDrawer";
 import { useT } from "../i18n/client";
 import styles from "./SettingsPanel.module.css";
 
@@ -86,15 +86,16 @@ export default function SettingsPanel({ menu = [] }) {
   );
 
   return (
-    <NavDropdown
+    <NavDrawer
       open={open}
       onOpenChange={setOpen}
-      align="end"
       label={t("title")}
+      title={t("title")}
+      width="min(380px, 92vw)"
       triggerClassName={styles.gearButton}
       trigger={gearIcon}
     >
-      <div className={styles.panelBody}>
+      <>
         {grouped.recruiter.length > 0 && (
           <details className={styles.section} open>
             <summary className={styles.sectionSummary}>{t("recruiter")}</summary>
@@ -169,7 +170,7 @@ export default function SettingsPanel({ menu = [] }) {
 
           <p className={styles.note}>{t("note")}</p>
         </details>
-      </div>
-    </NavDropdown>
+      </>
+    </NavDrawer>
   );
 }
