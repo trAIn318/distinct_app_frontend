@@ -23,16 +23,51 @@
   border-radius: 0;
 }
 .courseList, .menuList { list-style: none; padding: 0; margin: 0; }
-.courseItem, .menuItem {
+
+/* Menú (fila simple) */
+.menuItem {
   display: flex; justify-content: space-between; align-items: center;
   padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);
 }
-.courseName, .menuLink { color: var(--color-text-primary); text-decoration: none; }
-.courseName:hover, .menuLink:hover { color: var(--color-gold); }
+.menuLink { color: var(--color-text-primary); text-decoration: none; }
+.menuLink:hover { color: var(--color-gold); }
 /* Botones del menú (Entrenar / Language) se ven como los enlaces */
 button.menuLink {
   background: none; border: none; padding: 0; margin: 0;
   font: inherit; cursor: pointer; text-align: left;
 }
 button.menuLink:disabled { cursor: default; opacity: 0.6; }
-.progress { font-family: var(--font-label); font-size: var(--text-sm); color: var(--color-text-secondary); }
+
+/* Cursos: imagen + nombre + barra de progreso */
+.courseItem { border-bottom: 1px solid var(--color-border); }
+.courseItem:last-child { border-bottom: none; }
+.courseLink {
+  display: flex; gap: var(--space-4); align-items: center;
+  padding: var(--space-4) 0; text-decoration: none; color: var(--color-text-primary);
+}
+.courseThumbWrap {
+  flex: 0 0 auto; width: 104px; height: 64px; overflow: hidden;
+  border: 1px solid var(--color-border); background: var(--color-charcoal);
+}
+.courseThumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+.courseInfo {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; flex-direction: column; gap: var(--space-2);
+}
+.courseName {
+  font-family: var(--font-body); font-size: var(--text-base); font-weight: 500;
+  color: var(--color-text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.courseLink:hover .courseName { color: var(--color-gold); }
+.progressRow { display: flex; align-items: center; gap: var(--space-3); }
+.progressTrack {
+  flex: 1 1 auto; height: 6px; overflow: hidden;
+  background: var(--color-platinum);
+}
+.progressFill { display: block; height: 100%; background: var(--color-gold); }
+.progressLabel {
+  flex: 0 0 auto; min-width: 3ch; text-align: right;
+  font-family: var(--font-label); font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}

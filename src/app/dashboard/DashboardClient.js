@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDashboardCourses, startTraining, getMenu } from "../../lib/api";
+import { resolveCourseImage } from "../../lib/config";
 import { isAuthenticated } from "../../lib/session";
+
+const COURSE_IMAGE_FALLBACK = "/img/courses/under_construction.jpg";
 import { useT } from "../../i18n/client";
 import styles from "./dashboard.module.css";
 
@@ -86,18 +89,48 @@ export default function DashboardClient() {
           <p className={styles.cardBody}>{t("empty")}</p>
         ) : (
           <ul className={styles.courseList}>
-            {courses.map((c) => (
-              <li key={c.id} className={styles.courseItem}>
-                <a className={styles.courseName} href={c.url} target="_blank" rel="noopener noreferrer">
-                  {c.name}
-                </a>
-                {c.progress != null && (
-                  <span className={styles.progress}>
-                    {t("progress")}: {Math.round(c.progress)}%
-                  </span>
-                )}
-              </li>
-            ))}
+            {courses.map((c) => {
+              const pct = c.progress != null ? Math.round(c.progress) : null;
+              return (
+                <li key={c.id} className={styles.courseItem}>
+                  <a
+                    className={styles.courseLink}
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span className={styles.courseThumbWrap}>
+                      {/* <img> nativo: la URL de Moodle es absoluta y pública */}
+                      <img
+                        className={styles.courseThumb}
+                        src={resolveCourseImage(c.image)}
+                        alt={c.name}
+                        loading="lazy"
+                        onError={(e) => {
+                          if (e.currentTarget.src.indexOf(COURSE_IMAGE_FALLBACK) === -1) {
+                            e.currentTarget.src = COURSE_IMAGE_FALLBACK;
+                          }
+                        }}
+                      />
+                    </span>
+                    <span className={styles.courseInfo}>
+                      <span className={styles.courseName}>{c.name}</span>
+                      {pct != null && (
+                        <span className={styles.progressRow}>
+                          <span className={styles.progressTrack}>
+                            <span
+                              className={styles.progressFill}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </span>
+                          <span className={styles.progressLabel}>{pct}%</span>
+                        </span>
+                      )}
+                    </span>
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
