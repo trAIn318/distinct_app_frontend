@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * DashboardMenu — el "Tablero" como desplegable de la barra.
+ * DashboardMenu — el "Tablero" como panel deslizante desde la derecha.
  * Muestra progreso de cursos (miniatura + nombre + barra), el botón Entrenar
  * (SSO a Moodle) y los accesos secundarios del grupo DASHBOARD (Eval/Pay).
  * Carga los cursos la primera vez que se abre. Se abre también por el evento
@@ -9,7 +9,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import NavDropdown from "./NavDropdown";
+import NavDrawer from "./NavDrawer";
 import { getDashboardCourses, startTraining } from "../lib/api";
 import { splitMenuByGroup, resolveMenuTarget } from "../lib/menuTargets";
 import { resolveCourseImage } from "../lib/config";
@@ -76,11 +76,12 @@ export default function DashboardMenu({ menu = [] }) {
   );
 
   return (
-    <NavDropdown
+    <NavDrawer
       open={open}
       onOpenChange={handleOpenChange}
-      align="end"
       label={t("title")}
+      title={t("title")}
+      width="min(520px, 94vw)"
       triggerClassName={styles.trigger}
       trigger={<span>{t("title")}</span>}
     >
@@ -158,6 +159,6 @@ export default function DashboardMenu({ menu = [] }) {
           </ul>
         )}
       </div>
-    </NavDropdown>
+    </NavDrawer>
   );
 }
