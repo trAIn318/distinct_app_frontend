@@ -13,6 +13,7 @@
   },
   "settings": {
     "title": "Settings",
+    "recruiter": "Recruiter",
     "language": "Language",
     "theme": "Theme",
     "dark": "Dark",
@@ -225,6 +226,7 @@
     "coursesTitle": "My courses",
     "progress": "Progress",
     "empty": "You have no courses in Moodle yet.",
+    "loading": "Loading…",
     "menuTitle": "Quick links",
     "open": "Open"
   },

@@ -1,0 +1,159 @@
+/* DashboardMenu — contenido del desplegable Tablero */
+
+.trigger {
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  letter-spacing: 0.06em;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  transition:
+    color var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.trigger:hover,
+.trigger[aria-expanded="true"] {
+  color: var(--color-gold);
+  border-color: var(--gold-30);
+}
+
+.panelInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sectionTitle {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin: 0;
+}
+
+.muted {
+  color: var(--color-smoke);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.courseList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.courseItem {
+  border-bottom: 1px solid var(--ivory-08);
+}
+
+.courseItem:last-child {
+  border-bottom: none;
+}
+
+.courseLink {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-3) 0;
+  text-decoration: none;
+  color: var(--color-ivory);
+}
+
+.courseThumbWrap {
+  flex: 0 0 auto;
+  width: 72px;
+  height: 44px;
+  overflow: hidden;
+  border: 1px solid var(--ivory-15);
+  background: var(--color-obsidian);
+}
+
+.courseThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.courseInfo {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.courseName {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ivory);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.courseLink:hover .courseName {
+  color: var(--color-gold);
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.progressTrack {
+  flex: 1 1 auto;
+  height: 5px;
+  overflow: hidden;
+  background: var(--ivory-15);
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  background: var(--color-gold);
+}
+
+.progressLabel {
+  flex: 0 0 auto;
+  min-width: 3ch;
+  text-align: right;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  color: var(--color-smoke);
+}
+
+.linkList {
+  list-style: none;
+  padding: var(--space-3) 0 0;
+  margin: 0;
+  border-top: 1px solid var(--ivory-08);
+  display: flex;
+  gap: var(--space-4);
+}
+
+.link {
+  color: var(--color-platinum);
+  text-decoration: none;
+  font-size: var(--text-sm);
+}
+
+.link:hover {
+  color: var(--color-gold);
+}
+
+.error {
+  background: var(--color-danger-surface);
+  border-left: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}

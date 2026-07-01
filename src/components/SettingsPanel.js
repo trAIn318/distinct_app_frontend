@@ -1,15 +1,12 @@
 "use client";
 
 /**
- * SettingsPanel — botón ⚙ en el navbar + slide-over de preferencias.
- *
- * Settings:
- *   - UI Language (English / Español) → se persiste ya; la traducción
- *     completa de la interfaz se conecta en la fase de i18n.
- *   - Theme (Dark / Light) → aplica en tiempo real vía [data-theme].
- *
- * Persistencia: localStorage (+cookie de idioma) siempre; si hay sesión,
- * sync con /api/user/preferences/ (el servidor gana al montar).
+ * SettingsPanel — engranaje ⚙ como desplegable de la barra.
+ * Contiene secciones plegables:
+ *   - RECLUTADOR: accesos del grupo RECRUITER del rol (→ /coming-soon).
+ *   - CONFIGURACIÓN: accesos del grupo SETTINGS (→ /coming-soon) + los
+ *     controles reales de Idioma y Tema.
+ * Sin sesión (menu vacío) muestra solo Idioma + Tema.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -23,23 +20,23 @@ import {
   applyTheme,
   loadServerPreferences,
 } from "../lib/preferences";
+import { splitMenuByGroup, resolveMenuTarget } from "../lib/menuTargets";
+import NavDropdown from "./NavDropdown";
 import { useT } from "../i18n/client";
 import styles from "./SettingsPanel.module.css";
 
-export default function SettingsPanel() {
+export default function SettingsPanel({ menu = [] }) {
   const t = useT("settings");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [theme, setThemeState] = useState("dark");
   const [language, setLanguageState] = useState("en");
 
-  // Estado inicial: local primero (sin parpadeo), luego servidor si hay sesión
   useEffect(() => {
     const localTheme = getStoredTheme();
     setThemeState(localTheme);
     applyTheme(localTheme);
     setLanguageState(getStoredLanguage());
-
     loadServerPreferences().then((prefs) => {
       if (!prefs) return;
       if (prefs.theme) setThemeState(prefs.theme);
@@ -47,89 +44,87 @@ export default function SettingsPanel() {
     });
   }, []);
 
-  // Cerrar con Escape
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
-
-  // Abrir desde otros componentes (p. ej. el acceso "Language" del dashboard)
+  // Permite abrir el panel desde otros componentes (compat con acceso "Language")
   useEffect(() => {
     const openPanel = () => setOpen(true);
     window.addEventListener("distinct:open-settings", openPanel);
     return () => window.removeEventListener("distinct:open-settings", openPanel);
   }, []);
 
-  const handleTheme = useCallback((t) => {
-    setThemeState(t);
-    persistTheme(t);
+  const handleTheme = useCallback((val) => {
+    setThemeState(val);
+    persistTheme(val);
   }, []);
 
   const handleLanguage = useCallback(
     (code) => {
       setLanguageState(code);
-      persistLanguage(code); // escribe cookie dx_lang + localStorage + sync API
-      router.refresh(); // re-renderiza los server components en el nuevo idioma
+      persistLanguage(code);
+      router.refresh();
     },
     [router]
   );
 
+  const grouped = splitMenuByGroup(menu);
+  const settingsLinks = grouped.settings.filter(
+    (it) => resolveMenuTarget(it.url).type === "route"
+  );
+
+  const gearIcon = (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+
   return (
-    <>
-      <button
-        type="button"
-        className={styles.gearButton}
-        onClick={() => setOpen(true)}
-        aria-label="Settings"
-        aria-expanded={open}
-      >
-        {/* Engranaje */}
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>
-      </button>
+    <NavDropdown
+      open={open}
+      onOpenChange={setOpen}
+      align="end"
+      label={t("title")}
+      triggerClassName={styles.gearButton}
+      trigger={gearIcon}
+    >
+      <div className={styles.panelBody}>
+        {grouped.recruiter.length > 0 && (
+          <details className={styles.section} open>
+            <summary className={styles.sectionSummary}>{t("recruiter")}</summary>
+            <ul className={styles.linkList}>
+              {grouped.recruiter.map((it) => (
+                <li key={it.url}>
+                  <a className={styles.link} href={resolveMenuTarget(it.url).href}>
+                    {it.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
 
-      {/* Backdrop */}
-      <div
-        className={`${styles.backdrop} ${open ? styles.backdropOpen : ""}`}
-        onClick={() => setOpen(false)}
-        aria-hidden="true"
-      />
+        <details className={styles.section} open>
+          <summary className={styles.sectionSummary}>{t("title")}</summary>
 
-      {/* Slide-over */}
-      <aside
-        className={`${styles.panel} ${open ? styles.panelOpen : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Settings"
-      >
-        <div className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>{t("title")}</h2>
-          <button
-            type="button"
-            className={styles.closeButton}
-            onClick={() => setOpen(false)}
-            aria-label="Close settings"
-          >
-            ×
-          </button>
-        </div>
+          {settingsLinks.length > 0 && (
+            <ul className={styles.linkList}>
+              {settingsLinks.map((it) => (
+                <li key={it.url}>
+                  <a className={styles.link} href={resolveMenuTarget(it.url).href}>
+                    {it.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
 
-        <div className={styles.panelBody}>
-          {/* ── Idioma ── */}
           <div className={styles.settingGroup}>
             <span className={styles.settingLabel}>{t("language")}</span>
             <div className={styles.segmented} role="radiogroup" aria-label="UI language">
@@ -148,7 +143,6 @@ export default function SettingsPanel() {
             </div>
           </div>
 
-          {/* ── Tema ── */}
           <div className={styles.settingGroup}>
             <span className={styles.settingLabel}>{t("theme")}</span>
             <div className={styles.segmented} role="radiogroup" aria-label="Theme">
@@ -174,8 +168,8 @@ export default function SettingsPanel() {
           </div>
 
           <p className={styles.note}>{t("note")}</p>
-        </div>
-      </aside>
-    </>
+        </details>
+      </div>
+    </NavDropdown>
   );
 }

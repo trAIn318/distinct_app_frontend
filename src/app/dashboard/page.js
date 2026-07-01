@@ -1,23 +1,22 @@
-import DashboardClient from "./DashboardClient";
-import { getT } from "../../i18n/server";
-import styles from "./dashboard.module.css";
+"use client";
 
-export const metadata = {
-  title: "Dashboard | Distinct Hospitality Solutions",
-  description: "Your enrolled courses and training progress.",
-};
+/**
+ * /dashboard ya no es una página de contenido: el tablero vive en el
+ * desplegable de la barra. Esta ruta redirige a la home y dispara el evento
+ * que abre el Tablero, para no romper marcadores ni enlaces antiguos.
+ */
 
-export default async function DashboardPage() {
-  const t = await getT("dashboard");
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-  return (
-    <div className={styles.page}>
-      <div className={`container ${styles.wrapper}`}>
-        <span className={styles.eyebrow}>{t("eyebrow")}</span>
-        <h1 className={styles.h1}>{t("title")}</h1>
-        <p className={styles.copy}>{t("copy")}</p>
-        <DashboardClient />
-      </div>
-    </div>
-  );
+export default function DashboardRedirect() {
+  const router = useRouter();
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem("distinct:open-dashboard", "1");
+    } catch {}
+    window.dispatchEvent(new Event("distinct:open-dashboard"));
+    router.replace("/");
+  }, [router]);
+  return null;
 }

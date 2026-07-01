@@ -13,6 +13,7 @@
   },
   "settings": {
     "title": "Configuración",
+    "recruiter": "Reclutador",
     "language": "Idioma",
     "theme": "Tema",
     "dark": "Oscuro",
@@ -225,6 +226,7 @@
     "coursesTitle": "Mis cursos",
     "progress": "Avance",
     "empty": "Aún no tienes cursos en Moodle.",
+    "loading": "Cargando…",
     "menuTitle": "Accesos rápidos",
     "open": "Abrir"
   },

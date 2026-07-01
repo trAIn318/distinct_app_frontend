@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { MOODLE_URL } from "../lib/config";
 import { getCurrentUser, clearSession } from "../lib/session";
 import SettingsPanel from "./SettingsPanel";
+import DashboardMenu from "./DashboardMenu";
+import { getMenu } from "../lib/api";
 import { useT } from "../i18n/client";
 import styles from "./Navigation.module.css";
 
@@ -15,13 +17,17 @@ export default function Navigation() {
   const t = useT("nav");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [menu, setMenu] = useState([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
-  // Cargar sesión al montar / cuando cambia la ruta (post-login refresh)
+  // Cargar sesión + menú por rol al montar / cuando cambia la ruta
   useEffect(() => {
-    setUser(getCurrentUser());
+    const u = getCurrentUser();
+    setUser(u);
+    if (u) getMenu().then(setMenu);
+    else setMenu([]);
   }, [pathname]);
 
   // Nav compacto + fondo más sólido al hacer scroll
@@ -116,13 +122,6 @@ export default function Navigation() {
             {user ? (
               <>
                 <Link
-                  href="/dashboard"
-                  className={`${styles.navLink} ${pathname === "/dashboard" ? styles.navLinkActive : ""}`}
-                  aria-current={pathname === "/dashboard" ? "page" : undefined}
-                >
-                  {t("dashboard")}
-                </Link>
-                <Link
                   href="/account"
                   className={styles.userBadge}
                   title={user.email || ""}
@@ -145,8 +144,11 @@ export default function Navigation() {
           </div>
         </nav>
 
+        {/* Tablero (desplegable) — visible en desktop y móvil, solo con sesión */}
+        {user && <DashboardMenu menu={menu} />}
+
         {/* Settings (⚙) — visible en desktop y móvil */}
-        <SettingsPanel />
+        <SettingsPanel menu={menu} />
 
         {/* Mobile Menu Toggle */}
         <button
@@ -207,13 +209,6 @@ export default function Navigation() {
             </a> */}
             {user ? (
               <>
-                <Link
-                  href="/dashboard"
-                  className="btn-ghost"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t("dashboard")}
-                </Link>
                 <Link
                   href="/account"
                   className="btn-ghost"
