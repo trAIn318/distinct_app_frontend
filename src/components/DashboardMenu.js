@@ -123,6 +123,7 @@ export default function DashboardMenu({ menu = [] }) {
                         src={resolveCourseImage(c.image)}
                         alt={c.name}
                         loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                           if (e.currentTarget.src.indexOf(COURSE_IMAGE_FALLBACK) === -1) {
                             e.currentTarget.src = COURSE_IMAGE_FALLBACK;
