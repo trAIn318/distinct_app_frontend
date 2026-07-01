@@ -38,6 +38,14 @@ export default function DashboardMenu({ menu = [] }) {
       load();
     };
     window.addEventListener("distinct:open-dashboard", openMenu);
+    // Intento persistido (carga en frío de /dashboard): abrir tras el redirect,
+    // cuando el listener aún no existía en el momento del dispatch.
+    try {
+      if (window.sessionStorage.getItem("distinct:open-dashboard")) {
+        window.sessionStorage.removeItem("distinct:open-dashboard");
+        openMenu();
+      }
+    } catch {}
     return () => window.removeEventListener("distinct:open-dashboard", openMenu);
   }, [load]);
 

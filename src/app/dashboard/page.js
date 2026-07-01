@@ -12,6 +12,9 @@ import { useRouter } from "next/navigation";
 export default function DashboardRedirect() {
   const router = useRouter();
   useEffect(() => {
+    try {
+      window.sessionStorage.setItem("distinct:open-dashboard", "1");
+    } catch {}
     window.dispatchEvent(new Event("distinct:open-dashboard"));
     router.replace("/");
   }, [router]);

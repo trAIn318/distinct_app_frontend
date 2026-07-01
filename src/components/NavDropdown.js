@@ -22,6 +22,9 @@ export default function NavDropdown({
   children,
 }) {
   const rootRef = useRef(null);
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
+  const wasOpen = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -39,9 +42,19 @@ export default function NavDropdown({
     };
   }, [open, onOpenChange]);
 
+  useEffect(() => {
+    if (open) {
+      panelRef.current?.focus();
+    } else if (wasOpen.current) {
+      triggerRef.current?.focus();
+    }
+    wasOpen.current = open;
+  }, [open]);
+
   return (
     <div ref={rootRef} className={styles.root}>
       <button
+        ref={triggerRef}
         type="button"
         className={`${styles.trigger} ${triggerClassName}`}
         aria-haspopup="dialog"
@@ -53,6 +66,8 @@ export default function NavDropdown({
       </button>
       {open && (
         <div
+          ref={panelRef}
+          tabIndex={-1}
           className={`${styles.panel} ${align === "start" ? styles.alignStart : styles.alignEnd}`}
           role="dialog"
           aria-label={label}
