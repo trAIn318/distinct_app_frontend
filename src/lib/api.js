@@ -356,8 +356,27 @@ export async function getDashboardCourses() {
   }
 }
 
-/** GET /api/dashboard/training/ — devuelve la loginurl SSO de Moodle. */
-export async function startTraining() {
+/**
+ * Añade `wantsurl` a un loginurl SSO de Moodle (auth_userkey). Su login.php
+ * redirige a esa URL tras iniciar sesión, así el usuario cae ya logueado en un
+ * curso concreto (mismo Moodle → URL local permitida). Sin destino, devuelve el
+ * loginurl tal cual (aterriza en el dashboard de Moodle).
+ * @param {string} loginurl
+ * @param {string} [targetUrl]
+ * @returns {string}
+ */
+export function appendWantsurl(loginurl, targetUrl) {
+  if (!loginurl || !targetUrl) return loginurl;
+  const sep = loginurl.includes("?") ? "&" : "?";
+  return `${loginurl}${sep}wantsurl=${encodeURIComponent(targetUrl)}`;
+}
+
+/**
+ * GET /api/dashboard/training/ — devuelve la loginurl SSO de Moodle.
+ * @param {string} [targetUrl] si se pasa, el SSO redirige a esa URL tras loguear
+ *   (p.ej. un curso). Si no, aterriza en el dashboard de Moodle (botón Entrenar).
+ */
+export async function startTraining(targetUrl) {
   const token = getAccessToken();
   if (!token) throw new Error("You must be signed in.");
   const res = await fetch(`${API_URL}/api/dashboard/training/`, {
@@ -366,5 +385,5 @@ export async function startTraining() {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.detail || "Training is unavailable right now.");
-  return data.loginurl;
+  return appendWantsurl(data.loginurl, targetUrl);
 }

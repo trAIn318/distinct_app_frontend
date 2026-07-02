@@ -26,6 +26,8 @@ export default function DashboardMenu({ menu = [] }) {
   const [loaded, setLoaded] = useState(false);
   const [training, setTraining] = useState(false);
   const [trainError, setTrainError] = useState(null);
+  // id del curso que se está abriendo por SSO (para deshabilitar y dar feedback)
+  const [openingId, setOpeningId] = useState(null);
 
   const load = useCallback(() => {
     if (loaded) return;
@@ -69,6 +71,27 @@ export default function DashboardMenu({ menu = [] }) {
     } catch {
       setTrainError(t("trainError"));
       setTraining(false);
+    }
+  }
+
+  // Click en un curso: igual que Entrenar pero el SSO aterriza en ese curso.
+  // Se intercepta el <a> (preventDefault); el href queda como fallback sin JS.
+  async function handleCourseClick(e, courseUrl, id) {
+    e.preventDefault();
+    if (openingId != null) return;
+    setTrainError(null);
+    setOpeningId(id);
+    try {
+      const url = await startTraining(courseUrl);
+      if (!url) {
+        setTrainError(t("trainError"));
+        setOpeningId(null);
+        return;
+      }
+      window.location.href = url;
+    } catch {
+      setTrainError(t("trainError"));
+      setOpeningId(null);
     }
   }
 
@@ -133,8 +156,8 @@ export default function DashboardMenu({ menu = [] }) {
                   <a
                     className={styles.courseLink}
                     href={c.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    onClick={(e) => handleCourseClick(e, c.url, c.id)}
+                    aria-busy={openingId === c.id}
                   >
                     <span className={styles.courseThumbWrap}>
                       <img

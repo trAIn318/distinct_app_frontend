@@ -130,6 +130,13 @@
   color: var(--color-gold);
 }
 
+/* Mientras se resuelve el SSO del curso: atenuado + cursor de espera. */
+.courseLink[aria-busy="true"] {
+  opacity: 0.55;
+  cursor: progress;
+  pointer-events: none;
+}
+
 .progressRow {
   display: flex;
   align-items: center;
