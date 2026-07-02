@@ -14,6 +14,7 @@ const verifyLoginOtpApi = vi.fn();
 vi.mock("../../../lib/api", () => ({
   loginApi: (...a) => loginApi(...a),
   verifyLoginOtpApi: (...a) => verifyLoginOtpApi(...a),
+  warmBackend: () => {},
 }));
 
 const saveSession = vi.fn();

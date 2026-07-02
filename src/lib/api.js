@@ -60,17 +60,57 @@ export async function getCourse(id) {
 // ── Auth ──────────────────────────────────────────────────────────────────
 
 /**
+ * Despierta el backend. Render (plan free) duerme el servicio tras ~15 min de
+ * inactividad; el primer acceso tarda ~30-60s en arrancar y, durante ese
+ * arranque, el preflight CORS se pierde (error "No Access-Control-Allow-Origin"
+ * + ERR_FAILED). Llamando esto al abrir el login, el server despierta MIENTRAS
+ * el usuario escribe, de modo que el POST ya lo encuentre listo.
+ * Fire-and-forget: nunca lanza ni bloquea.
+ */
+export function warmBackend() {
+  try {
+    fetch(`${API_URL}/api/health/`, { method: "GET", cache: "no-store" }).catch(() => {});
+  } catch {}
+}
+
+/**
+ * Ejecuta un fetch reintentando SOLO ante fallos de red (fetch rechaza con
+ * TypeError: server dormido en Render o preflight perdido durante el arranque
+ * en frío). NO reintenta respuestas HTTP (4xx/5xx ya llegaron al backend).
+ * Seguro para POST: un preflight fallido significa que la petición nunca se
+ * ejecutó en el servidor, así que reintentarla no duplica efectos.
+ */
+async function fetchResilient(url, options, { retries = 3, baseDelayMs = 2000 } = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      lastErr = err;
+      if (attempt === retries) break;
+      await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
+    }
+  }
+  throw lastErr;
+}
+
+/**
  * POST /api/auth/login/
  * Acepta email O username en `usr_name`.
  * Devuelve { access, refresh, user }
  */
 export async function loginApi(identifier, password) {
-  const res = await fetch(`${API_URL}/api/auth/login/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ usr_name: identifier, usr_password: password }),
-    cache: "no-store",
-  });
+  let res;
+  try {
+    res = await fetchResilient(`${API_URL}/api/auth/login/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usr_name: identifier, usr_password: password }),
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error("We couldn't reach the server — it may be waking up. Please try again in a moment.");
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const message = data.detail || "Invalid credentials.";
@@ -86,12 +126,17 @@ export async function loginApi(identifier, password) {
  * Devuelve { access, refresh, user }.
  */
 export async function verifyLoginOtpApi(identifier, otp) {
-  const res = await fetch(`${API_URL}/api/auth/verify-login-otp/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ usr_name: identifier, otp }),
-    cache: "no-store",
-  });
+  let res;
+  try {
+    res = await fetchResilient(`${API_URL}/api/auth/verify-login-otp/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usr_name: identifier, otp }),
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error("We couldn't reach the server — it may be waking up. Please try again in a moment.");
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.detail || "Invalid or expired code.");

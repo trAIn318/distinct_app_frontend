@@ -81,7 +81,7 @@ export default function NavDrawer({
       >
         <div className={styles.panelHeader}>
           <div className={styles.panelHeaderLeft}>
-            <h2 className={styles.panelTitle}>{title}</h2>
+            {title && <h2 className={styles.panelTitle}>{title}</h2>}
             {headerActions}
           </div>
           <button
