@@ -83,7 +83,16 @@ export default function DashboardMenu({ menu = [] }) {
       title={t("title")}
       width="min(520px, 94vw)"
       triggerClassName={styles.trigger}
-      trigger={<span>{t("title")}</span>}
+      trigger={
+        <span className={styles.triggerInner}>
+          <span>{t("title")}</span>
+          {/* Chevron dorado: señala que es un desplegable (la rueda se explica
+              sola, el Tablero no). Rota 180° al abrir. */}
+          <svg className={styles.caret} viewBox="0 0 12 8" aria-hidden="true">
+            <path d="M1 1.5 6 6.5 11 1.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      }
       headerActions={
         extraLinks.length > 0 ? (
           <ul className={styles.headerLinks}>
