@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useT } from "../i18n/client";
 import styles from "./CookieBanner.module.css";
 
 export default function CookieBanner() {
+  const t = useT("cookieBanner");
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -31,22 +33,21 @@ export default function CookieBanner() {
   }
 
   return (
-    <div className={`${styles.banner} ${isVisible ? styles.bannerVisible : ""}`} role="dialog" aria-live="polite" aria-label="Cookie consent">
+    <div className={`${styles.banner} ${isVisible ? styles.bannerVisible : ""}`} role="dialog" aria-live="polite" aria-label={t("aria")}>
       <div className={`container ${styles.container}`}>
         <p className={styles.text}>
-          We use only essential cookies to keep you signed in and remember your
-          preferences. No advertising or third-party tracking. See our{" "}
+          {t("text")}
           <Link href="/cookie-policy" className="link-underline">
-            Cookie Policy
+            {t("policyLink")}
           </Link>
           .
         </p>
         <div className={styles.actions}>
           <button onClick={handleDecline} className="btn-ghost">
-            Decline
+            {t("decline")}
           </button>
           <button onClick={handleAccept} className="btn-primary">
-            Accept
+            {t("accept")}
           </button>
         </div>
       </div>
