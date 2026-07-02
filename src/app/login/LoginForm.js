@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { loginApi, verifyLoginOtpApi } from "../../lib/api";
+import { loginApi, verifyLoginOtpApi, warmBackend } from "../../lib/api";
 import { saveSession } from "../../lib/session";
 import { loadServerPreferences } from "../../lib/preferences";
 import styles from "./page.module.css";
@@ -22,6 +22,22 @@ export default function LoginForm() {
   const [awaitingOtp, setAwaitingOtp] = useState(false);
   const [otp, setOtp] = useState("");
   const [info, setInfo] = useState(null);
+  // Aviso "el server está despertando" si la petición tarda (cold start).
+  const [waking, setWaking] = useState(false);
+
+  // Precalienta el backend al abrir el login: Render (free) duerme el servicio
+  // y el primer acceso tarda ~30-60s en arrancar. Despertándolo mientras el
+  // usuario escribe, el POST de login ya lo encuentra listo (evita el fallo
+  // intermitente de CORS/ERR_FAILED por preflight perdido en el arranque).
+  useEffect(() => {
+    warmBackend();
+  }, []);
+
+  // Devuelve el id del timer que muestra el aviso de arranque a los 4s.
+  function startWakingNotice() {
+    setWaking(false);
+    return setTimeout(() => setWaking(true), 4000);
+  }
 
   // Completa el login una vez que tenemos tokens (login directo o tras OTP).
   async function finishLogin(data) {
@@ -47,6 +63,7 @@ export default function LoginForm() {
     }
 
     setLoading(true);
+    const wakingTimer = startWakingNotice();
     try {
       const data = await loginApi(identifier.trim(), password);
 
@@ -73,6 +90,8 @@ export default function LoginForm() {
     } catch (err) {
       setError(err.message || "Invalid credentials.");
     } finally {
+      clearTimeout(wakingTimer);
+      setWaking(false);
       setLoading(false);
     }
   }
@@ -87,6 +106,7 @@ export default function LoginForm() {
     }
 
     setLoading(true);
+    const wakingTimer = startWakingNotice();
     try {
       const data = await verifyLoginOtpApi(identifier.trim(), otp.trim());
       if (data?.access) {
@@ -97,6 +117,8 @@ export default function LoginForm() {
     } catch (err) {
       setError(err.message || "Invalid or expired code.");
     } finally {
+      clearTimeout(wakingTimer);
+      setWaking(false);
       setLoading(false);
     }
   }
@@ -107,6 +129,12 @@ export default function LoginForm() {
         {info && (
           <div className={styles.success} role="status">
             {info}
+          </div>
+        )}
+
+        {waking && (
+          <div className={styles.success} role="status">
+            Connecting to the server… the first attempt can take a few seconds.
           </div>
         )}
 
@@ -185,6 +213,12 @@ export default function LoginForm() {
           disabled={loading}
         />
       </label>
+
+      {waking && (
+        <div className={styles.success} role="status">
+          Connecting to the server… the first attempt can take a few seconds.
+        </div>
+      )}
 
       {error && (
         <div className={styles.error} role="alert">

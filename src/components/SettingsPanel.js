@@ -90,7 +90,6 @@ export default function SettingsPanel({ menu = [] }) {
       open={open}
       onOpenChange={setOpen}
       label={t("title")}
-      title={t("title")}
       width="min(380px, 92vw)"
       triggerClassName={styles.gearButton}
       trigger={gearIcon}
