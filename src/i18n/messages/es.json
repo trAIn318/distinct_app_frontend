@@ -236,6 +236,12 @@
     "copy": "Esta sección aún no está lista. La estamos construyendo — vuelve pronto.",
     "back": "Volver al tablero"
   },
+  "moodleLaunch": {
+    "loading": "Iniciando tu sesión en Moodle…",
+    "error": "No pudimos iniciar tu sesión en Moodle. Inténtalo de nuevo.",
+    "openManually": "Abrir el curso",
+    "back": "Volver al inicio"
+  },
   "explorer": {
     "searchPlaceholder": "Busca por nombre, descripción o código…",
     "viewMode": "Modo de vista",

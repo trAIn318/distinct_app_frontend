@@ -1,0 +1,36 @@
+.wrap {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+}
+
+.box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  text-align: center;
+}
+
+.msg {
+  font-family: var(--font-body);
+  color: var(--color-ivory);
+  font-size: var(--text-md);
+  margin: 0;
+}
+
+.back {
+  color: var(--color-smoke);
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.back:hover {
+  color: var(--color-gold);
+}

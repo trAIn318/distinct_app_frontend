@@ -236,6 +236,12 @@
     "copy": "This section isn't ready yet. We're building it — please check back soon.",
     "back": "Back to dashboard"
   },
+  "moodleLaunch": {
+    "loading": "Signing you in to Moodle…",
+    "error": "We couldn't start your Moodle session. Please try again.",
+    "openManually": "Open the course",
+    "back": "Back to home"
+  },
   "explorer": {
     "searchPlaceholder": "Search by name, description, or code…",
     "viewMode": "View mode",
