@@ -20,6 +20,15 @@
     "light": "Claro",
     "note": "Tus preferencias se guardan en este dispositivo — y en tu cuenta cuando inicias sesión."
   },
+  "menu": {
+    "loadCvs": "Cargar CVs",
+    "searchCandidate": "Buscar candidato",
+    "admin": "Administración",
+    "loadCv": "Cargar CV",
+    "adminCompany": "Administrar empresa",
+    "eval": "Evaluación",
+    "pay": "Pago"
+  },
   "rail": {
     "home": "Inicio",
     "getInTouch": "Contacto",

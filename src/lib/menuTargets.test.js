@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { splitMenuByGroup, resolveMenuTarget, parseIconName } from "./menuTargets";
+import {
+  splitMenuByGroup,
+  resolveMenuTarget,
+  parseIconName,
+  menuLabelKey,
+  getMenuLabel,
+} from "./menuTargets";
 
 describe("splitMenuByGroup", () => {
   it("reparte items por menu_group (case-insensitive)", () => {
@@ -39,6 +45,25 @@ describe("resolveMenuTarget", () => {
     expect(resolveMenuTarget("recruiter/load_cvs")).toEqual({ type: "route", href: "/coming-soon" });
     expect(resolveMenuTarget("")).toEqual({ type: "route", href: "/coming-soon" });
     expect(resolveMenuTarget(undefined)).toEqual({ type: "route", href: "/coming-soon" });
+  });
+});
+
+describe("getMenuLabel", () => {
+  const tMenu = (k) => ({ loadCvs: "Cargar CVs", eval: "Evaluación" }[k] || `menu.${k}`);
+
+  it("traduce las opciones mapeadas vía tMenu", () => {
+    expect(getMenuLabel({ url: "recruiter/load_cvs", title: "Load CVs" }, tMenu)).toBe("Cargar CVs");
+    expect(getMenuLabel({ url: "/dashboard/eval", title: "Eval" }, tMenu)).toBe("Evaluación");
+  });
+
+  it("cae al título de la BD para opciones no mapeadas", () => {
+    expect(getMenuLabel({ url: "dashboard/dash", title: "Dash" }, tMenu)).toBe("Dash");
+    expect(getMenuLabel({ url: "future/thing", title: "Nuevo" }, tMenu)).toBe("Nuevo");
+  });
+
+  it("menuLabelKey devuelve null para lo no mapeado", () => {
+    expect(menuLabelKey("recruiter/load_cvs")).toBe("loadCvs");
+    expect(menuLabelKey("dashboard/dash")).toBe(null);
   });
 });
 

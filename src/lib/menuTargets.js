@@ -42,6 +42,38 @@ export function resolveMenuTarget(url) {
 }
 
 /**
+ * Traduce el título de una opción de menú. Los títulos vienen de la BD en inglés
+ * (`menu.title`); aquí mapeamos las opciones estables (`page`) a claves i18n del
+ * namespace "menu". Las opciones NO mapeadas (p.ej. dashboard/dash, pendiente de
+ * renombrar, o futuras) caen al título de la BD → siguen apareciendo, data-driven.
+ */
+const MENU_LABEL_KEYS = {
+  "recruiter/load_cvs": "loadCvs",
+  "recruiter/search_candidate": "searchCandidate",
+  "settings/admin-panel": "admin",
+  "settings/load-csv": "loadCv",
+  "settings/admin-company": "adminCompany",
+  "dashboard/eval": "eval",
+  "dashboard/pay": "pay",
+};
+
+export function menuLabelKey(url) {
+  const key = String(url || "").replace(/^\//, "");
+  return MENU_LABEL_KEYS[key] || null;
+}
+
+/**
+ * @param {{url?:string,title?:string}} item
+ * @param {(key:string)=>string} tMenu  t() ligado al namespace "menu"
+ * @returns {string}
+ */
+export function getMenuLabel(item, tMenu) {
+  const k = menuLabelKey(item?.url);
+  if (k && typeof tMenu === "function") return tMenu(k);
+  return item?.title || "";
+}
+
+/**
  * Normaliza el nombre de icono que guarda la BD al identificador de Material
  * Symbols. Acepta ":material/bar_chart:", "material/bar_chart" o "bar_chart".
  * Devuelve "" si no hay icono (el consumidor decide el fallback).

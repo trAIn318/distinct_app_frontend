@@ -20,6 +20,15 @@
     "light": "Light",
     "note": "Preferences are saved on this device — and to your account when you're signed in."
   },
+  "menu": {
+    "loadCvs": "Load CVs",
+    "searchCandidate": "Search Candidate",
+    "admin": "Admin",
+    "loadCv": "Load CV",
+    "adminCompany": "Admin Company",
+    "eval": "Eval",
+    "pay": "Pay"
+  },
   "rail": {
     "home": "Home",
     "getInTouch": "Get in Touch",
