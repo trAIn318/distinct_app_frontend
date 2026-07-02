@@ -4,9 +4,11 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { requestPasswordResetApi, resetPasswordApi } from "../../lib/api";
+import { useT } from "../../i18n/client";
 import styles from "./page.module.css";
 
 export default function ForgotPasswordForm() {
+  const t = useT("forgotPassword");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -22,9 +24,7 @@ export default function ForgotPasswordForm() {
   const [error, setError] = useState(null);
   // Si llegamos desde un login con contraseña vencida, explicamos por qué.
   const [info, setInfo] = useState(
-    searchParams?.get("expired") === "1"
-      ? "Your password has expired. Reset it now to sign in again."
-      : null
+    searchParams?.get("expired") === "1" ? t("infoExpired") : null
   );
 
   async function handleRequest(e) {
@@ -33,7 +33,7 @@ export default function ForgotPasswordForm() {
     setInfo(null);
 
     if (!email.trim()) {
-      setError("Please enter the email associated with your account.");
+      setError(t("errEmail"));
       return;
     }
 
@@ -42,9 +42,9 @@ export default function ForgotPasswordForm() {
       await requestPasswordResetApi(email.trim());
       // El backend responde igual exista o no la cuenta. Avanzamos al paso 2.
       setStep("reset");
-      setInfo("If that email exists, we sent a 6-digit code. It expires in 10 minutes.");
+      setInfo(t("infoSent"));
     } catch (err) {
-      setError(err.message || "Could not start password reset.");
+      setError(err.message || t("errStart"));
     } finally {
       setLoading(false);
     }
@@ -56,9 +56,9 @@ export default function ForgotPasswordForm() {
     setLoading(true);
     try {
       await requestPasswordResetApi(email.trim());
-      setInfo("A new code is on its way. It expires in 10 minutes.");
+      setInfo(t("infoResent"));
     } catch (err) {
-      setError(err.message || "Could not resend the code.");
+      setError(err.message || t("errResend"));
     } finally {
       setLoading(false);
     }
@@ -70,15 +70,15 @@ export default function ForgotPasswordForm() {
     setInfo(null);
 
     if (!/^\d{6}$/.test(otp.trim())) {
-      setError("Enter the 6-digit code from your email.");
+      setError(t("errCode"));
       return;
     }
     if (newPassword.length < 8) {
-      setError("Your new password must be at least 8 characters.");
+      setError(t("errPasswordLen"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("The passwords do not match.");
+      setError(t("errPasswordMatch"));
       return;
     }
 
@@ -90,10 +90,10 @@ export default function ForgotPasswordForm() {
         newPassword,
         confirmPassword,
       });
-      setInfo("Password updated. Redirecting you to sign in…");
+      setInfo(t("infoUpdated"));
       setTimeout(() => router.push("/login"), 1200);
     } catch (err) {
-      setError(err.message || "Could not reset password.");
+      setError(err.message || t("errReset"));
     } finally {
       setLoading(false);
     }
@@ -103,11 +103,11 @@ export default function ForgotPasswordForm() {
     <>
       <div className={styles.steps}>
         <span className={step === "email" ? styles.stepActive : undefined}>
-          1 · Email
+          {t("step1")}
         </span>
         <span className={styles.stepDivider} aria-hidden="true" />
         <span className={step === "reset" ? styles.stepActive : undefined}>
-          2 · New password
+          {t("step2")}
         </span>
       </div>
 
@@ -120,7 +120,7 @@ export default function ForgotPasswordForm() {
           )}
 
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Email</span>
+            <span className={styles.fieldLabel}>{t("email")}</span>
             <input
               type="email"
               autoComplete="email"
@@ -144,13 +144,13 @@ export default function ForgotPasswordForm() {
             disabled={loading}
             style={{ width: "100%", marginTop: "var(--space-2)" }}
           >
-            {loading ? "Sending…" : "Send reset code"}
+            {loading ? t("sendLoading") : t("send")}
           </button>
 
           <p className={styles.smallNote}>
-            Remembered it?{" "}
+            {t("rememberedPre")}{" "}
             <Link href="/login" className={styles.inlineLink}>
-              Back to sign in
+              {t("backToSignIn")}
             </Link>
           </p>
         </form>
@@ -163,7 +163,7 @@ export default function ForgotPasswordForm() {
           )}
 
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>6-digit code</span>
+            <span className={styles.fieldLabel}>{t("otpLabel")}</span>
             <input
               type="text"
               inputMode="numeric"
@@ -178,7 +178,7 @@ export default function ForgotPasswordForm() {
           </label>
 
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>New password</span>
+            <span className={styles.fieldLabel}>{t("newPassword")}</span>
             <input
               type="password"
               autoComplete="new-password"
@@ -191,7 +191,7 @@ export default function ForgotPasswordForm() {
           </label>
 
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Confirm new password</span>
+            <span className={styles.fieldLabel}>{t("confirmPassword")}</span>
             <input
               type="password"
               autoComplete="new-password"
@@ -215,18 +215,18 @@ export default function ForgotPasswordForm() {
             disabled={loading}
             style={{ width: "100%", marginTop: "var(--space-2)" }}
           >
-            {loading ? "Updating…" : "Update password"}
+            {loading ? t("updateLoading") : t("update")}
           </button>
 
           <p className={styles.smallNote}>
-            Didn&apos;t get a code?{" "}
+            {t("noCodePre")}{" "}
             <button
               type="button"
               className={styles.linkButton}
               onClick={handleResend}
               disabled={loading}
             >
-              Resend
+              {t("resend")}
             </button>
           </p>
         </form>

@@ -6,9 +6,11 @@ import Link from "next/link";
 import { loginApi, verifyLoginOtpApi, warmBackend } from "../../lib/api";
 import { saveSession } from "../../lib/session";
 import { loadServerPreferences } from "../../lib/preferences";
+import { useT } from "../../i18n/client";
 import styles from "./page.module.css";
 
 export default function LoginForm() {
+  const t = useT("login");
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams?.get("next") || "/";
@@ -58,7 +60,7 @@ export default function LoginForm() {
     setError(null);
 
     if (!identifier.trim() || !password) {
-      setError("Please enter your email/username and password.");
+      setError(t("errFillBoth"));
       return;
     }
 
@@ -78,7 +80,7 @@ export default function LoginForm() {
       if (data?.requires_otp) {
         // Segundo paso por inactividad: mostramos el input de código.
         setAwaitingOtp(true);
-        setInfo("For your security, we sent a 6-digit code to your email. It expires in 10 minutes.");
+        setInfo(t("otpInfo"));
         return;
       }
       if (data?.access) {
@@ -86,9 +88,9 @@ export default function LoginForm() {
         return;
       }
       // Respuesta inesperada (200 sin token ni estado conocido).
-      setError("We couldn't sign you in. Please try again.");
+      setError(t("errUnexpected"));
     } catch (err) {
-      setError(err.message || "Invalid credentials.");
+      setError(err.message || t("errInvalid"));
     } finally {
       clearTimeout(wakingTimer);
       setWaking(false);
@@ -101,7 +103,7 @@ export default function LoginForm() {
     setError(null);
 
     if (!/^\d{6}$/.test(otp.trim())) {
-      setError("Enter the 6-digit code from your email.");
+      setError(t("errCode"));
       return;
     }
 
@@ -113,9 +115,9 @@ export default function LoginForm() {
         await finishLogin(data);
         return;
       }
-      setError("We couldn't sign you in. Please try again.");
+      setError(t("errUnexpected"));
     } catch (err) {
-      setError(err.message || "Invalid or expired code.");
+      setError(err.message || t("errOtp"));
     } finally {
       clearTimeout(wakingTimer);
       setWaking(false);
@@ -134,12 +136,12 @@ export default function LoginForm() {
 
         {waking && (
           <div className={styles.success} role="status">
-            Connecting to the server… the first attempt can take a few seconds.
+            {t("waking")}
           </div>
         )}
 
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>6-digit code</span>
+          <span className={styles.fieldLabel}>{t("otpLabel")}</span>
           <input
             type="text"
             inputMode="numeric"
@@ -165,7 +167,7 @@ export default function LoginForm() {
           disabled={loading}
           style={{ width: "100%", marginTop: "var(--space-2)" }}
         >
-          {loading ? "Verifying…" : "Verify & sign in"}
+          {loading ? t("verifyLoading") : t("verify")}
         </button>
 
         <p className={styles.smallNote}>
@@ -179,7 +181,7 @@ export default function LoginForm() {
               setError(null);
             }}
           >
-            Back to sign in
+            {t("backToSignIn")}
           </button>
         </p>
       </form>
@@ -189,7 +191,7 @@ export default function LoginForm() {
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
       <label className={styles.field}>
-        <span className={styles.fieldLabel}>Email or username</span>
+        <span className={styles.fieldLabel}>{t("identifier")}</span>
         <input
           type="text"
           autoComplete="username"
@@ -202,7 +204,7 @@ export default function LoginForm() {
       </label>
 
       <label className={styles.field}>
-        <span className={styles.fieldLabel}>Password</span>
+        <span className={styles.fieldLabel}>{t("password")}</span>
         <input
           type="password"
           autoComplete="current-password"
@@ -216,7 +218,7 @@ export default function LoginForm() {
 
       {waking && (
         <div className={styles.success} role="status">
-          Connecting to the server… the first attempt can take a few seconds.
+          {t("waking")}
         </div>
       )}
 
@@ -232,7 +234,7 @@ export default function LoginForm() {
         disabled={loading}
         style={{ width: "100%", marginTop: "var(--space-2)" }}
       >
-        {loading ? "Signing in…" : "Sign In"}
+        {loading ? t("submitLoading") : t("submit")}
       </button>
 
       <p className={styles.smallNote}>
@@ -244,14 +246,14 @@ export default function LoginForm() {
           }`}
           className={styles.inlineLink}
         >
-          Forgot your password?
+          {t("forgot")}
         </Link>
       </p>
 
       <p className={styles.smallNote}>
-        Don&apos;t have an account?{" "}
+        {t("noAccount")}{" "}
         <Link href="/register" className={styles.inlineLink}>
-          Sign up
+          {t("signUp")}
         </Link>
       </p>
     </form>

@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { exportMyDataApi, deleteAccountApi } from "../../lib/api";
 import { getCurrentUser, isAuthenticated, clearSession } from "../../lib/session";
+import { useT } from "../../i18n/client";
 import styles from "./account.module.css";
 
 export default function AccountClient() {
+  const t = useT("account");
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
@@ -53,7 +55,7 @@ export default function AccountClient() {
       URL.revokeObjectURL(url);
       setExportDone(true);
     } catch (err) {
-      setExportError(err.message || "Could not export your data.");
+      setExportError(err.message || t("errExport"));
     } finally {
       setExporting(false);
     }
@@ -63,7 +65,7 @@ export default function AccountClient() {
     e.preventDefault();
     setDeleteError(null);
     if (!password) {
-      setDeleteError("Please confirm your password to continue.");
+      setDeleteError(t("errPassword"));
       return;
     }
     setDeleting(true);
@@ -73,7 +75,7 @@ export default function AccountClient() {
       router.replace("/?deleted=1");
       router.refresh();
     } catch (err) {
-      setDeleteError(err.message || "Could not delete your account.");
+      setDeleteError(err.message || t("errDelete"));
       setDeleting(false);
     }
   }
@@ -86,31 +88,27 @@ export default function AccountClient() {
     <>
       {/* Datos de la cuenta */}
       <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Profile</h2>
+        <h2 className={styles.cardTitle}>{t("profile")}</h2>
         {fullName && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Name</span>
+            <span className={styles.detailLabel}>{t("name")}</span>
             <span className={styles.detailValue}>{fullName}</span>
           </div>
         )}
         <div className={styles.detail}>
-          <span className={styles.detailLabel}>Username</span>
+          <span className={styles.detailLabel}>{t("username")}</span>
           <span className={styles.detailValue}>{user?.username}</span>
         </div>
         <div className={styles.detail}>
-          <span className={styles.detailLabel}>Email</span>
+          <span className={styles.detailLabel}>{t("email")}</span>
           <span className={styles.detailValue}>{user?.email}</span>
         </div>
       </section>
 
       {/* Portabilidad — descargar mis datos */}
       <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Download my data</h2>
-        <p className={styles.cardBody}>
-          Export a copy of all the personal data we hold about you — your
-          profile, your consent records, and any course enquiries — as a JSON
-          file. (Right to data portability · Ley 1581 · CCPA/CPRA.)
-        </p>
+        <h2 className={styles.cardTitle}>{t("downloadTitle")}</h2>
+        <p className={styles.cardBody}>{t("downloadBody")}</p>
         {exportError && (
           <div className={styles.error} role="alert">
             {exportError}
@@ -118,7 +116,7 @@ export default function AccountClient() {
         )}
         {exportDone && (
           <div className={styles.success} role="status">
-            Your data download has started.
+            {t("downloadStarted")}
           </div>
         )}
         <button
@@ -127,18 +125,14 @@ export default function AccountClient() {
           onClick={handleExport}
           disabled={exporting}
         >
-          {exporting ? "Preparing…" : "Download my data"}
+          {exporting ? t("downloadLoading") : t("downloadBtn")}
         </button>
       </section>
 
       {/* Supresión — eliminar cuenta */}
       <section className={`${styles.card} ${styles.cardDanger}`}>
-        <h2 className={styles.cardTitle}>Delete my account</h2>
-        <p className={styles.cardBody}>
-          Permanently delete your account and erase your personal data. This
-          also withdraws your consent to data processing and cannot be undone.
-          (Right to erasure · Ley 1581 · CCPA/CPRA.)
-        </p>
+        <h2 className={styles.cardTitle}>{t("deleteTitle")}</h2>
+        <p className={styles.cardBody}>{t("deleteBody")}</p>
         <button
           type="button"
           className={styles.dangerButton}
@@ -148,14 +142,14 @@ export default function AccountClient() {
             setShowConfirm(true);
           }}
         >
-          Delete my account
+          {t("deleteBtn")}
         </button>
       </section>
 
       <p className={styles.cardBody}>
-        Read how we handle your data in our{" "}
+        {t("privacyPre")}
         <Link href="/privacy-policy" style={{ color: "var(--color-gold)" }}>
-          Privacy Policy
+          {t("privacyLink")}
         </Link>
         .
       </p>
@@ -166,21 +160,18 @@ export default function AccountClient() {
           className={styles.modalOverlay}
           role="dialog"
           aria-modal="true"
-          aria-label="Confirm account deletion"
+          aria-label={t("confirmAria")}
         >
           <form className={styles.modal} onSubmit={handleDelete} noValidate>
-            <h2 className={styles.cardTitle}>Confirm deletion</h2>
-            <p className={styles.cardBody}>
-              Enter your current password to confirm. This permanently erases
-              your personal data.
-            </p>
+            <h2 className={styles.cardTitle}>{t("confirmTitle")}</h2>
+            <p className={styles.cardBody}>{t("confirmBody")}</p>
             {deleteError && (
               <div className={styles.error} role="alert">
                 {deleteError}
               </div>
             )}
             <label className={styles.field}>
-              <span className={styles.fieldLabel}>Current password</span>
+              <span className={styles.fieldLabel}>{t("currentPassword")}</span>
               <input
                 type="password"
                 autoComplete="current-password"
@@ -198,14 +189,14 @@ export default function AccountClient() {
                 onClick={() => setShowConfirm(false)}
                 disabled={deleting}
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 type="submit"
                 className={styles.dangerButton}
                 disabled={deleting}
               >
-                {deleting ? "Deleting…" : "Delete forever"}
+                {deleting ? t("deleteLoading") : t("deleteForever")}
               </button>
             </div>
           </form>
