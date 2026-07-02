@@ -166,11 +166,13 @@
   gap: var(--space-3);
 }
 
-/* Eval / Pay como chips ghost: bordeados y en versal para que destaquen,
-   se rellenan de gold al pasar el cursor (coherente con .btn-primary). */
+/* Dash / Eval / Pay como chips ghost con icono: bordeados y en versal para que
+   destaquen, se rellenan de gold al pasar el cursor (coherente con .btn-primary). */
 .link {
-  display: inline-block;
-  padding: var(--space-2) var(--space-5);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--gold-30);
   color: var(--color-ivory);
   text-decoration: none;
@@ -182,6 +184,17 @@
     background var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
     border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.linkIcon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--color-gold);
+}
+
+.link:hover .linkIcon {
+  color: var(--color-obsidian);
 }
 
 .link:hover {

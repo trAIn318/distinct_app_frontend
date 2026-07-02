@@ -23,17 +23,34 @@ export function splitMenuByGroup(items) {
 
 /**
  * Traduce el `url` (page) de un item de menú a un comportamiento del frontend.
+ * Registro de comportamientos: solo las opciones con pantalla/acción propia se
+ * tratan especial; TODO lo demás (dashboard/dash, eval, pay y opciones futuras)
+ * cae a /coming-soon y se renderiza igual, data-driven, con su título e icono de
+ * la BD. Así, renombrar "Dash"→"Statistics" o agregar una opción nueva en la BD
+ * NO requiere tocar el frontend.
  *   - dashboard/trainy → acción Entrenar (SSO).
- *   - dashboard/dash   → es el panel del Tablero mismo (no se enlaza).
  *   - settings/language→ se sustituye por el control de idioma inline.
  *   - resto            → navegación a /coming-soon (En construcción).
  * @param {string} url
- * @returns {{type:"train"}|{type:"dash"}|{type:"language"}|{type:"route",href:string}}
+ * @returns {{type:"train"}|{type:"language"}|{type:"route",href:string}}
  */
 export function resolveMenuTarget(url) {
   const key = String(url || "").replace(/^\//, "");
   if (key === "dashboard/trainy") return { type: "train" };
-  if (key === "dashboard/dash") return { type: "dash" };
   if (key === "settings/language") return { type: "language" };
   return { type: "route", href: "/coming-soon" };
+}
+
+/**
+ * Normaliza el nombre de icono que guarda la BD al identificador de Material
+ * Symbols. Acepta ":material/bar_chart:", "material/bar_chart" o "bar_chart".
+ * Devuelve "" si no hay icono (el consumidor decide el fallback).
+ * @param {string} raw
+ * @returns {string}
+ */
+export function parseIconName(raw) {
+  const s = String(raw || "");
+  const m = s.match(/material\/([a-z0-9_]+)/i);
+  if (m) return m[1].toLowerCase();
+  return s.replace(/[:\s]/g, "").toLowerCase();
 }

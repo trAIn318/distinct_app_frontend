@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import NavDrawer from "./NavDrawer";
+import MenuIcon from "./MenuIcon";
 import { getDashboardCourses, startTraining } from "../lib/api";
 import { splitMenuByGroup, resolveMenuTarget } from "../lib/menuTargets";
 import { resolveCourseImage } from "../lib/config";
@@ -71,8 +72,16 @@ export default function DashboardMenu({ menu = [] }) {
     }
   }
 
-  const extraLinks = splitMenuByGroup(menu).dashboard.filter(
+  // Grupo DASHBOARD renderizado data-driven: cada opción sin pantalla propia
+  // (Dash/Eval/Pay y futuras) se pinta como chip con su icono+título de la BD y
+  // enlaza a /coming-soon. "Training" (trainy) es la única con acción propia (SSO)
+  // y se muestra como botón, solo si el rol la tiene.
+  const dashboardItems = splitMenuByGroup(menu).dashboard;
+  const routeLinks = dashboardItems.filter(
     (it) => resolveMenuTarget(it.url).type === "route"
+  );
+  const hasTraining = dashboardItems.some(
+    (it) => resolveMenuTarget(it.url).type === "train"
   );
 
   return (
@@ -94,12 +103,13 @@ export default function DashboardMenu({ menu = [] }) {
         </span>
       }
       headerActions={
-        extraLinks.length > 0 ? (
+        routeLinks.length > 0 ? (
           <ul className={styles.headerLinks}>
-            {extraLinks.map((it) => (
+            {routeLinks.map((it) => (
               <li key={it.url}>
                 <a className={styles.link} href={resolveMenuTarget(it.url).href}>
-                  {it.title}
+                  <MenuIcon icon={it.icon} className={styles.linkIcon} />
+                  <span>{it.title}</span>
                 </a>
               </li>
             ))}
@@ -158,14 +168,16 @@ export default function DashboardMenu({ menu = [] }) {
           </ul>
         )}
 
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={handleTrain}
-          disabled={training}
-        >
-          {training ? t("trainLoading") : t("trainCta")}
-        </button>
+        {hasTraining && (
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={handleTrain}
+            disabled={training}
+          >
+            {training ? t("trainLoading") : t("trainCta")}
+          </button>
+        )}
         {trainError && (
           <div className={styles.error} role="alert">{trainError}</div>
         )}
