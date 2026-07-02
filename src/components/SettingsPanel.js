@@ -20,13 +20,14 @@ import {
   applyTheme,
   loadServerPreferences,
 } from "../lib/preferences";
-import { splitMenuByGroup, resolveMenuTarget } from "../lib/menuTargets";
+import { splitMenuByGroup, resolveMenuTarget, getMenuLabel } from "../lib/menuTargets";
 import NavDrawer from "./NavDrawer";
 import { useT } from "../i18n/client";
 import styles from "./SettingsPanel.module.css";
 
 export default function SettingsPanel({ menu = [] }) {
   const t = useT("settings");
+  const tMenu = useT("menu");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [theme, setThemeState] = useState("dark");
@@ -102,7 +103,7 @@ export default function SettingsPanel({ menu = [] }) {
               {grouped.recruiter.map((it) => (
                 <li key={it.url}>
                   <a className={styles.link} href={resolveMenuTarget(it.url).href}>
-                    {it.title}
+                    {getMenuLabel(it, tMenu)}
                   </a>
                 </li>
               ))}
@@ -118,7 +119,7 @@ export default function SettingsPanel({ menu = [] }) {
               {settingsLinks.map((it) => (
                 <li key={it.url}>
                   <a className={styles.link} href={resolveMenuTarget(it.url).href}>
-                    {it.title}
+                    {getMenuLabel(it, tMenu)}
                   </a>
                 </li>
               ))}

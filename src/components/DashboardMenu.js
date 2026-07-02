@@ -12,7 +12,7 @@ import { useCallback, useEffect, useState } from "react";
 import NavDrawer from "./NavDrawer";
 import MenuIcon from "./MenuIcon";
 import { getDashboardCourses, startTraining } from "../lib/api";
-import { splitMenuByGroup, resolveMenuTarget } from "../lib/menuTargets";
+import { splitMenuByGroup, resolveMenuTarget, getMenuLabel } from "../lib/menuTargets";
 import { resolveCourseImage } from "../lib/config";
 import { useT } from "../i18n/client";
 import styles from "./DashboardMenu.module.css";
@@ -21,6 +21,7 @@ const COURSE_IMAGE_FALLBACK = "/img/courses/under_construction.jpg";
 
 export default function DashboardMenu({ menu = [] }) {
   const t = useT("dashboard");
+  const tMenu = useT("menu");
   const [open, setOpen] = useState(false);
   const [courses, setCourses] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -109,7 +110,7 @@ export default function DashboardMenu({ menu = [] }) {
               <li key={it.url}>
                 <a className={styles.link} href={resolveMenuTarget(it.url).href}>
                   <MenuIcon icon={it.icon} className={styles.linkIcon} />
-                  <span>{it.title}</span>
+                  <span>{getMenuLabel(it, tMenu)}</span>
                 </a>
               </li>
             ))}
