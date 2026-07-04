@@ -4,7 +4,7 @@
     "courses": "Courses",
     "about": "About",
     "meetAria": "Meet ARIA",
-    "accessMoodle": "Access Moodle",
+    "accessMoodle": "Go to Training",
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "myAccount": "My Account",
@@ -51,7 +51,7 @@
     "body": "Distinct trains your team, tracks what matters, and turns staff performance into measurable revenue — across every shift, every property, every market.",
     "getStarted": "Get Started",
     "meetAria": "Meet ARIA",
-    "accessMoodle": "Access Moodle"
+    "accessMoodle": "Go to Training"
   },
   "valueProp": {
     "titlePre": "Turn Staff Training Into",
@@ -154,8 +154,8 @@
     "titlePre": "Every Course.",
     "titleEmphasis": "Every Role.",
     "titlePost": "Every Shift.",
-    "subtitle": "Role-specific hospitality programs, multilingual, ready for your team. Browse the catalog or jump straight into Moodle if you're already enrolled.",
-    "accessMoodle": "Access Moodle",
+    "subtitle": "Role-specific hospitality programs, multilingual, ready for your team. Browse the catalog or jump straight into your training if you're already enrolled.",
+    "accessMoodle": "Go to Training",
     "empty": "The catalog is being updated. Please check back soon, or contact us directly.",
     "allCourses": "All Courses"
   },
@@ -164,7 +164,7 @@
     "modules": "Modules",
     "enrollPay": "Enroll & Pay",
     "interested": "I'm Interested",
-    "accessMoodle": "Access Moodle",
+    "accessMoodle": "Go to Training",
     "overview": "Overview",
     "preview": "Preview",
     "ctaTitle": "Ready to bring this training to your team?",
@@ -226,7 +226,7 @@
   "register": {
     "eyebrow": "Account",
     "title": "Create your account",
-    "copy": "A single account for our website and Moodle — same credentials everywhere.",
+    "copy": "A single account for our website and your training — same credentials everywhere.",
     "step1": "1 · Your details",
     "step2": "2 · Verify email",
     "firstName": "First name",
@@ -297,11 +297,11 @@
     "title": "Dashboard",
     "copy": "Your enrolled courses and progress.",
     "trainCta": "Train",
-    "trainLoading": "Opening Moodle…",
+    "trainLoading": "Opening your training…",
     "trainError": "Training is unavailable right now.",
     "coursesTitle": "My courses",
     "progress": "Progress",
-    "empty": "You have no courses in Moodle yet.",
+    "empty": "You have no courses yet.",
     "loading": "Loading…",
     "menuTitle": "Quick links",
     "open": "Open"
@@ -313,8 +313,8 @@
     "back": "Back to dashboard"
   },
   "moodleLaunch": {
-    "loading": "Signing you in to Moodle…",
-    "error": "We couldn't start your Moodle session. Please try again.",
+    "loading": "Signing you in…",
+    "error": "We couldn't start your session. Please try again.",
     "openManually": "Open the course",
     "back": "Back to home"
   },

@@ -4,7 +4,7 @@
     "courses": "Cursos",
     "about": "Nosotros",
     "meetAria": "Conoce a ARIA",
-    "accessMoodle": "Acceder a Moodle",
+    "accessMoodle": "Ir a Entrenar",
     "signIn": "Iniciar Sesión",
     "signOut": "Cerrar Sesión",
     "myAccount": "Mi Cuenta",
@@ -51,7 +51,7 @@
     "body": "Distinct capacita a tu equipo, mide lo que importa y convierte el desempeño del personal en ingresos medibles — en cada turno, cada propiedad y cada mercado.",
     "getStarted": "Comienza Ahora",
     "meetAria": "Conoce a ARIA",
-    "accessMoodle": "Acceder a Moodle"
+    "accessMoodle": "Ir a Entrenar"
   },
   "valueProp": {
     "titlePre": "Convierte la Capacitación de tu Equipo en Crecimiento",
@@ -154,8 +154,8 @@
     "titlePre": "Cada Curso.",
     "titleEmphasis": "Cada Rol.",
     "titlePost": "Cada Turno.",
-    "subtitle": "Programas de hospitalidad específicos por rol, multilingües, listos para tu equipo. Explora el catálogo o entra directo a Moodle si ya estás inscrito.",
-    "accessMoodle": "Acceder a Moodle",
+    "subtitle": "Programas de hospitalidad específicos por rol, multilingües, listos para tu equipo. Explora el catálogo o entra directo a tu entrenamiento si ya estás inscrito.",
+    "accessMoodle": "Ir a Entrenar",
     "empty": "El catálogo se está actualizando. Vuelve pronto o contáctanos directamente.",
     "allCourses": "Todos los Cursos"
   },
@@ -164,7 +164,7 @@
     "modules": "Módulos",
     "enrollPay": "Inscríbete y Paga",
     "interested": "Me Interesa",
-    "accessMoodle": "Acceder a Moodle",
+    "accessMoodle": "Ir a Entrenar",
     "overview": "Descripción",
     "preview": "Vista Previa",
     "ctaTitle": "¿Listo para llevar esta formación a tu equipo?",
@@ -226,7 +226,7 @@
   "register": {
     "eyebrow": "Cuenta",
     "title": "Crea tu cuenta",
-    "copy": "Una sola cuenta para nuestro sitio web y Moodle — las mismas credenciales en todas partes.",
+    "copy": "Una sola cuenta para nuestro sitio web y tu entrenamiento — las mismas credenciales en todas partes.",
     "step1": "1 · Tus datos",
     "step2": "2 · Verifica tu correo",
     "firstName": "Nombre",
@@ -297,11 +297,11 @@
     "title": "Tablero",
     "copy": "Tus cursos matriculados y tu avance.",
     "trainCta": "Entrenar",
-    "trainLoading": "Abriendo Moodle…",
+    "trainLoading": "Abriendo tu entrenamiento…",
     "trainError": "Entrenar no está disponible ahora mismo.",
     "coursesTitle": "Mis cursos",
     "progress": "Avance",
-    "empty": "Aún no tienes cursos en Moodle.",
+    "empty": "Aún no tienes cursos.",
     "loading": "Cargando…",
     "menuTitle": "Accesos rápidos",
     "open": "Abrir"
@@ -313,8 +313,8 @@
     "back": "Volver al tablero"
   },
   "moodleLaunch": {
-    "loading": "Iniciando tu sesión en Moodle…",
-    "error": "No pudimos iniciar tu sesión en Moodle. Inténtalo de nuevo.",
+    "loading": "Iniciando tu sesión…",
+    "error": "No pudimos iniciar tu sesión. Inténtalo de nuevo.",
     "openManually": "Abrir el curso",
     "back": "Volver al inicio"
   },
