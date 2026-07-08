@@ -56,51 +56,62 @@ describe("EvalClient — full step wizard (select -> quiz -> results -> history)
   beforeEach(() => {
     isAuthenticated.mockReturnValue(true);
     getEvalCategories.mockResolvedValue({
-      categories: [{ id: 1, name: "Front of House" }],
+      categories: [{ id: 1, name: "Front of House", code: "FOH" }],
     });
     getEvalCourses.mockResolvedValue({
-      courses: [{ id: 5, name: "Guest Service Basics" }],
+      courses: [{ course_id: 5, name: "Guest Service Basics", code: "GSB" }],
     });
     getEvalStatus.mockResolvedValue({
       attempts_used: 0,
-      max: 3,
+      max_attempts: 3,
+      questions_to_select: 1,
       can_start: true,
+      last_result: null,
     });
     beginEval.mockResolvedValue({
-      attempt_id: 42,
+      attempt_number: 1,
       questions: [
         {
-          id: 101,
+          question_id: 101,
           qtype: "truefalse",
-          text: "Guests should always be greeted within 30 seconds.",
-          answers: [
-            { id: 1, text: "True" },
-            { id: 2, text: "False" },
+          question_text: "Guests should always be greeted within 30 seconds.",
+          options: [
+            { answer_id: 1, text: "True" },
+            { answer_id: 2, text: "False" },
           ],
         },
       ],
     });
     gradeEval.mockResolvedValue({
-      percent: 80,
+      score: 80,
+      total: 1,
+      correct: 1,
       results: [
         {
           question_id: 101,
-          your_answer: 1,
-          correct_answer: 1,
+          question_text: "Guests should always be greeted within 30 seconds.",
+          selected: [1],
+          correct_answers: [1],
           is_correct: true,
           feedback: "Nice work.",
         },
       ],
     });
-    saveEval.mockResolvedValue({ saved: true });
+    saveEval.mockResolvedValue({
+      evaluation_id: 900,
+      attempt_number: 1,
+      score: 80,
+      total: 1,
+    });
     getEvalHistory.mockResolvedValue({
-      history: [
+      attempts: [
         {
-          id: 900,
+          evaluation_id: 900,
           course_name: "Guest Service Basics",
-          date: "2026-07-08",
+          attempt_number: 1,
           score: 80,
-          questions_count: 1,
+          total_questions: 1,
+          created_at: "2026-07-08",
         },
       ],
     });
@@ -121,7 +132,11 @@ describe("EvalClient — full step wizard (select -> quiz -> results -> history)
     fireEvent.click(beginBtn);
     await waitFor(() => expect(beginEval).toHaveBeenCalledWith(5));
 
-    // quiz: answer the single question, then submit
+    // quiz: question text + answer option text render from the real
+    // contract fields (question_text / options[].text), then submit.
+    await screen.findByText(
+      "Guests should always be greeted within 30 seconds."
+    );
     const trueOption = await screen.findByLabelText("True");
     fireEvent.click(trueOption);
     const sendBtn = screen.getByRole("button", { name: /send answers/i });
@@ -131,9 +146,11 @@ describe("EvalClient — full step wizard (select -> quiz -> results -> history)
       expect(gradeEval).toHaveBeenCalledWith(5, { 101: [1] })
     );
 
-    // results: score + per-question feedback rendered
+    // results: score (0-100 percent, passed straight to the Donut) +
+    // per-question correct/incorrect + feedback rendered.
     await screen.findByText(/nice work/i);
     expect(screen.getByText("80%")).toBeInTheDocument();
+    expect(screen.getByText(/^correct$/i)).toBeInTheDocument();
 
     const saveBtn = screen.getByRole("button", { name: /^save$/i });
     fireEvent.click(saveBtn);
@@ -142,7 +159,8 @@ describe("EvalClient — full step wizard (select -> quiz -> results -> history)
       expect(saveEval).toHaveBeenCalledWith(5, { 101: [1] })
     );
 
-    // history: saved attempt listed with its score
+    // history: saved attempt listed with its course_name and score donut,
+    // read from the `attempts` envelope.
     await waitFor(() => expect(getEvalHistory).toHaveBeenCalled());
     await screen.findByText("Guest Service Basics");
     const historyHeading = screen.getByRole("heading", { name: /history/i });
@@ -153,8 +171,10 @@ describe("EvalClient — full step wizard (select -> quiz -> results -> history)
   it("disables Begin and shows the max-attempts note when can_start is false", async () => {
     getEvalStatus.mockResolvedValue({
       attempts_used: 3,
-      max: 3,
+      max_attempts: 3,
+      questions_to_select: 1,
       can_start: false,
+      last_result: null,
     });
     render(<EvalClient />);
     const categorySelect = await screen.findByRole("combobox");

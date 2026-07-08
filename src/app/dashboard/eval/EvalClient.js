@@ -8,13 +8,18 @@
  * montar, router.replace("/login?next=...") si no hay sesión, useT() por
  * namespace, try/catch con err.message del backend como mensaje preferente.
  *
- * Nota sobre nombres de campo del backend: Task 11 (src/lib/api.js) define
- * los 7 endpoints/verbos, pero este repo no fija el contrato exacto de
- * campos de la respuesta (categorías/cursos/status/preguntas/resultados/
- * historial). Las funciones helper (pickList, statusFields, etc.) leen el
- * nombre de campo más probable y toleran variantes razonables (p.ej. `max` o
- * `max_attempts`) para no romper la UI si el backend real difiere en un
- * nombre. Ver el reporte de la Tarea 14 para el detalle de cada supuesto.
+ * Nombres de campo del backend: contrato real confirmado (Task 14, fix pass)
+ * — getEvalCategories -> {categories:[{id,name,code}]}
+ * — getEvalCourses    -> {courses:[{course_id,name,code}]}
+ * — getEvalStatus     -> {attempts_used,max_attempts,questions_to_select,can_start,last_result}
+ * — beginEval         -> {attempt_number,questions:[{question_id,question_text,qtype,options:[{answer_id,text}]}]}
+ * — gradeEval         -> {score,total,correct,results:[{question_id,question_text,selected,correct_answers,is_correct,feedback}]}
+ * — saveEval          -> {evaluation_id,attempt_number,score,total}
+ * — getEvalHistory    -> {attempts:[{evaluation_id,course_name,attempt_number,score,total_questions,created_at}]}
+ * `score` en status/resultados/historial ya viene como porcentaje 0-100
+ * (el backend calcula `round(100*correct/total, 2)`), se pasa directo al
+ * <Donut percent={...} /> sin dividir por `total` ni inventar un campo
+ * `percent`. Las funciones helper de abajo leen estos nombres exactos.
  */
 
 import { useEffect, useState } from "react";
@@ -69,42 +74,43 @@ function questionType(q) {
 }
 
 function questionText(q) {
-  return q?.text ?? q?.questiontext ?? q?.name ?? "";
+  return q?.question_text ?? "";
 }
 
-function questionAnswers(q) {
-  return q?.answers ?? [];
+function questionOptions(q) {
+  return q?.options ?? [];
 }
 
 function answerId(a) {
-  return a?.id ?? a?.answer_id;
+  return a?.answer_id;
 }
 
 function answerText(a) {
-  return a?.text ?? a?.answertext ?? a?.name ?? "";
+  return a?.text ?? "";
 }
 
 function pickResults(data) {
-  return data?.results ?? data?.questions ?? data?.per_question ?? [];
+  return data?.results ?? [];
 }
 
 function resultFields(r) {
   return {
-    questionId: r?.question_id ?? r?.id,
-    yourAnswer: r?.your_answer ?? r?.selected ?? r?.answer,
-    correctAnswer: r?.correct_answer ?? r?.correct,
-    isCorrect: r?.is_correct ?? r?.correct === true,
-    feedback: r?.feedback ?? r?.comment ?? "",
+    questionId: r?.question_id,
+    questionText: r?.question_text ?? "",
+    yourAnswer: r?.selected ?? [],
+    correctAnswer: r?.correct_answers ?? [],
+    isCorrect: Boolean(r?.is_correct),
+    feedback: r?.feedback ?? "",
   };
 }
 
 function historyFields(h, idx) {
   return {
-    id: h?.id ?? h?.attempt_id ?? idx,
-    courseName: h?.course_name ?? h?.course ?? h?.name ?? "",
-    date: h?.date ?? h?.created_at ?? h?.completed_at ?? "",
-    score: h?.score ?? h?.percent ?? 0,
-    questionsCount: h?.questions_count ?? h?.total_questions ?? null,
+    id: h?.evaluation_id ?? idx,
+    courseName: h?.course_name ?? "",
+    date: h?.created_at ?? "",
+    score: h?.score ?? 0,
+    questionsCount: h?.total_questions ?? null,
   };
 }
 
@@ -118,7 +124,7 @@ function formatAnswerValue(value, questions) {
   const values = Array.isArray(value) ? value : [value];
   const texts = values.map((v) => {
     for (const q of questions) {
-      const match = questionAnswers(q).find(
+      const match = questionOptions(q).find(
         (a) => String(answerId(a)) === String(v)
       );
       if (match) return answerText(match);
@@ -251,7 +257,7 @@ export default function EvalClient() {
     getEvalHistory()
       .then((data) => {
         if (cancelled) return;
-        setHistory(pickList(data, "history"));
+        setHistory(pickList(data, "attempts"));
       })
       .catch((err) => {
         if (cancelled) return;
@@ -513,7 +519,7 @@ export default function EvalClient() {
                     </legend>
                     <p className={styles.questionText}>{questionText(q)}</p>
                     <div className={styles.answerList}>
-                      {questionAnswers(q).map((a) => {
+                      {questionOptions(q).map((a) => {
                         const aId = answerId(a);
                         const checked = selected.includes(String(aId));
                         return (
@@ -564,7 +570,7 @@ export default function EvalClient() {
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>{t("yourScore")}</h2>
           <div className={styles.scoreRow}>
-            <Donut percent={results?.percent ?? results?.score ?? 0} size={128} />
+            <Donut percent={results?.score ?? 0} size={128} />
           </div>
 
           <ul className={styles.resultsList}>
@@ -572,6 +578,9 @@ export default function EvalClient() {
               const rf = resultFields(r);
               return (
                 <li key={rf.questionId ?? idx} className={styles.resultItem}>
+                  {rf.questionText && (
+                    <p className={styles.questionText}>{rf.questionText}</p>
+                  )}
                   <span
                     className={
                       rf.isCorrect
