@@ -656,6 +656,8 @@ export default function EvalClient() {
             <div className={styles.error} role="alert">
               {historyError}
             </div>
+          ) : history.length === 0 ? (
+            <p className={styles.muted}>{t("noHistory")}</p>
           ) : (
             <ul className={styles.historyList}>
               {history.map((h, idx) => {

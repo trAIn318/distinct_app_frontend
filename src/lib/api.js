@@ -450,7 +450,10 @@ export async function gradeEval(courseId, answers) {
 }
 
 /**
- * POST /api/eval/save/ — guarda progreso parcial sin calificar.
+ * POST /api/eval/save/ — persiste/confirma el intento de evaluación ya
+ * calificado (llamado desde el botón "Guardar" del wizard, después de
+ * `gradeEval`). El backend vuelve a calificar las respuestas server-side
+ * antes de guardarlas — no es un guardado de progreso parcial sin calificar.
  * @param {number|string} courseId
  * @param {Object} answers — { questionId: [answerId, ...] }
  */

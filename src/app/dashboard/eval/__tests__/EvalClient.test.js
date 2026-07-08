@@ -168,6 +168,20 @@ describe("EvalClient — full step wizard (select -> quiz -> results -> history)
     expect(within(historySection).getByText("80%")).toBeInTheDocument();
   });
 
+  it("shows the empty-history message when the user has no attempts", async () => {
+    getEvalHistory.mockResolvedValue({ attempts: [] });
+    render(<EvalClient />);
+
+    const historyBtn = await screen.findByRole("button", { name: /^history$/i });
+    fireEvent.click(historyBtn);
+
+    await waitFor(() => expect(getEvalHistory).toHaveBeenCalled());
+    expect(
+      await screen.findByText(/haven't taken any evaluations yet/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+  });
+
   it("disables Begin and shows the max-attempts note when can_start is false", async () => {
     getEvalStatus.mockResolvedValue({
       attempts_used: 3,

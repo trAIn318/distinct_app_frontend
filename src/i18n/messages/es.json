@@ -415,6 +415,7 @@
     "noConfig": "Esta evaluación aún no está configurada",
     "unavailable": "Esta evaluación no está disponible en este momento",
     "loading": "Cargando…",
-    "back": "Atrás"
+    "back": "Atrás",
+    "noHistory": "Aún no has realizado ninguna evaluación."
   }
 }

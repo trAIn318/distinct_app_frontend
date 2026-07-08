@@ -1,7 +1,9 @@
 /**
  * Donut — anillo de progreso circular inline-SVG (sin librerías externas,
- * requerido por la CSP estricta del proyecto). Pinta un track charcoal y un
- * arco gold que crece con `percent` (0..100), con el número centrado en
+ * requerido por la CSP estricta del proyecto). Pinta un track platinum (no
+ * charcoal: --color-charcoal se invierte a blanco en tema claro y el track
+ * quedaría invisible sobre fondos claros) y un arco gold que crece con
+ * `percent` (0..100), con el número centrado en
  * --font-label (números en mono, per claude.md §4). Geometría fija: círculo
  * de radio DONUT_RADIUS (src/lib/eval.js) — el tamaño visual se controla
  * escalando el <svg> vía CSS (width/height), no cambiando el radio.
@@ -33,7 +35,7 @@ export default function Donut({ percent, size = 96, className = "" }) {
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         aria-hidden="true"
       >
-        {/* Track — círculo completo en charcoal, siempre visible de fondo */}
+        {/* Track — círculo completo en platinum, siempre visible de fondo */}
         <circle
           className={styles.track}
           cx={CENTER}

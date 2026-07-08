@@ -415,6 +415,7 @@
     "noConfig": "This evaluation is not configured yet",
     "unavailable": "This evaluation is currently unavailable",
     "loading": "Loading…",
-    "back": "Back"
+    "back": "Back",
+    "noHistory": "You haven't taken any evaluations yet."
   }
 }
