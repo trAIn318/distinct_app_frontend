@@ -38,6 +38,7 @@ export function resolveMenuTarget(url) {
   const key = String(url || "").replace(/^\//, "");
   if (key === "dashboard/trainy") return { type: "train" };
   if (key === "settings/language") return { type: "language" };
+  if (key === "dashboard/eval") return { type: "route", href: "/dashboard/eval" };
   return { type: "route", href: "/coming-soon" };
 }
 

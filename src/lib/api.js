@@ -387,3 +387,84 @@ export async function startTraining(targetUrl) {
   if (!res.ok) throw new Error(data.detail || "Training is unavailable right now.");
   return appendWantsurl(data.loginurl, targetUrl);
 }
+
+// ── Evaluaciones (autenticado) ──────────────────────────────────────────────
+
+/**
+ * Fetch autenticado con el mismo patrón usado por `exportMyDataApi` /
+ * `deleteAccountApi` / `startTraining`: bearer token de session.js, JSON body,
+ * sin caché, y error con el `detail` del backend si la respuesta no es ok.
+ * Se extrae aquí porque el módulo de evaluaciones tiene 7 endpoints que
+ * comparten exactamente ese comportamiento.
+ */
+async function authFetch(path, { method = "GET", body } = {}) {
+  const token = getAccessToken();
+  if (!token) throw new Error("You must be signed in.");
+  const res = await fetch(`${API_URL}/api${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || "Something went wrong. Please try again.");
+  return data;
+}
+
+/** GET /api/eval/categories/ — categorías de evaluación disponibles. */
+export async function getEvalCategories() {
+  return authFetch("/eval/categories/");
+}
+
+/** GET /api/eval/courses/?category_id=<id> — cursos evaluables de una categoría. */
+export async function getEvalCourses(categoryId) {
+  return authFetch(`/eval/courses/?category_id=${categoryId}`);
+}
+
+/** GET /api/eval/status/?course_id=<id> — estado de la evaluación del usuario para el curso. */
+export async function getEvalStatus(courseId) {
+  return authFetch(`/eval/status/?course_id=${courseId}`);
+}
+
+/** POST /api/eval/begin/ — inicia (o retoma) un intento de evaluación. */
+export async function beginEval(courseId) {
+  return authFetch("/eval/begin/", {
+    method: "POST",
+    body: { course_id: courseId },
+  });
+}
+
+/**
+ * POST /api/eval/grade/ — envía respuestas para calificar.
+ * @param {number|string} courseId
+ * @param {Object} answers — { questionId: [answerId, ...] }
+ */
+export async function gradeEval(courseId, answers) {
+  return authFetch("/eval/grade/", {
+    method: "POST",
+    body: { course_id: courseId, answers },
+  });
+}
+
+/**
+ * POST /api/eval/save/ — persiste/confirma el intento de evaluación ya
+ * calificado (llamado desde el botón "Guardar" del wizard, después de
+ * `gradeEval`). El backend vuelve a calificar las respuestas server-side
+ * antes de guardarlas — no es un guardado de progreso parcial sin calificar.
+ * @param {number|string} courseId
+ * @param {Object} answers — { questionId: [answerId, ...] }
+ */
+export async function saveEval(courseId, answers) {
+  return authFetch("/eval/save/", {
+    method: "POST",
+    body: { course_id: courseId, answers },
+  });
+}
+
+/** GET /api/eval/history/ — historial de evaluaciones del usuario. */
+export async function getEvalHistory() {
+  return authFetch("/eval/history/");
+}

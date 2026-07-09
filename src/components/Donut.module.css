@@ -1,0 +1,42 @@
+/* Donut — anillo de progreso. Theme-aware vía tokens: en tema oscuro el track
+   es charcoal sobre fondo obsidian; en tema claro --color-charcoal pasa a
+   blanco (ver tokens.css [data-theme="light"]) y el track se apoya en
+   --color-platinum para seguir siendo visible sobre superficies claras. */
+
+.donut {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.track {
+  stroke: var(--color-platinum);
+  opacity: 0.35;
+}
+
+.progress {
+  stroke: var(--color-gold);
+  transition: stroke-dashoffset var(--duration-reveal) var(--ease-luxe);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress {
+    transition: none;
+  }
+}
+
+.label {
+  position: absolute;
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--color-text-primary);
+}
