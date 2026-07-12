@@ -38,5 +38,9 @@
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  color: var(--color-text-primary);
+  /* El donut vive sobre superficies oscuras (--color-surface-dark: la .card
+     del wizard). text-primary está mapeado a obsidian (= color de FONDO), así
+     que el número quedaba casi-negro sobre casi-negro (invisible). Usamos
+     text-inverse (ivory = texto sobre superficie oscura), igual que la .page. */
+  color: var(--color-text-inverse);
 }
