@@ -19,7 +19,7 @@ export default async function AriaFeature() {
           </div>
           <div className={styles.ctaWrapper}>
             <a
-              href="https://aria-distinct.onrender.com"
+              href="https://aria-distinct.vercel.app"
               className="btn-primary"
               target="_blank"
               rel="noopener noreferrer"

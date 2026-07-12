@@ -25,7 +25,7 @@ export default async function Hero() {
               {t("getStarted")}
             </Link>
             <a
-              href="https://aria-distinct.onrender.com"
+              href="https://aria-distinct.vercel.app"
               className="btn-white"
               target="_blank"
               rel="noopener noreferrer"

@@ -103,7 +103,7 @@ export default function Navigation() {
           })}
           <div className={styles.actionGroup}>
             <a
-              href="https://aria-distinct.onrender.com"
+              href="https://aria-distinct.vercel.app"
               className="btn-white"
               target="_blank"
               rel="noopener noreferrer"
@@ -189,7 +189,7 @@ export default function Navigation() {
           })}
           <div className={styles.mobileActionGroup}>
             <a
-              href="https://aria-distinct.onrender.com"
+              href="https://aria-distinct.vercel.app"
               className="btn-white"
               target="_blank"
               rel="noopener noreferrer"
