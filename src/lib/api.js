@@ -533,3 +533,13 @@ export async function commitUpload(propertyId, file) {
   fd.append("file", file);
   return authUpload("/analytics/uploads/", fd);
 }
+
+/** GET /api/analytics/reports/sales/ — reporte agregado del panel. */
+export async function getSalesReport({ start, end, propertyId } = {}) {
+  const qs = new URLSearchParams();
+  if (start) qs.set("start", start);
+  if (end) qs.set("end", end);
+  if (propertyId && propertyId !== "all") qs.set("property_id", propertyId);
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  return authFetch(`/analytics/reports/sales/${suffix}`);
+}

@@ -24,3 +24,20 @@ export function activeProperties(properties) {
 export function isAcceptedFile(filename) {
   return /\.(zip|csv)$/i.test(String(filename || ""));
 }
+
+/** CSV (string) del detalle diario para descargar. Encabezado fijo + filas. */
+export function buildSalesCsv(daily) {
+  const header = "date,net_sales,order_count,guest_count";
+  const rows = (daily || []).map(
+    (d) => `${d.date},${d.net_sales},${d.order_count},${d.guest_count}`
+  );
+  return [header, ...rows].join("\n");
+}
+
+/** Etiqueta de delta con flecha y signo. null/undefined -> "". */
+export function formatDeltaPct(pct) {
+  if (pct === null || pct === undefined) return "";
+  if (pct > 0) return `▲ ${pct}%`;
+  if (pct < 0) return `▼ ${Math.abs(pct)}%`;
+  return "0%";
+}
