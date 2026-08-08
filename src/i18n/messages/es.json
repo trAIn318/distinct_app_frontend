@@ -27,7 +27,8 @@
     "loadCv": "Cargar CV",
     "adminCompany": "Administrar empresa",
     "eval": "Evaluación",
-    "pay": "Pago"
+    "pay": "Pago",
+    "analytics": "Ventas"
   },
   "rail": {
     "home": "Inicio",
@@ -417,5 +418,41 @@
     "loading": "Cargando…",
     "back": "Atrás",
     "noHistory": "Aún no has realizado ninguna evaluación."
+  },
+  "analytics": {
+    "uploadTitle": "Cargar ventas",
+    "propertiesTitle": "Mis propiedades",
+    "rename": "Renombrar",
+    "activate": "Activar",
+    "deactivate": "Desactivar",
+    "active": "Activa",
+    "inactive": "Inactiva",
+    "addProperty": "+ Agregar propiedad",
+    "empty": "Aún no tienes propiedades.",
+    "saveName": "Guardar nombre",
+    "selectProperty": "Propiedad",
+    "addNew": "+ Agregar propiedad",
+    "name": "Nombre",
+    "currency": "Moneda",
+    "company": "Compañía",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "chooseFile": "Archivo del export de ventas",
+    "fileHint": "Sube el export de Toast (ZIP) o el archivo Sales by day.csv.",
+    "fileTypeError": "Elige un archivo .zip o .csv.",
+    "preview": "Vista previa",
+    "previewLoading": "Verificando…",
+    "confirm": "Confirmar carga",
+    "confirmLoading": "Guardando…",
+    "summaryRows": "Filas",
+    "summaryPeriod": "Periodo",
+    "summaryNet": "Total de ventas netas",
+    "summaryProperty": "Propiedad",
+    "uploadSuccess": "Ventas cargadas correctamente",
+    "managePropertiesLink": "Administrar mis propiedades",
+    "loading": "Cargando…",
+    "unavailable": "Esto no está disponible en este momento.",
+    "needProperty": "Elige una propiedad primero.",
+    "needFile": "Elige un archivo primero."
   }
 }

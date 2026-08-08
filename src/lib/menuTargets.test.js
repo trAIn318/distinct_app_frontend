@@ -51,6 +51,15 @@ describe("resolveMenuTarget", () => {
     expect(resolveMenuTarget("")).toEqual({ type: "route", href: "/coming-soon" });
     expect(resolveMenuTarget(undefined)).toEqual({ type: "route", href: "/coming-soon" });
   });
+
+  it("mapea dashboard/analytics a su ruta", () => {
+    expect(resolveMenuTarget("dashboard/analytics")).toEqual({
+      type: "route", href: "/dashboard/analytics",
+    });
+  });
+  it("da la clave i18n analytics para dashboard/analytics", () => {
+    expect(menuLabelKey("dashboard/analytics")).toBe("analytics");
+  });
 });
 
 describe("getMenuLabel", () => {
