@@ -36,7 +36,7 @@ describe("AnalyticsUploadClient — auth guard", () => {
   it("redirige a login sin sesión", () => {
     isAuthenticated.mockReturnValue(false);
     render(<AnalyticsUploadClient />);
-    expect(replace).toHaveBeenCalledWith("/login?next=/dashboard/analytics");
+    expect(replace).toHaveBeenCalledWith("/login?next=/dashboard/analytics/upload");
   });
 });
 

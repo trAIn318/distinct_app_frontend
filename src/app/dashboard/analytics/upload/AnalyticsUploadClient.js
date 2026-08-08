@@ -50,7 +50,7 @@ export default function AnalyticsUploadClient() {
   // EvalClient.js / AccountClient.js).
   useEffect(() => {
     if (!isAuthenticated()) {
-      router.replace("/login?next=/dashboard/analytics");
+      router.replace("/login?next=/dashboard/analytics/upload");
       return;
     }
     setReady(true);
