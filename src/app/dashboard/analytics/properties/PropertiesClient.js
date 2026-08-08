@@ -114,6 +114,7 @@ export default function PropertiesClient() {
 
   async function handleRenameSave(id) {
     setRenameError(null);
+    if (!editName.trim()) return;
     setRenaming(true);
     try {
       await updateProperty(id, { name: editName });

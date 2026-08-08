@@ -84,12 +84,16 @@ export default function AnalyticsUploadClient() {
   const showCompanySelect = companies.length > 1;
   const activeList = activeProperties(properties || []);
 
-  function handleFile(e) {
-    const f = e.target.files?.[0] || null;
+  function resetPreview() {
     setSummary(null);
     setCommitted(null);
     setPreviewError(null);
     setConfirmError(null);
+  }
+
+  function handleFile(e) {
+    const f = e.target.files?.[0] || null;
+    resetPreview();
     if (f && !isAcceptedFile(f.name)) {
       setFile(null);
       setFileError(t("fileTypeError"));
@@ -167,7 +171,10 @@ export default function AnalyticsUploadClient() {
           <select
             className={styles.select}
             value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
+            onChange={(e) => {
+              setSelectedId(e.target.value);
+              resetPreview();
+            }}
           >
             <option value="">{t("selectProperty")}</option>
             {activeList.map((p) => (
