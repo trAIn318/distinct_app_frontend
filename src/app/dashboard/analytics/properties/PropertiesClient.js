@@ -66,10 +66,30 @@ export default function PropertiesClient() {
     }
   }
 
-  // Propiedades al montar.
+  // Propiedades al montar. Guard `cancelled` para no hacer setState tras
+  // desmontar si getProperties() sigue en vuelo (mismo patrón que
+  // AnalyticsUploadClient.js). Las recargas post-mutación usan
+  // loadProperties() directamente: son disparadas por una acción del
+  // usuario mientras el componente sigue montado, no necesitan el guard.
   useEffect(() => {
     if (!ready) return;
-    loadProperties();
+    let cancelled = false;
+    getProperties()
+      .then((list) => {
+        if (!cancelled) {
+          setProperties(list);
+          setListError(null);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setListError(err.message || t("unavailable"));
+          setProperties([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
     // `t` de useT() es una nueva función en cada render (no memoizada); ver
     // nota equivalente en AnalyticsUploadClient.js.
     // eslint-disable-next-line react-hooks/exhaustive-deps
