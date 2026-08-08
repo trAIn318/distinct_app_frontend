@@ -140,13 +140,11 @@ export default function PanelClient() {
         </button>
       </div>
 
-      {error && (
+      {error ? (
         <div className={styles.error} role="alert">
           {error}
         </div>
-      )}
-
-      {loading ? (
+      ) : loading ? (
         <p className={styles.muted}>{t("loading")}</p>
       ) : currencies.length === 0 ? (
         <p className={styles.muted}>{t("emptyPeriod")}</p>

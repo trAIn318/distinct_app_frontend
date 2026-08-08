@@ -10,7 +10,10 @@
 }
 
 .wrapper {
-  max-width: 1080px;
+  /* Sin max-width propio: hereda el ancho de `.container` (1440px, definido
+     en src/styles/global.css) — el Panel necesita más ancho que las
+     pantallas de un solo formulario (upload/properties, 720px) para la
+     grilla de KPIs y la tabla de detalle. */
   margin: 0 auto;
   animation: formEnter 0.9s var(--ease-luxe) both;
 }
@@ -65,7 +68,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  min-width: 10.5rem;
+  min-width: var(--space-16);
 }
 
 .fieldLabel {
@@ -134,7 +137,7 @@
 
 .kpiRow {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12.944rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(var(--space-16), 1fr));
   gap: var(--space-5);
   margin-bottom: var(--space-8);
 }
@@ -193,7 +196,7 @@
 .chart {
   background: var(--color-surface-dark);
   border: 1px solid rgba(216, 216, 216, 0.08);
-  min-height: 16.18rem;
+  min-height: calc(var(--space-16) + var(--space-6));
   margin-bottom: var(--space-8);
 }
 
