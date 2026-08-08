@@ -8,9 +8,9 @@
  * err.message del backend como mensaje preferente.
  *
  * Muestra, por moneda presente en el reporte: 4 KPIs con delta vs. periodo
- * anterior, dos contenedores placeholder (Task 4 monta ahí las gráficas de
- * tendencia y comparativa por propiedad) y una tabla de detalle diario con
- * descarga CSV. Filtros de fecha + propiedad recargan el reporte.
+ * anterior, dos gráficas (Recharts: tendencia y comparativa por propiedad,
+ * Task 4) y una tabla de detalle diario con descarga CSV. Filtros de fecha +
+ * propiedad recargan el reporte.
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -19,6 +19,8 @@ import { getSalesReport, getProperties } from "../../../lib/api";
 import { isAuthenticated } from "../../../lib/session";
 import { buildSalesCsv, formatDeltaPct } from "../../../lib/analytics";
 import { useT } from "../../../i18n/client";
+import SalesTrendChart from "../../../components/analytics/SalesTrendChart";
+import SalesByPropertyChart from "../../../components/analytics/SalesByPropertyChart";
 import styles from "./page.module.css";
 
 export default function PanelClient() {
@@ -184,16 +186,20 @@ export default function PanelClient() {
               ))}
             </div>
 
-            {/* Gráficas (las monta la Task 4) */}
+            {/* Gráficas */}
             <h3 className={styles.cardTitle}>{t("trendTitle")}</h3>
-            <div className={styles.chart} data-testid={`trend-${cur.currency}`} />
+            <div className={styles.chart} data-testid={`trend-${cur.currency}`}>
+              <SalesTrendChart data={cur.daily} />
+            </div>
             {cur.by_property.length > 1 && (
               <>
                 <h3 className={styles.cardTitle}>{t("byPropertyTitle")}</h3>
                 <div
                   className={styles.chart}
                   data-testid={`byprop-${cur.currency}`}
-                />
+                >
+                  <SalesByPropertyChart data={cur.by_property} />
+                </div>
               </>
             )}
 
