@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveCompanies, activeProperties, isAcceptedFile, buildSalesCsv, formatDeltaPct } from "../analytics";
+import { deriveCompanies, activeProperties, isAcceptedFile, buildSalesCsv, formatDeltaPct, salesByWeekday } from "../analytics";
 
 describe("deriveCompanies", () => {
   it("devuelve compañías únicas por comp_id", () => {
@@ -69,5 +69,34 @@ describe("formatDeltaPct", () => {
   it("devuelve cadena vacía si es null/undefined", () => {
     expect(formatDeltaPct(null)).toBe("");
     expect(formatDeltaPct(undefined)).toBe("");
+  });
+});
+
+describe("salesByWeekday", () => {
+  it("agrupa por día de semana (Dom→Sáb) sumando net_sales", () => {
+    // 2023-01-01 = Domingo, 2023-01-02 = Lunes, 2023-01-08 = Domingo
+    const daily = [
+      { date: "2023-01-01", net_sales: "100.00" },
+      { date: "2023-01-08", net_sales: "50.00" },
+      { date: "2023-01-02", net_sales: "30.00" },
+    ];
+    const r = salesByWeekday(daily);
+    expect(r).toHaveLength(7);
+    expect(r[0]).toEqual({ dow: 0, net: 150 }); // Domingo: 100+50
+    expect(r[1]).toEqual({ dow: 1, net: 30 });  // Lunes: 30
+    expect(r[2].net).toBe(0);                    // Martes..Sábado: 0
+    expect(r[6].net).toBe(0);
+  });
+
+  it("es seguro ante zona horaria (no desfasa el día)", () => {
+    // 2023-01-01 debe caer en Domingo (dow 0) sin importar la TZ local
+    const r = salesByWeekday([{ date: "2023-01-01", net_sales: "10.00" }]);
+    expect(r[0].net).toBe(10);
+  });
+
+  it("tolera vacío/null → 7 ceros", () => {
+    const r = salesByWeekday(null);
+    expect(r).toHaveLength(7);
+    expect(r.every((b) => b.net === 0)).toBe(true);
   });
 });
