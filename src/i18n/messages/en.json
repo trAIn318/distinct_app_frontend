@@ -420,6 +420,7 @@
     "noHistory": "You haven't taken any evaluations yet."
   },
   "analytics": {
+    "backToPanel": "Back to dashboard",
     "uploadTitle": "Upload sales",
     "propertiesTitle": "My properties",
     "rename": "Rename",

@@ -420,6 +420,7 @@
     "noHistory": "Aún no has realizado ninguna evaluación."
   },
   "analytics": {
+    "backToPanel": "Volver al panel",
     "uploadTitle": "Cargar ventas",
     "propertiesTitle": "Mis propiedades",
     "rename": "Renombrar",

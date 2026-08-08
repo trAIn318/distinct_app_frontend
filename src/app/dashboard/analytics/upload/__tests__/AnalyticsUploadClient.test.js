@@ -5,7 +5,7 @@ const replace = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
 
 const isAuthenticated = vi.fn();
-vi.mock("../../../../lib/session", () => ({
+vi.mock("../../../../../lib/session", () => ({
   isAuthenticated: (...a) => isAuthenticated(...a),
 }));
 
@@ -13,7 +13,7 @@ const getProperties = vi.fn();
 const createProperty = vi.fn();
 const previewUpload = vi.fn();
 const commitUpload = vi.fn();
-vi.mock("../../../../lib/api", () => ({
+vi.mock("../../../../../lib/api", () => ({
   getProperties: (...a) => getProperties(...a),
   createProperty: (...a) => createProperty(...a),
   previewUpload: (...a) => previewUpload(...a),

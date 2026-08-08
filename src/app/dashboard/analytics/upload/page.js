@@ -1,5 +1,5 @@
 import AnalyticsUploadClient from "./AnalyticsUploadClient";
-import { getT } from "../../../i18n/server";
+import { getT } from "../../../../i18n/server";
 import styles from "./page.module.css";
 
 export const metadata = {
