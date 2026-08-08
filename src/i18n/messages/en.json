@@ -454,6 +454,21 @@
     "loading": "Loading…",
     "unavailable": "This is unavailable right now.",
     "needProperty": "Choose a property first.",
-    "needFile": "Choose a file first."
+    "needFile": "Choose a file first.",
+    "panelTitle": "Sales dashboard",
+    "filters": "Filters",
+    "from": "From",
+    "to": "To",
+    "allProperties": "All properties",
+    "kpiNetSales": "Net sales",
+    "kpiOrders": "Orders",
+    "kpiGuests": "Guests",
+    "kpiAvgTicket": "Average ticket",
+    "vsPrevPeriod": "vs. previous period",
+    "trendTitle": "Trend",
+    "byPropertyTitle": "By property",
+    "detailTitle": "Daily detail",
+    "downloadCsv": "Download CSV",
+    "emptyPeriod": "No sales in this period"
   }
 }

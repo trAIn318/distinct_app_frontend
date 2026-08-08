@@ -1,0 +1,296 @@
+/* Página "Panel de ventas" (analytics) — mismo lenguaje visual obsidian/ivory/gold
+   que src/app/dashboard/analytics/upload/page.module.css (misma jerarquía de
+   card/field/error/ghostButton). Sin gráficas (Task 4 las monta en .chart). */
+
+.page {
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
+  min-height: calc(100vh - 80px);
+  padding: var(--space-12) 0;
+}
+
+.wrapper {
+  max-width: 1080px;
+  margin: 0 auto;
+  animation: formEnter 0.9s var(--ease-luxe) both;
+}
+
+@keyframes formEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrapper {
+    animation: none;
+  }
+}
+
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin: 0 0 var(--space-6) 0;
+  color: var(--color-ivory);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Filtros ───────────────────────────────────────────────────────────── */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-5);
+  background: var(--color-surface-dark);
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  border-top: 2px solid var(--color-gold);
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 10.5rem;
+}
+
+.fieldLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+.select,
+.input {
+  background: var(--color-obsidian);
+  border: 1px solid rgba(216, 216, 216, 0.15);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 0;
+  transition: border-color var(--duration-fast) var(--ease-smooth);
+  width: 100%;
+  outline: none;
+}
+
+.select:focus,
+.input:focus {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 1px var(--gold-30), 0 0 16px var(--gold-08);
+}
+
+/* ── Estados ───────────────────────────────────────────────────────────── */
+
+.muted {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-smoke);
+  margin: 0;
+}
+
+.error {
+  background: var(--color-danger-surface);
+  border-left: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin: 0 0 var(--space-6) 0;
+}
+
+/* ── Bloque por moneda ─────────────────────────────────────────────────── */
+
+.currencyBlock {
+  margin-bottom: var(--space-12);
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-5) 0;
+}
+
+/* ── KPIs ──────────────────────────────────────────────────────────────── */
+
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12.944rem, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.kpiCard {
+  background: var(--color-surface-dark);
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.kpiCard:hover {
+  border-color: var(--color-gold);
+}
+
+.kpiLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+.kpiValue {
+  font-family: var(--font-label);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  color: var(--color-ivory);
+}
+
+.deltaUp,
+.deltaDown,
+.deltaFlat {
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+}
+
+.deltaUp {
+  color: var(--color-gold);
+}
+
+.deltaDown {
+  color: var(--color-danger);
+}
+
+.deltaFlat {
+  color: var(--color-smoke);
+}
+
+/* ── Gráficas (placeholder — Task 4 las monta) ────────────────────────── */
+
+.chart {
+  background: var(--color-surface-dark);
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  min-height: 16.18rem;
+  margin-bottom: var(--space-8);
+}
+
+/* ── Tabla de detalle ──────────────────────────────────────────────────── */
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.tableHeader .cardTitle {
+  margin: 0;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  margin-bottom: var(--space-8);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ivory);
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(216, 216, 216, 0.08);
+  white-space: nowrap;
+}
+
+.table th {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+.ghostButton {
+  background: transparent;
+  color: var(--color-ivory);
+  border: 1px solid var(--color-ivory);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+
+.ghostButton:hover {
+  background: var(--color-ivory);
+  color: var(--color-obsidian);
+}
+
+/* ── Pie: enlaces a Cargar ventas / Mis propiedades ───────────────────── */
+
+.panelFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+}
+
+.link {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.link:hover {
+  color: var(--color-ivory);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .ghostButton,
+  .select,
+  .input,
+  .kpiCard {
+    transition: none;
+  }
+}
