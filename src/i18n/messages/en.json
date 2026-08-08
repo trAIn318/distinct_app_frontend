@@ -417,5 +417,32 @@
     "loading": "Loading…",
     "back": "Back",
     "noHistory": "You haven't taken any evaluations yet."
+  },
+  "analytics": {
+    "uploadTitle": "Upload sales",
+    "selectProperty": "Property",
+    "addNew": "+ Add new property",
+    "name": "Name",
+    "currency": "Currency",
+    "company": "Company",
+    "save": "Save",
+    "cancel": "Cancel",
+    "chooseFile": "Sales export file",
+    "fileHint": "Upload the Toast export (ZIP) or the Sales by day.csv file.",
+    "fileTypeError": "Please choose a .zip or .csv file.",
+    "preview": "Preview",
+    "previewLoading": "Checking…",
+    "confirm": "Confirm upload",
+    "confirmLoading": "Saving…",
+    "summaryRows": "Rows",
+    "summaryPeriod": "Period",
+    "summaryNet": "Net sales total",
+    "summaryProperty": "Property",
+    "uploadSuccess": "Sales uploaded successfully",
+    "managePropertiesLink": "Manage my properties",
+    "loading": "Loading…",
+    "unavailable": "This is unavailable right now.",
+    "needProperty": "Choose a property first.",
+    "needFile": "Choose a file first."
   }
 }

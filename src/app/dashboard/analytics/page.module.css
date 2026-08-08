@@ -1,0 +1,212 @@
+/* Página "Cargar ventas" (analytics) — mismo lenguaje visual obsidian/ivory/gold
+   que src/app/dashboard/eval/page.module.css y src/app/account/account.module.css
+   (misma jerarquía de card/field/error). */
+
+.page {
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
+  min-height: calc(100vh - 80px);
+  padding: var(--space-12) 0;
+}
+
+.wrapper {
+  max-width: 720px;
+  margin: 0 auto;
+  animation: formEnter 0.9s var(--ease-luxe) both;
+}
+
+@keyframes formEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrapper {
+    animation: none;
+  }
+}
+
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin: 0 0 var(--space-6) 0;
+  color: var(--color-ivory);
+}
+
+/* ── Tarjeta de sección ──────────────────────────────────────────────── */
+
+.card {
+  background: var(--color-surface-dark);
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  border-top: 2px solid var(--color-gold);
+  padding: var(--space-8);
+  margin-bottom: var(--space-6);
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-5) 0;
+}
+
+.muted {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-smoke);
+  margin: 0;
+}
+
+.error {
+  background: var(--color-danger-surface);
+  border-left: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin: var(--space-4) 0;
+}
+
+.success {
+  background: rgba(201, 169, 110, 0.1);
+  border-left: 2px solid var(--color-gold);
+  color: var(--color-ivory);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* ── campos: selector de propiedad / alta / archivo ──────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.fieldLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+.select,
+.input {
+  background: var(--color-obsidian);
+  border: 1px solid rgba(216, 216, 216, 0.15);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 0;
+  transition: border-color var(--duration-fast) var(--ease-smooth);
+  width: 100%;
+  outline: none;
+}
+
+.select:focus,
+.input:focus {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 1px var(--gold-30), 0 0 16px var(--gold-08);
+}
+
+/* ── mini-form inline "+ Agregar nueva propiedad" ────────────────────── */
+
+.newForm {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(216, 216, 216, 0.08);
+  padding-top: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+/* ── resumen de la vista previa ───────────────────────────────────────── */
+
+.summary {
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  padding: var(--space-5);
+  margin: var(--space-4) 0 var(--space-6) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.summary p {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ivory);
+  margin: 0;
+}
+
+.selectFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-6);
+}
+
+.link {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.link:hover {
+  color: var(--color-ivory);
+}
+
+.actionsRow {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: var(--space-6);
+}
+
+.ghostButton {
+  background: transparent;
+  color: var(--color-ivory);
+  border: 1px solid var(--color-ivory);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-bottom: var(--space-6);
+  transition: background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+
+.ghostButton:hover {
+  background: var(--color-ivory);
+  color: var(--color-obsidian);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .ghostButton,
+  .select,
+  .input {
+    transition: none;
+  }
+}
