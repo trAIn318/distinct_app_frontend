@@ -8,20 +8,25 @@
  * err.message del backend como mensaje preferente.
  *
  * Muestra, por moneda presente en el reporte: 4 KPIs con delta vs. periodo
- * anterior, dos gráficas (Recharts: tendencia y comparativa por propiedad,
- * Task 4) y una tabla de detalle diario con descarga CSV. Filtros de fecha +
- * propiedad recargan el reporte.
+ * anterior; gráficas Recharts (tendencia de ventas, ventas por día de la
+ * semana, tráfico órdenes/comensales y —con 2+ propiedades— comparativa por
+ * propiedad); y una tabla de detalle diario con descarga CSV. Filtros de
+ * fecha + propiedad recargan el reporte.
  */
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getSalesReport, getProperties } from "../../../lib/api";
 import { isAuthenticated } from "../../../lib/session";
-import { buildSalesCsv, formatDeltaPct } from "../../../lib/analytics";
+import { buildSalesCsv, formatDeltaPct, salesByWeekday } from "../../../lib/analytics";
 import { useT } from "../../../i18n/client";
 import SalesTrendChart from "../../../components/analytics/SalesTrendChart";
 import SalesByPropertyChart from "../../../components/analytics/SalesByPropertyChart";
+import SalesByWeekdayChart from "../../../components/analytics/SalesByWeekdayChart";
+import TrafficTrendChart from "../../../components/analytics/TrafficTrendChart";
 import styles from "./page.module.css";
+
+const WD_KEYS = ["wdSun", "wdMon", "wdTue", "wdWed", "wdThu", "wdFri", "wdSat"];
 
 export default function PanelClient() {
   const t = useT("analytics");
@@ -202,6 +207,25 @@ export default function PanelClient() {
                 </div>
               </>
             )}
+
+            <h3 className={styles.cardTitle}>{t("weekdayTitle")}</h3>
+            <div className={styles.chart}>
+              <SalesByWeekdayChart
+                data={salesByWeekday(cur.daily).map((b) => ({
+                  label: t(WD_KEYS[b.dow]),
+                  net: b.net,
+                }))}
+              />
+            </div>
+
+            <h3 className={styles.cardTitle}>{t("trafficTitle")}</h3>
+            <div className={styles.chart}>
+              <TrafficTrendChart
+                data={cur.daily}
+                ordersLabel={t("kpiOrders")}
+                guestsLabel={t("kpiGuests")}
+              />
+            </div>
 
             {/* Tabla + CSV */}
             <div className={styles.tableHeader}>

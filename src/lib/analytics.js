@@ -41,3 +41,18 @@ export function formatDeltaPct(pct) {
   if (pct < 0) return `▼ ${Math.abs(pct)}%`;
   return "0%";
 }
+
+/** Agrupa la serie diaria por día de semana (0=Domingo … 6=Sábado), sumando
+ *  net_sales. Devuelve 7 buckets en orden Dom→Sáb. Parseo de fecha seguro
+ *  ante zona horaria (construye la fecha local por partes). */
+export function salesByWeekday(daily) {
+  const buckets = Array.from({ length: 7 }, (_, dow) => ({ dow, net: 0 }));
+  for (const d of daily || []) {
+    if (!d || !d.date) continue;
+    const [y, m, day] = String(d.date).split("-").map(Number);
+    if (!y || !m || !day) continue;
+    const dow = new Date(y, m - 1, day).getDay(); // local, 0=Dom..6=Sáb
+    buckets[dow].net += Number(d.net_sales) || 0;
+  }
+  return buckets;
+}

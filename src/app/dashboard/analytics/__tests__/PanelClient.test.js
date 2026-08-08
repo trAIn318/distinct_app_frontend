@@ -48,6 +48,15 @@ describe("PanelClient", () => {
     expect(screen.getByText("10.00")).toBeInTheDocument();   // ticket promedio
   });
 
+  it("muestra las gráficas de día de semana y tráfico", async () => {
+    isAuthenticated.mockReturnValue(true);
+    getProperties.mockResolvedValue([{ id: 1, name: "P1", active: true, comp_id: 1, company_name: "C" }]);
+    getSalesReport.mockResolvedValue(REPORT);
+    render(<PanelClient />);
+    await waitFor(() => expect(screen.getByText(/weekday|día de la semana|dia de la semana/i)).toBeInTheDocument());
+    expect(screen.getByText(/traffic|tráfico|trafico/i)).toBeInTheDocument();
+  });
+
   it("muestra estado vacío cuando no hay currencies", async () => {
     isAuthenticated.mockReturnValue(true);
     getProperties.mockResolvedValue([]);
