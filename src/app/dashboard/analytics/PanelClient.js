@@ -8,9 +8,10 @@
  * err.message del backend como mensaje preferente.
  *
  * Muestra, por moneda presente en el reporte: 4 KPIs con delta vs. periodo
- * anterior, dos gráficas (Recharts: tendencia y comparativa por propiedad,
- * Task 4) y una tabla de detalle diario con descarga CSV. Filtros de fecha +
- * propiedad recargan el reporte.
+ * anterior; gráficas Recharts (tendencia de ventas, ventas por día de la
+ * semana, tráfico órdenes/comensales y —con 2+ propiedades— comparativa por
+ * propiedad); y una tabla de detalle diario con descarga CSV. Filtros de
+ * fecha + propiedad recargan el reporte.
  */
 
 import { useEffect, useState, useCallback } from "react";
