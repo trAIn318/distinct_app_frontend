@@ -410,7 +410,13 @@ async function authFetch(path, { method = "GET", body } = {}) {
     cache: "no-store",
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || "Something went wrong. Please try again.");
+  if (!res.ok) {
+    throw new Error(
+      data.detail ||
+        (Array.isArray(data.errors) && data.errors[0]) ||
+        "Something went wrong. Please try again."
+    );
+  }
   return data;
 }
 
@@ -467,4 +473,63 @@ export async function saveEval(courseId, answers) {
 /** GET /api/eval/history/ — historial de evaluaciones del usuario. */
 export async function getEvalHistory() {
   return authFetch("/eval/history/");
+}
+
+// ── Analytics: propiedades + carga de ventas (autenticado) ──────────────────
+
+/** POST multipart autenticado. No fija Content-Type: el navegador pone el
+ *  boundary de multipart/form-data automáticamente. */
+export async function authUpload(path, formData) {
+  const token = getAccessToken();
+  if (!token) throw new Error("You must be signed in.");
+  const res = await fetch(`${API_URL}/api${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      data.detail ||
+        (Array.isArray(data.errors) && data.errors[0]) ||
+        "Upload failed. Please try again."
+    );
+  }
+  return data;
+}
+
+/** GET /api/analytics/properties/ — propiedades del alcance. [] si falla suave. */
+export async function getProperties() {
+  const data = await authFetch("/analytics/properties/");
+  return data?.properties ?? [];
+}
+
+/** POST /api/analytics/properties/ — crea una propiedad. */
+export async function createProperty({ name, currency, comp_id }) {
+  return authFetch("/analytics/properties/", {
+    method: "POST",
+    body: { name, currency, ...(comp_id != null ? { comp_id } : {}) },
+  });
+}
+
+/** PATCH /api/analytics/properties/<id>/ — renombra / cambia moneda / activa. */
+export async function updateProperty(id, changes) {
+  return authFetch(`/analytics/properties/${id}/`, { method: "PATCH", body: changes });
+}
+
+/** POST /api/analytics/uploads/preview/ — dry-run (no escribe). */
+export async function previewUpload(propertyId, file) {
+  const fd = new FormData();
+  fd.append("property_id", propertyId);
+  fd.append("file", file);
+  return authUpload("/analytics/uploads/preview/", fd);
+}
+
+/** POST /api/analytics/uploads/ — confirma y guarda. */
+export async function commitUpload(propertyId, file) {
+  const fd = new FormData();
+  fd.append("property_id", propertyId);
+  fd.append("file", file);
+  return authUpload("/analytics/uploads/", fd);
 }
