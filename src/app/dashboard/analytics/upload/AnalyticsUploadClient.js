@@ -18,10 +18,10 @@ import {
   createProperty,
   previewUpload,
   commitUpload,
-} from "../../../lib/api";
-import { isAuthenticated } from "../../../lib/session";
-import { deriveCompanies, activeProperties, isAcceptedFile } from "../../../lib/analytics";
-import { useT } from "../../../i18n/client";
+} from "../../../../lib/api";
+import { isAuthenticated } from "../../../../lib/session";
+import { deriveCompanies, activeProperties, isAcceptedFile } from "../../../../lib/analytics";
+import { useT } from "../../../../i18n/client";
 import styles from "./page.module.css";
 
 export default function AnalyticsUploadClient() {
@@ -50,7 +50,7 @@ export default function AnalyticsUploadClient() {
   // EvalClient.js / AccountClient.js).
   useEffect(() => {
     if (!isAuthenticated()) {
-      router.replace("/login?next=/dashboard/analytics");
+      router.replace("/login?next=/dashboard/analytics/upload");
       return;
     }
     setReady(true);
@@ -318,6 +318,9 @@ export default function AnalyticsUploadClient() {
       )}
 
       <div className={styles.selectFooter}>
+        <a className={styles.link} href="/dashboard/analytics">
+          {t("backToPanel")}
+        </a>
         <a className={styles.link} href="/dashboard/analytics/properties">
           {t("managePropertiesLink")}
         </a>

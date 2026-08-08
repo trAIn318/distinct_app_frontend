@@ -420,6 +420,7 @@
     "noHistory": "You haven't taken any evaluations yet."
   },
   "analytics": {
+    "backToPanel": "Back to dashboard",
     "uploadTitle": "Upload sales",
     "propertiesTitle": "My properties",
     "rename": "Rename",
@@ -453,6 +454,24 @@
     "loading": "Loading…",
     "unavailable": "This is unavailable right now.",
     "needProperty": "Choose a property first.",
-    "needFile": "Choose a file first."
+    "needFile": "Choose a file first.",
+    "panelTitle": "Sales dashboard",
+    "filters": "Filters",
+    "from": "From",
+    "to": "To",
+    "property": "Property",
+    "apply": "Apply",
+    "date": "Date",
+    "allProperties": "All properties",
+    "kpiNetSales": "Net sales",
+    "kpiOrders": "Orders",
+    "kpiGuests": "Guests",
+    "kpiAvgTicket": "Average ticket",
+    "vsPrevPeriod": "vs. previous period",
+    "trendTitle": "Trend",
+    "byPropertyTitle": "By property",
+    "detailTitle": "Daily detail",
+    "downloadCsv": "Download CSV",
+    "emptyPeriod": "No sales in this period"
   }
 }

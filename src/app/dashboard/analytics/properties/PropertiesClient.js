@@ -324,6 +324,9 @@ export default function PropertiesClient() {
 
       <div className={styles.selectFooter}>
         <a className={styles.link} href="/dashboard/analytics">
+          {t("backToPanel")}
+        </a>
+        <a className={styles.link} href="/dashboard/analytics/upload">
           {t("uploadTitle")}
         </a>
       </div>

@@ -1,6 +1,6 @@
-/* Página "Cargar ventas" (analytics) — mismo lenguaje visual obsidian/ivory/gold
-   que src/app/dashboard/eval/page.module.css y src/app/account/account.module.css
-   (misma jerarquía de card/field/error). */
+/* Página "Panel de ventas" (analytics) — mismo lenguaje visual obsidian/ivory/gold
+   que src/app/dashboard/analytics/upload/page.module.css (misma jerarquía de
+   card/field/error/ghostButton). Sin gráficas (Task 4 las monta en .chart). */
 
 .page {
   background: var(--color-obsidian);
@@ -10,7 +10,10 @@
 }
 
 .wrapper {
-  max-width: 720px;
+  /* Sin max-width propio: hereda el ancho de `.container` (1440px, definido
+     en src/styles/global.css) — el Panel necesita más ancho que las
+     pantallas de un solo formulario (upload/properties, 720px) para la
+     grilla de KPIs y la tabla de detalle. */
   margin: 0 auto;
   animation: formEnter 0.9s var(--ease-luxe) both;
 }
@@ -42,60 +45,30 @@
   color: var(--color-ivory);
 }
 
-/* ── Tarjeta de sección ──────────────────────────────────────────────── */
+.panel {
+  display: flex;
+  flex-direction: column;
+}
 
-.card {
+/* ── Filtros ───────────────────────────────────────────────────────────── */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-5);
   background: var(--color-surface-dark);
   border: 1px solid rgba(216, 216, 216, 0.08);
   border-top: 2px solid var(--color-gold);
-  padding: var(--space-8);
-  margin-bottom: var(--space-6);
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
 }
-
-.cardTitle {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 300;
-  color: var(--color-ivory);
-  margin: 0 0 var(--space-5) 0;
-}
-
-.muted {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  color: var(--color-smoke);
-  margin: 0;
-}
-
-.error {
-  background: var(--color-danger-surface);
-  border-left: 2px solid var(--color-danger);
-  color: var(--color-danger);
-  padding: var(--space-3) var(--space-4);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  line-height: 1.5;
-  margin: var(--space-4) 0;
-}
-
-.success {
-  background: rgba(201, 169, 110, 0.1);
-  border-left: 2px solid var(--color-gold);
-  color: var(--color-ivory);
-  padding: var(--space-3) var(--space-4);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  line-height: 1.5;
-  margin: 0 0 var(--space-4) 0;
-}
-
-/* ── campos: selector de propiedad / alta / archivo ──────────────────── */
 
 .field {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin-bottom: var(--space-6);
+  min-width: var(--space-16);
 }
 
 .fieldLabel {
@@ -126,38 +99,180 @@
   box-shadow: 0 0 0 1px var(--gold-30), 0 0 16px var(--gold-08);
 }
 
-/* ── mini-form inline "+ Agregar nueva propiedad" ────────────────────── */
+/* ── Estados ───────────────────────────────────────────────────────────── */
 
-.newForm {
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid rgba(216, 216, 216, 0.08);
-  padding-top: var(--space-6);
-  margin-bottom: var(--space-6);
-}
-
-/* ── resumen de la vista previa ───────────────────────────────────────── */
-
-.summary {
-  border: 1px solid rgba(216, 216, 216, 0.08);
-  padding: var(--space-5);
-  margin: var(--space-4) 0 var(--space-6) 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.summary p {
+.muted {
   font-family: var(--font-body);
   font-size: var(--text-sm);
-  color: var(--color-ivory);
+  color: var(--color-smoke);
   margin: 0;
 }
 
-.selectFooter {
+.error {
+  background: var(--color-danger-surface);
+  border-left: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin: 0 0 var(--space-6) 0;
+}
+
+/* ── Bloque por moneda ─────────────────────────────────────────────────── */
+
+.currencyBlock {
+  margin-bottom: var(--space-12);
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-5) 0;
+}
+
+/* ── KPIs ──────────────────────────────────────────────────────────────── */
+
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--space-16), 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.kpiCard {
+  background: var(--color-surface-dark);
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.kpiCard:hover {
+  border-color: var(--color-gold);
+}
+
+.kpiLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+.kpiValue {
+  font-family: var(--font-label);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  color: var(--color-ivory);
+}
+
+.deltaUp,
+.deltaDown,
+.deltaFlat {
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+}
+
+.deltaUp {
+  color: var(--color-gold);
+}
+
+.deltaDown {
+  color: var(--color-danger);
+}
+
+.deltaFlat {
+  color: var(--color-smoke);
+}
+
+/* ── Gráficas (placeholder — Task 4 las monta) ────────────────────────── */
+
+.chart {
+  background: var(--color-surface-dark);
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  min-height: calc(var(--space-16) + var(--space-6));
+  margin-bottom: var(--space-8);
+}
+
+/* ── Tabla de detalle ──────────────────────────────────────────────────── */
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.tableHeader .cardTitle {
+  margin: 0;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid rgba(216, 216, 216, 0.08);
+  margin-bottom: var(--space-8);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ivory);
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(216, 216, 216, 0.08);
+  white-space: nowrap;
+}
+
+.table th {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+.ghostButton {
+  background: transparent;
+  color: var(--color-ivory);
+  border: 1px solid var(--color-ivory);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+
+.ghostButton:hover {
+  background: var(--color-ivory);
+  color: var(--color-obsidian);
+}
+
+/* ── Pie: enlaces a Cargar ventas / Mis propiedades ───────────────────── */
+
+.panelFooter {
   display: flex;
   justify-content: flex-end;
-  margin-top: var(--space-6);
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
 }
 
 .link {
@@ -173,40 +288,12 @@
   color: var(--color-ivory);
 }
 
-.actionsRow {
-  display: flex;
-  gap: var(--space-4);
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  margin-top: var(--space-6);
-}
-
-.ghostButton {
-  background: transparent;
-  color: var(--color-ivory);
-  border: 1px solid var(--color-ivory);
-  padding: var(--space-3) var(--space-6);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  margin-bottom: var(--space-6);
-  transition: background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
-}
-
-.ghostButton:hover {
-  background: var(--color-ivory);
-  color: var(--color-obsidian);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .link,
   .ghostButton,
   .select,
-  .input {
+  .input,
+  .kpiCard {
     transition: none;
   }
 }

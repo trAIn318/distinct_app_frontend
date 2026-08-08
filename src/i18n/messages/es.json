@@ -420,6 +420,7 @@
     "noHistory": "Aún no has realizado ninguna evaluación."
   },
   "analytics": {
+    "backToPanel": "Volver al panel",
     "uploadTitle": "Cargar ventas",
     "propertiesTitle": "Mis propiedades",
     "rename": "Renombrar",
@@ -453,6 +454,24 @@
     "loading": "Cargando…",
     "unavailable": "Esto no está disponible en este momento.",
     "needProperty": "Elige una propiedad primero.",
-    "needFile": "Elige un archivo primero."
+    "needFile": "Elige un archivo primero.",
+    "panelTitle": "Panel de ventas",
+    "filters": "Filtros",
+    "from": "Desde",
+    "to": "Hasta",
+    "property": "Propiedad",
+    "apply": "Aplicar",
+    "date": "Fecha",
+    "allProperties": "Todas las propiedades",
+    "kpiNetSales": "Ventas netas",
+    "kpiOrders": "Órdenes",
+    "kpiGuests": "Comensales",
+    "kpiAvgTicket": "Ticket promedio",
+    "vsPrevPeriod": "vs. periodo anterior",
+    "trendTitle": "Tendencia",
+    "byPropertyTitle": "Por propiedad",
+    "detailTitle": "Detalle diario",
+    "downloadCsv": "Descargar CSV",
+    "emptyPeriod": "No hay ventas en este periodo"
   }
 }
