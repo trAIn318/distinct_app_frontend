@@ -123,7 +123,7 @@ export default function PanelClient() {
           />
         </label>
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>{t("filters")}</span>
+          <span className={styles.fieldLabel}>{t("property")}</span>
           <select
             className={styles.select}
             value={propertyId}
@@ -138,7 +138,7 @@ export default function PanelClient() {
           </select>
         </label>
         <button type="button" className="btn-primary" onClick={applyFilters}>
-          {t("filters")}
+          {t("apply")}
         </button>
       </div>
 
@@ -218,7 +218,7 @@ export default function PanelClient() {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>{t("from")}</th>
+                    <th>{t("date")}</th>
                     <th>{t("kpiNetSales")}</th>
                     <th>{t("kpiOrders")}</th>
                     <th>{t("kpiGuests")}</th>
