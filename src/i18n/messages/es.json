@@ -27,7 +27,8 @@
     "loadCv": "Cargar CV",
     "adminCompany": "Administrar empresa",
     "eval": "Evaluación",
-    "pay": "Pago"
+    "pay": "Pago",
+    "analytics": "Ventas"
   },
   "rail": {
     "home": "Inicio",

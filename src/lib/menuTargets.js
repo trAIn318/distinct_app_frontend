@@ -39,6 +39,7 @@ export function resolveMenuTarget(url) {
   if (key === "dashboard/trainy") return { type: "train" };
   if (key === "settings/language") return { type: "language" };
   if (key === "dashboard/eval") return { type: "route", href: "/dashboard/eval" };
+  if (key === "dashboard/analytics") return { type: "route", href: "/dashboard/analytics" };
   return { type: "route", href: "/coming-soon" };
 }
 
@@ -56,6 +57,7 @@ const MENU_LABEL_KEYS = {
   "settings/admin-company": "adminCompany",
   "dashboard/eval": "eval",
   "dashboard/pay": "pay",
+  "dashboard/analytics": "analytics",
 };
 
 export function menuLabelKey(url) {

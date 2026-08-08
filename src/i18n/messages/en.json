@@ -27,7 +27,8 @@
     "loadCv": "Load CV",
     "adminCompany": "Admin Company",
     "eval": "Eval",
-    "pay": "Pay"
+    "pay": "Pay",
+    "analytics": "Sales"
   },
   "rail": {
     "home": "Home",
