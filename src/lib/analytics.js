@@ -82,3 +82,12 @@ export function monthOverMonthPct(monthly) {
   if (!prev) return null;
   return Math.round(((last - prev) / prev) * 1000) / 10;
 }
+
+/** Plantilla CSV de Ventas (formato del reporte diario de Toast) para descargar:
+ *  header real + una fila de ejemplo para que el cliente sepa el formato. */
+export function salesTemplateCsv() {
+  return [
+    "yyyyMMdd,Net sales,Total orders,Total guests",
+    "20260506,1345.50,24,39",
+  ].join("\n");
+}
