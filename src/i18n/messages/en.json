@@ -472,6 +472,8 @@
     "byPropertyTitle": "By property",
     "weekdayTitle": "Sales by weekday",
     "trafficTitle": "Traffic (orders & guests)",
+    "monthlyTitle": "Monthly comparison",
+    "vsPrevMonth": "vs. previous month",
     "wdSun": "Sun",
     "wdMon": "Mon",
     "wdTue": "Tue",
