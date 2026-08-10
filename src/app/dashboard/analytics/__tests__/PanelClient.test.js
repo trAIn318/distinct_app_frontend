@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, cleanup, waitFor, fireEvent } from "@testing-library/react";
 
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
@@ -18,6 +18,7 @@ afterEach(cleanup);
 beforeEach(() => {
   replace.mockClear(); isAuthenticated.mockReset();
   getSalesReport.mockReset(); getProperties.mockReset();
+  window.localStorage.clear();
 });
 
 const REPORT = {
@@ -53,8 +54,17 @@ describe("PanelClient", () => {
     getProperties.mockResolvedValue([{ id: 1, name: "P1", active: true, comp_id: 1, company_name: "C" }]);
     getSalesReport.mockResolvedValue(REPORT);
     render(<PanelClient />);
-    await waitFor(() => expect(screen.getByText(/weekday|día de la semana|dia de la semana/i)).toBeInTheDocument());
-    expect(screen.getByText(/traffic|tráfico|trafico/i)).toBeInTheDocument();
+    // Nota: se usa el rol "heading" (no getByText) porque el toggle de
+    // mostrar/ocultar (Task 2) añade una etiqueta con el mismo texto del
+    // título, y getByText fallaría por match duplicado.
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /weekday|día de la semana|dia de la semana/i })
+      ).toBeInTheDocument()
+    );
+    expect(
+      screen.getByRole("heading", { name: /traffic|tráfico|trafico/i })
+    ).toBeInTheDocument();
   });
 
   it("muestra el comparativo mensual", async () => {
@@ -62,7 +72,30 @@ describe("PanelClient", () => {
     getProperties.mockResolvedValue([{ id: 1, name: "P1", active: true, comp_id: 1, company_name: "C" }]);
     getSalesReport.mockResolvedValue(REPORT);
     render(<PanelClient />);
-    await waitFor(() => expect(screen.getByText(/monthly|mensual/i)).toBeInTheDocument());
+    // Nota: heading (no getByText) por la misma razón que arriba — el
+    // toggle "Monthly comparison"/"Comparativo mensual" duplica el texto.
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: /monthly|mensual/i })).toBeInTheDocument()
+    );
+  });
+
+  it("permite ocultar una gráfica con su toggle", async () => {
+    isAuthenticated.mockReturnValue(true);
+    getProperties.mockResolvedValue([{ id: 1, name: "P1", active: true, comp_id: 1, company_name: "C" }]);
+    getSalesReport.mockResolvedValue(REPORT);
+    render(<PanelClient />);
+    // la gráfica de tendencia aparece (heading, no getByText: el toggle
+    // duplica el mismo texto como etiqueta del checkbox)
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: /^Trend$|Tendencia/i })).toBeInTheDocument()
+    );
+    // apagar el toggle de "trend" (checkbox con nombre accesible del título de tendencia)
+    const trendToggle = screen.getByRole("checkbox", { name: /^Trend$|Tendencia/i });
+    fireEvent.click(trendToggle);
+    // el encabezado de la gráfica de tendencia desaparece (ya no como heading)
+    await waitFor(() =>
+      expect(screen.queryByRole("heading", { name: /^Trend$|Tendencia/i })).not.toBeInTheDocument()
+    );
   });
 
   it("muestra estado vacío cuando no hay currencies", async () => {

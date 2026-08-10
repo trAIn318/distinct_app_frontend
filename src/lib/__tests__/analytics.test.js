@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveCompanies, activeProperties, isAcceptedFile, buildSalesCsv, formatDeltaPct, salesByWeekday, monthlySales, monthOverMonthPct } from "../analytics";
+import { deriveCompanies, activeProperties, isAcceptedFile, buildSalesCsv, formatDeltaPct, salesByWeekday, monthlySales, monthOverMonthPct, salesTemplateCsv } from "../analytics";
 
 describe("deriveCompanies", () => {
   it("devuelve compañías únicas por comp_id", () => {
@@ -131,5 +131,13 @@ describe("monthOverMonthPct", () => {
     expect(monthOverMonthPct([])).toBeNull();
     expect(monthOverMonthPct(null)).toBeNull();
     expect(monthOverMonthPct([{ month: "2026-04", net: 0 }, { month: "2026-05", net: 100 }])).toBeNull();
+  });
+});
+
+describe("salesTemplateCsv", () => {
+  it("devuelve la plantilla con el header de Toast y una fila de ejemplo", () => {
+    expect(salesTemplateCsv()).toBe(
+      "yyyyMMdd,Net sales,Total orders,Total guests\n20260506,1345.50,24,39"
+    );
   });
 });
