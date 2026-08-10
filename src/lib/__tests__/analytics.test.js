@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveCompanies, activeProperties, isAcceptedFile, buildSalesCsv, formatDeltaPct, salesByWeekday } from "../analytics";
+import { deriveCompanies, activeProperties, isAcceptedFile, buildSalesCsv, formatDeltaPct, salesByWeekday, monthlySales, monthOverMonthPct } from "../analytics";
 
 describe("deriveCompanies", () => {
   it("devuelve compañías únicas por comp_id", () => {
@@ -98,5 +98,38 @@ describe("salesByWeekday", () => {
     const r = salesByWeekday(null);
     expect(r).toHaveLength(7);
     expect(r.every((b) => b.net === 0)).toBe(true);
+  });
+});
+
+describe("monthlySales", () => {
+  it("agrupa por mes (YYYY-MM) sumando net_sales, ordenado", () => {
+    const daily = [
+      { date: "2026-04-30", net_sales: "100.00" },
+      { date: "2026-05-01", net_sales: "200.00" },
+      { date: "2026-05-15", net_sales: "50.00" },
+      { date: "2026-03-10", net_sales: "10.00" },
+    ];
+    expect(monthlySales(daily)).toEqual([
+      { month: "2026-03", net: 10 },
+      { month: "2026-04", net: 100 },
+      { month: "2026-05", net: 250 },
+    ]);
+  });
+  it("vacío/null → []", () => {
+    expect(monthlySales(null)).toEqual([]);
+    expect(monthlySales([])).toEqual([]);
+  });
+});
+
+describe("monthOverMonthPct", () => {
+  it("calcula el % del último mes vs el anterior (1 decimal)", () => {
+    const m = [{ month: "2026-04", net: 100 }, { month: "2026-05", net: 150 }];
+    expect(monthOverMonthPct(m)).toBe(50);       // +50%
+  });
+  it("null si hay menos de 2 meses o el anterior es 0", () => {
+    expect(monthOverMonthPct([{ month: "2026-05", net: 100 }])).toBeNull();
+    expect(monthOverMonthPct([])).toBeNull();
+    expect(monthOverMonthPct(null)).toBeNull();
+    expect(monthOverMonthPct([{ month: "2026-04", net: 0 }, { month: "2026-05", net: 100 }])).toBeNull();
   });
 });

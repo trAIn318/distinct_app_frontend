@@ -28,7 +28,7 @@
     "adminCompany": "Admin Company",
     "eval": "Eval",
     "pay": "Pay",
-    "analytics": "Sales"
+    "analytics": "Analytics"
   },
   "rail": {
     "home": "Home",
@@ -472,6 +472,8 @@
     "byPropertyTitle": "By property",
     "weekdayTitle": "Sales by weekday",
     "trafficTitle": "Traffic (orders & guests)",
+    "monthlyTitle": "Monthly comparison",
+    "vsPrevMonth": "vs. previous month",
     "wdSun": "Sun",
     "wdMon": "Mon",
     "wdTue": "Tue",

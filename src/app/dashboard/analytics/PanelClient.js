@@ -18,12 +18,19 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getSalesReport, getProperties } from "../../../lib/api";
 import { isAuthenticated } from "../../../lib/session";
-import { buildSalesCsv, formatDeltaPct, salesByWeekday } from "../../../lib/analytics";
+import {
+  buildSalesCsv,
+  formatDeltaPct,
+  salesByWeekday,
+  monthlySales,
+  monthOverMonthPct,
+} from "../../../lib/analytics";
 import { useT } from "../../../i18n/client";
 import SalesTrendChart from "../../../components/analytics/SalesTrendChart";
 import SalesByPropertyChart from "../../../components/analytics/SalesByPropertyChart";
 import SalesByWeekdayChart from "../../../components/analytics/SalesByWeekdayChart";
 import TrafficTrendChart from "../../../components/analytics/TrafficTrendChart";
+import SalesByMonthChart from "../../../components/analytics/SalesByMonthChart";
 import styles from "./page.module.css";
 
 const WD_KEYS = ["wdSun", "wdMon", "wdTue", "wdWed", "wdThu", "wdFri", "wdSat"];
@@ -196,6 +203,34 @@ export default function PanelClient() {
             <div className={styles.chart} data-testid={`trend-${cur.currency}`}>
               <SalesTrendChart data={cur.daily} />
             </div>
+
+            <h3 className={styles.cardTitle}>{t("monthlyTitle")}</h3>
+            {(() => {
+              const monthly = monthlySales(cur.daily);
+              const mom = monthOverMonthPct(monthly);
+              return (
+                <>
+                  {formatDeltaPct(mom) && (
+                    <span
+                      className={
+                        mom > 0
+                          ? styles.deltaUp
+                          : mom < 0
+                          ? styles.deltaDown
+                          : styles.deltaFlat
+                      }
+                    >
+                      {formatDeltaPct(mom)}{" "}
+                      <span className={styles.muted}>{t("vsPrevMonth")}</span>
+                    </span>
+                  )}
+                  <div className={styles.chart}>
+                    <SalesByMonthChart data={monthly} />
+                  </div>
+                </>
+              );
+            })()}
+
             {cur.by_property.length > 1 && (
               <>
                 <h3 className={styles.cardTitle}>{t("byPropertyTitle")}</h3>

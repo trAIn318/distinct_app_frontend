@@ -28,7 +28,7 @@
     "adminCompany": "Administrar empresa",
     "eval": "Evaluación",
     "pay": "Pago",
-    "analytics": "Ventas"
+    "analytics": "Analíticas"
   },
   "rail": {
     "home": "Inicio",
@@ -472,6 +472,8 @@
     "byPropertyTitle": "Por propiedad",
     "weekdayTitle": "Ventas por día de la semana",
     "trafficTitle": "Tráfico (órdenes y comensales)",
+    "monthlyTitle": "Comparativo mensual",
+    "vsPrevMonth": "vs. mes anterior",
     "wdSun": "Dom",
     "wdMon": "Lun",
     "wdTue": "Mar",
