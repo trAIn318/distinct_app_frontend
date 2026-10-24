@@ -51,15 +51,21 @@ Aplican a **todas** las tareas. Los valores son literales del spec y de `CLAUDE.
 
 Clases de entrada que el spec implica y que ninguna tarea ejercitaría por su cuenta. Cada línea tiene su prueba agregada a la tarea dueña del código.
 
-1. **El backend no responde o está dormido** (Render free tarda ~60 s en despertar) al cargar el panel: debe mostrarse un error reintentable, y **jamás** el estado vacío de "empieza a invitar" — porque invitaría a actuar sobre datos que no se cargaron. Prueba en T7.
-2. **Token ausente, basura o larguísimo** en la URL pública: la pantalla no puede romperse ni quedar en blanco; muestra el estado de enlace inválido. Prueba en T6.
-3. **Miembro sin nombre ni apellido** (los 50 usuarios heredados pueden tenerlos vacíos): la fila debe seguir identificando a la persona por su correo, no quedar en blanco. Prueba en T4.
-4. **Doble envío** del formulario de invitación o del botón de activar (doble clic, Enter repetido): no puede emitir dos invitaciones ni reportar dos éxitos; el botón se deshabilita mientras hay una petición en curso. Pruebas en T6 y T8.
-5. **Archivo que no es CSV, de más de 1 MB o de más de 50 filas**: mensaje claro de la pantalla, sin romperse y sin enviar la petición cuando se puede saber antes. Prueba en T9.
+1. **El backend no responde o está dormido** (Render free tarda ~60 s en despertar) al cargar el panel: debe mostrarse un error reintentable, y **jamás** el estado vacío de "empieza a invitar" — porque invitaría a actuar sobre datos que no se cargaron. Prueba en T6.
+2. **Token ausente, basura o larguísimo** en la URL pública: la pantalla no puede romperse ni quedar en blanco; muestra el estado de enlace inválido. Prueba en T5.
+3. **Miembro sin nombre ni apellido** (los 50 usuarios heredados pueden tenerlos vacíos): la fila debe seguir identificando a la persona por su correo, no quedar en blanco. Prueba en T3.
+4. **Doble envío** del formulario de invitación o del botón de activar (doble clic, Enter repetido): no puede emitir dos invitaciones ni reportar dos éxitos; el botón se deshabilita mientras hay una petición en curso. Pruebas en T5 y T7.
+5. **Archivo que no es CSV, de más de 1 MB o de más de 50 filas**: mensaje claro de la pantalla, sin romperse y sin enviar la petición cuando se puede saber antes. Prueba en T8.
 
 ---
 
-## Tarea 1 — Backend: el listado le da al frontend lo que necesita
+## Tarea 1 — Backend: la API le da al frontend lo que necesita
+
+Dos cambios de contrato sobre la misma superficie (lo que responde la API del
+panel), fusionados a proposito: separarlos costaba dos ciclos de revision para
+juzgar un solo entregable.
+
+### 1a — El listado: last_login y paginacion
 
 **Files:**
 - Modify: `distinct_app_backend/api/company_admin_views.py` (`_member`, `_list_members`)
@@ -142,9 +148,7 @@ git add api/company_admin_views.py api/company_admin_service.py api/tests/test_c
 git commit -m "[api/company-admin] exponer last_login y paginar el listado de miembros"
 ```
 
----
-
-## Tarea 2 — Backend: el alta individual y el reenvío dicen si el correo salió
+### 1b — El alta individual y el reenvio dicen si el correo salio
 
 **Files:**
 - Modify: `distinct_app_backend/api/company_admin_service.py` (`issue_invitation`, `resend_invitation`)
@@ -207,7 +211,7 @@ git commit -m "[api/company-admin] informar si el correo de invitacion salio"
 
 ---
 
-## Tarea 3 — Backend: aceptar la invitación deja a la persona con sesión
+## Tarea 2 — Backend: aceptar la invitación deja a la persona con sesión
 
 **Files:**
 - Modify: `distinct_app_backend/api/invitation_views.py` (`invitation_accept_view`)
@@ -265,7 +269,7 @@ git commit -m "[api/invitations] devolver sesion al aceptar la invitacion"
 
 ---
 
-## Tarea 4 — Frontend: la lógica pura del panel
+## Tarea 3 — Frontend: la lógica pura del panel
 
 Toda la decisión que no necesita red ni React, donde vive la mayoría de las pruebas.
 
@@ -357,7 +361,7 @@ git commit -m "[lib/companyAdmin] logica pura del panel: estados, roster y error
 
 ---
 
-## Tarea 5 — Frontend: las funciones de red
+## Tarea 4 — Frontend: las funciones de red
 
 **Files:**
 - Modify: `distinct_app_frontend/src/lib/api.js`
@@ -405,7 +409,7 @@ git commit -m "[lib/api] endpoints del panel de empresa y de las invitaciones"
 
 ---
 
-## Tarea 6 — Frontend: la pantalla pública de activación
+## Tarea 5 — Frontend: la pantalla pública de activación
 
 **Files:**
 - Create: `distinct_app_frontend/src/app/accept-invitation/page.js`
@@ -453,7 +457,7 @@ git commit -m "[accept-invitation] pantalla publica de activacion, dos variantes
 
 ---
 
-## Tarea 7 — Frontend: el panel, su tabla y sus tres estados especiales
+## Tarea 6 — Frontend: el panel, su tabla, sus estados de borde y el menú
 
 **Files:**
 - Create: `distinct_app_frontend/src/app/settings/admin-company/page.js`
@@ -496,15 +500,39 @@ Distinguir con cuidado **tres** situaciones que parecen la misma: carga fallida,
 
 - [ ] **Step 4: Correr y confirmar que pasan**
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Enrutar la entrada del menú**
+
+Prueba en `src/lib/menuTargets.test.js`:
+
+```js
+it("settings/admin-company lleva al panel y no a En construccion", () => {
+  expect(resolveMenuTarget("settings/admin-company"))
+    .toEqual({ type: "route", href: "/settings/admin-company" });
+});
+```
+
+Hoy devuelve `{ type: "route", href: "/coming-soon" }`. Es **una línea** en
+`resolveMenuTarget`. La etiqueta i18n ya existe (`menu.adminCompany`, en inglés y
+español) y ya está en `MENU_LABEL_KEYS`.
+
+- [ ] **Step 7: Escribir el DDL de datos, SIN ejecutarlo**
+
+`distinct_app_backend/docs/superpowers/ddl/roles_menu_admin_company.sql`: un
+`DELETE` de la fila de `roles_menu` que le da la entrada del panel al rol
+**Editor** (rol 2), que **no tiene** el permiso `users.read` y por eso vería una
+opción muerta. Verificado contra la base: la entrada está asignada a los roles 1,
+2 y 4, y solo 1 y 4 tienen el permiso. El archivo lleva en un comentario la
+consulta de verificación previa y la de reversa.
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git commit -m "[settings/admin-company] tabla de personal con estados y estados de borde"
+git commit -m "[settings/admin-company] tabla de personal, estados de borde y entrada de menu"
 ```
 
 ---
 
-## Tarea 8 — Frontend: las acciones sobre una persona
+## Tarea 7 — Frontend: las acciones sobre una persona
 
 **Files:**
 - Modify: `AdminCompanyClient.js`, `page.module.css`, los dos JSON
@@ -544,7 +572,7 @@ git commit -m "[settings/admin-company] invitar, reenviar, cancelar, editar, des
 
 ---
 
-## Tarea 9 — Frontend: la carga por archivo en dos pasos
+## Tarea 8 — Frontend: la carga por archivo en dos pasos
 
 **Files:**
 - Create: `distinct_app_frontend/src/app/settings/admin-company/import/page.js`
@@ -582,48 +610,6 @@ Dos pasos explícitos en una misma pantalla: elegir archivo → ver qué pasarí
 
 ```bash
 git commit -m "[settings/admin-company/import] carga por archivo en dos pasos"
-```
-
----
-
-## Tarea 10 — Frontend: conectar la entrada del menú
-
-**Files:**
-- Modify: `distinct_app_frontend/src/lib/menuTargets.js`
-- Test: `distinct_app_frontend/src/lib/menuTargets.test.js`
-- Create: `distinct_app_backend/docs/superpowers/ddl/roles_menu_admin_company.sql`
-
-**Interfaces:**
-- Consumes: la ruta de la T7.
-- Produces: nada.
-
-- [ ] **Step 1: Escribir la prueba que falla**
-
-```js
-it("settings/admin-company lleva al panel y no a En construccion", () => {
-  expect(resolveMenuTarget("settings/admin-company"))
-    .toEqual({ type: "route", href: "/settings/admin-company" });
-});
-```
-
-- [ ] **Step 2: Correr y confirmar que falla**
-
-Expected: FAIL — hoy devuelve `{ type: "route", href: "/coming-soon" }`.
-
-- [ ] **Step 3: Implementar**
-
-Una línea en `resolveMenuTarget`. La etiqueta i18n ya existe (`menu.adminCompany`, en inglés y español) y ya está mapeada en `MENU_LABEL_KEYS`.
-
-- [ ] **Step 4: Correr y confirmar que pasa**
-
-- [ ] **Step 5: Escribir el DDL de datos, SIN ejecutarlo**
-
-`roles_menu_admin_company.sql`: un `DELETE` de la fila de `roles_menu` que le da la entrada del panel al rol **Editor** (rol 2), que **no tiene** el permiso `users.read` y por eso vería una opción muerta. Verificado contra la base: la entrada está asignada a los roles 1, 2 y 4, y solo 1 y 4 tienen el permiso. El archivo lleva en un comentario la consulta de verificación previa y la de reversa.
-
-- [ ] **Step 6: Commit**
-
-```bash
-git commit -m "[lib/menuTargets] enrutar la entrada del panel de empresa"
 ```
 
 ---
