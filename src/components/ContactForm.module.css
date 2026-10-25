@@ -46,12 +46,25 @@
   color: var(--color-ivory);
 }
 
-/* Agenda directa. El enlace de WhatsApp es inline, asi que este se baja a su
-   propia linea con el ritmo del sistema de espaciado. Sin color propio: hereda
-   `btn-ghost`, para no poner un segundo elemento dorado en la misma pantalla. */
+/* Canal de agenda, en su propia linea. `display: block` con separacion amplia
+   para que NO se lea como continuacion del enlace de WhatsApp, cuya flecha
+   apuntaba al elemento siguiente. Es una frase, asi que va en la tipografia de
+   cuerpo y no en la de etiquetas (que es en mayusculas), y subrayado para que
+   se vea que es un enlace. Sin dorado: claude.md permite uno por pantalla. */
 .meetingLink {
-  display: inline-flex;
-  margin-top: var(--space-5);
+  display: block;
+  margin-top: var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+  text-decoration: underline;
+  text-decoration-color: var(--color-smoke);
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.meetingLink:hover {
+  text-decoration-color: var(--color-ivory);
 }
 
 @media (prefers-reduced-motion: reduce) {
