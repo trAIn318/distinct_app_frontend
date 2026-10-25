@@ -46,6 +46,20 @@
   color: var(--color-ivory);
 }
 
+/* Agenda directa. El enlace de WhatsApp es inline, asi que este se baja a su
+   propia linea con el ritmo del sistema de espaciado. Sin color propio: hereda
+   `btn-ghost`, para no poner un segundo elemento dorado en la misma pantalla. */
+.meetingLink {
+  display: inline-flex;
+  margin-top: var(--space-5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meetingLink {
+    transition: none;
+  }
+}
+
 .formContainer {
   flex: 1 1 50%;
   min-width: 300px;

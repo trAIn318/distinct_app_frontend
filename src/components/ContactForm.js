@@ -64,6 +64,18 @@ export default function ContactForm() {
             >
               {t("whatsapp")}
             </a>
+            {/* Agenda directa. Usa `btn-ghost` y NO el dorado del enlace de
+                WhatsApp: claude.md permite un solo elemento dorado por pantalla,
+                y así además queda la jerarquía visual (acción primaria con
+                borde, canal secundario como enlace de texto). */}
+            <a
+              href="https://meet.hubspot.com/veronica-straw"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`btn-ghost ${styles.meetingLink}`}
+            >
+              {t("meeting")}
+            </a>
           </div>
 
           {/* Form */}
