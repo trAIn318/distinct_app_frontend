@@ -65,8 +65,28 @@ export function displayNameFor(persona) {
   return nombre || texto(p.email);
 }
 
-function claveDeOrden(fila) {
-  return `${fila.displayName.toLowerCase()}\u0000${fila.email.toLowerCase()}`;
+/**
+ * Compara dos filas: primero por nombre mostrado, y solo si empatan, por correo.
+ *
+ * Son DOS comparaciones separadas a propósito. Antes se concatenaban las dos
+ * claves con `\u0000` en medio, y ese carácter es **ignorable en la colación de
+ * Unicode**, así que el correo se colaba en la comparación principal: un nombre
+ * que fuera prefijo de otro se ordenaba por su correo y caía en un lugar
+ * aparentemente aleatorio ("Ana" terminaba después de "Ana Zeta"). Con los 50
+ * usuarios heredados sin nombre el nombre mostrado ES el correo, así que los
+ * prefijos abundan.
+ *
+ * El locale va explícito: sin él, `localeCompare` usa el del sistema y dos
+ * personas con el mismo panel verían dos órdenes distintos.
+ */
+const LOCALE_ORDEN = "en";
+
+function comparar(a, b) {
+  const porNombre = a.displayName.localeCompare(b.displayName, LOCALE_ORDEN, {
+    sensitivity: "base",
+  });
+  if (porNombre !== 0) return porNombre;
+  return a.email.localeCompare(b.email, LOCALE_ORDEN, { sensitivity: "base" });
 }
 
 /**
@@ -88,23 +108,23 @@ export function buildRoster(payload) {
   const invitations = Array.isArray(datos.invitations) ? datos.invitations : [];
 
   const filas = [];
-  const vistos = new Set();
-
-  function agregar(fila) {
-    const marca = fila.email.toLowerCase();
-    if (marca) {
-      if (vistos.has(marca)) return;
-      vistos.add(marca);
-    }
-    filas.push(fila);
-  }
+  // Correos de los miembros, para que una invitación no duplique a alguien que
+  // ya aparece como miembro. ASIMÉTRICO a propósito: se consulta SOLO en el
+  // bucle de invitaciones. Antes se consultaba también entre miembros, y eso
+  // BORRABA a una persona real: `usr_email` es único pero sensible a
+  // mayúsculas, así que "Juan.Perez@" y "juan.perez@" coexisten en la base y el
+  // backend devuelve las dos filas. La segunda desaparecía de la tabla y de las
+  // tres acciones de escritura, mientras el contador del backend decía 2. Es el
+  // escenario exacto de las cargas masivas heredadas.
+  const correosDeMiembros = new Set();
 
   for (const m of members) {
     if (!m) continue;
     const email = texto(m.email);
     const displayName = displayNameFor(m);
     if (!email && !displayName) continue;
-    agregar({
+    if (email) correosDeMiembros.add(email.toLowerCase());
+    filas.push({
       key: `member:${m.id}`,
       kind: "member",
       id: m.id,
@@ -119,7 +139,8 @@ export function buildRoster(payload) {
     if (!inv) continue;
     const email = texto(inv.email);
     if (!email) continue;
-    agregar({
+    if (correosDeMiembros.has(email.toLowerCase())) continue;
+    filas.push({
       key: `invitation:${inv.id}`,
       kind: "invitation",
       id: inv.id,
@@ -130,7 +151,32 @@ export function buildRoster(payload) {
     });
   }
 
-  return filas.sort((a, b) => claveDeOrden(a).localeCompare(claveDeOrden(b)));
+  return filas.sort(comparar);
+}
+
+/**
+ * Filtra el roster en el navegador por nombre mostrado o por correo.
+ *
+ * Es la otra mitad de la búsqueda mixta que fija el diseño. El backend filtra
+ * con `?q=` **solo a los miembros**: las invitaciones vuelven sin filtrar y,
+ * además, sin nombre —el backend no lo devuelve—, así que buscar un nombre
+ * nunca podría encontrar a una persona invitada. Este filtro cubre esa mitad.
+ *
+ * Vive aquí, en la lógica pura, y no dentro del componente, porque dentro solo
+ * se podría probar a través del DOM.
+ *
+ * Compara sin acentos ni mayúsculas, con el mismo normalizador que usan los
+ * errores. Sin búsqueda devuelve la lista tal cual (la misma referencia no se
+ * garantiza, pero el contenido sí).
+ */
+export function filterRoster(rows, q) {
+  const filas = Array.isArray(rows) ? rows : [];
+  const aguja = normalizar(q).trim();
+  if (!aguja) return filas.slice();
+  return filas.filter((f) => {
+    const campos = `${normalizar(f && f.displayName)} ${normalizar(f && f.email)}`;
+    return campos.includes(aguja);
+  });
 }
 
 // ── Traducción de errores ──────────────────────────────────────────────────
@@ -163,7 +209,11 @@ const POR_ESTADO = Object.freeze({
   401: ERROR_CODES.signedOut,
   403: ERROR_CODES.forbidden,
   404: ERROR_CODES.notFound,
+  // 502 y 504 los devuelve el proxy de Render cuando el servicio free esta
+  // despertando: es el escenario numero 1 del Review Focus del plan.
+  502: ERROR_CODES.unavailable,
   503: ERROR_CODES.unavailable,
+  504: ERROR_CODES.unavailable,
 });
 
 /**
@@ -181,6 +231,8 @@ const POR_TEXTO = [
   ["already belongs to a company", ERROR_CODES.alreadyInCompany],
   ["not found or no longer valid", ERROR_CODES.notFound],
   ["temporarily unable", ERROR_CODES.unavailable],
+  // Texto interno del backend; sin firma se mostraria literal al cliente.
+  ["solo se reenvian", ERROR_CODES.notFound],
   ["must be signed in", ERROR_CODES.signedOut],
   ["failed to fetch", ERROR_CODES.network],
   ["network request failed", ERROR_CODES.network],
@@ -190,14 +242,30 @@ const POR_TEXTO = [
 function normalizar(valor) {
   return String(valor || "")
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[̀-ͯ]/g, "")   // marcas combinantes, con escapes
     .toLowerCase();
 }
 
-function codigoDe(error) {
+/** Texto de un error, cubriendo las DOS formas que usa el backend.
+ *
+ * Los errores de archivo completo NO vuelven como `detail`: vuelven como
+ * `{"errors": [...]}` con 422 -de mas de 1 MB, de mas de 50 filas, vacio, sin
+ * columna `correo`, ilegible-. Sin mirar ese arreglo, la carga por archivo
+ * mostraria el respaldo generico en vez del motivo real. Hay precedente en
+ * `src/lib/api.js`, que ya lo hace en dos endpoints.
+ *
+ * Acepta tambien un error que llegue como string pelado. */
+function textoDeError(error) {
+  if (typeof error === "string") return error;
   const e = error || {};
+  if (Array.isArray(e.errors) && e.errors.length) return String(e.errors[0] || "");
+  return e.message || e.detail || "";
+}
+
+function codigoDe(error) {
+  const e = typeof error === "string" ? { message: error } : (error || {});
   if (e.code && Object.hasOwn(ERROR_CODES, e.code)) return ERROR_CODES[e.code];
-  const mensaje = normalizar(e.message || e.detail);
+  const mensaje = normalizar(textoDeError(e));
   for (const [firma, codigo] of POR_TEXTO) {
     if (mensaje.includes(firma)) return codigo;
   }
@@ -217,7 +285,7 @@ export function errorMessageFor(error, t) {
   const tr = typeof t === "function" ? t : (clave) => clave;
   const codigo = codigoDe(error);
   if (codigo) return tr(`${ERROR_KEY_PREFIX}${codigo}`);
-  const crudo = texto(error && (error.message || error.detail));
+  const crudo = texto(textoDeError(error));
   return crudo || tr(`${ERROR_KEY_PREFIX}${ERROR_CODES.generic}`);
 }
 
@@ -257,6 +325,9 @@ const REJECTION_KEY_PREFIX = "import.reject.";
 export function fileRejectionKey(file) {
   if (!file) return null;
   if (!/\.csv$/i.test(String(file.name || ""))) return `${REJECTION_KEY_PREFIX}notCsv`;
+  // El backend lo rechaza con 422, y ademas por la forma `errors[]`, que es el
+  // peor camino para mostrar el motivo. Aqui se sabe sin red.
+  if (Number(file.size) === 0) return `${REJECTION_KEY_PREFIX}empty`;
   if (Number(file.size) > IMPORT_LIMITS.maxBytes) return `${REJECTION_KEY_PREFIX}tooBig`;
   return null;
 }

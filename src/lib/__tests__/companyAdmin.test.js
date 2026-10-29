@@ -3,6 +3,7 @@ import {
   ROW_STATUS,
   IMPORT_LIMITS,
   buildRoster,
+  filterRoster,
   memberStatus,
   displayNameFor,
   errorMessageFor,
@@ -20,10 +21,18 @@ function fakeFile(name, size) {
 }
 
 describe("ROW_STATUS", () => {
-  it("expone las cinco claves y está congelado", () => {
-    expect(Object.keys(ROW_STATUS).sort()).toEqual(
-      ["ACTIVE", "DEACTIVATED", "EXPIRED", "INVITED", "NEVER_ENTERED"]
-    );
+  // Los VALORES son el contrato i18n de la columna de estado: la pantalla
+  // escribe t(`status.${row.status}`). Si uno cambia, `makeT` no encuentra la
+  // clave y devuelve la ruta cruda, así que el jefe de un cliente vería
+  // "companyAdmin.status.ACTIVO" en pantalla. Por eso se fijan uno por uno.
+  it("fija las cinco claves CON SUS VALORES y está congelado", () => {
+    expect(ROW_STATUS).toEqual({
+      ACTIVE: "active",
+      NEVER_ENTERED: "neverEntered",
+      INVITED: "invited",
+      EXPIRED: "expired",
+      DEACTIVATED: "deactivated",
+    });
     expect(Object.isFrozen(ROW_STATUS)).toBe(true);
   });
 });
@@ -111,8 +120,18 @@ describe("buildRoster", () => {
     expect(porCorreo["ana@x.com"].status).toBe(ROW_STATUS.NEVER_ENTERED);
     expect(porCorreo["nuevo@x.com"].status).toBe(ROW_STATUS.INVITED);
     expect(new Set(rows.map((r) => r.key)).size).toBe(3);
-    // La clave distingue el tipo: un miembro y una invitación pueden compartir id.
-    expect(porCorreo["zoe@x.com"].key).not.toBe(porCorreo["nuevo@x.com"].key);
+  });
+
+  it("la clave distingue el tipo cuando el id se repite entre colecciones", () => {
+    // Los ids de `users` y de `company_invitations` son secuencias distintas, así
+    // que el MISMO número puede nombrar a un miembro y a una invitación. Si la
+    // clave fuera solo el id, React colapsaría las dos filas en una.
+    const rows = buildRoster({
+      members: [{ id: 7, email: "miembro@x.com", firstname: "Mia", lastname: "Soto", rol_id: 3, active: true, last_login: null }],
+      invitations: [{ id: 7, email: "invitado@x.com", expired: false }],
+    });
+    expect(rows).toHaveLength(2);
+    expect(new Set(rows.map((r) => r.key)).size).toBe(2);
   });
 
   it("una invitacion vencida queda con estado vencido", () => {
@@ -121,6 +140,23 @@ describe("buildRoster", () => {
       invitations: [{ id: 12, email: "tarde@x.com", expired: true }],
     });
     expect(rows[0].status).toBe(ROW_STATUS.EXPIRED);
+  });
+
+  it("NO funde dos miembros distintos que comparten el correo en otra caja", () => {
+    // `users.usr_email` es único pero SENSIBLE a mayúsculas, así que estas dos
+    // filas coexisten de verdad en la base -es el escenario de las cargas
+    // masivas heredadas- y el backend devuelve las dos. Fundirlas borraría a una
+    // persona de la tabla y de las tres acciones de escritura, y dejaría el
+    // `total` del backend diciendo 2 mientras la tabla pinta 1.
+    const rows = buildRoster({
+      members: [
+        { id: 41, email: "Juan.Perez@hotel.com", firstname: "Juan", lastname: "Perez", rol_id: 3, active: true, last_login: null },
+        { id: 88, email: "juan.perez@hotel.com", firstname: "Juan", lastname: "Perez", rol_id: 3, active: true, last_login: null },
+      ],
+      invitations: [],
+    });
+    expect(rows).toHaveLength(2);
+    expect(rows.map((r) => r.id).sort((a, b) => a - b)).toEqual([41, 88]);
   });
 
   it("cada persona aparece exactamente una vez", () => {
@@ -157,12 +193,101 @@ describe("buildRoster", () => {
     expect(rows[0].id).toBe(11);
   });
 
+  it("ordena por nombre y desempata por correo", () => {
+    const rows = buildRoster({
+      members: [
+        { id: 1, email: "zoe@x.com", firstname: "Ana", lastname: "Ruiz", rol_id: 3, active: true, last_login: null },
+        { id: 2, email: "ana@x.com", firstname: "Ana", lastname: "Ruiz", rol_id: 3, active: true, last_login: null },
+      ],
+      invitations: [],
+    });
+    expect(rows.map((r) => r.email)).toEqual(["ana@x.com", "zoe@x.com"]);
+  });
+
+  it("un nombre que es prefijo de otro va primero", () => {
+    // Con los 50 heredados sin nombre el displayName ES el correo, así que los
+    // prefijos abundan: "ana@x.com" es prefijo de nada, pero "Ana" sí lo es de
+    // "Ana Beta". Si el correo se cuela en la comparación primaria, "Ana" cae al
+    // final de su propio grupo.
+    const rows = buildRoster({
+      members: [
+        { id: 1, email: "zb@x.com", firstname: "Ana", lastname: "Beta", rol_id: 3, active: true, last_login: null },
+        { id: 2, email: "za@x.com", firstname: "Ana", lastname: "", rol_id: 3, active: true, last_login: null },
+        { id: 3, email: "zc@x.com", firstname: "Ana", lastname: "Zeta", rol_id: 3, active: true, last_login: null },
+      ],
+      invitations: [],
+    });
+    expect(rows.map((r) => r.displayName)).toEqual(["Ana", "Ana Beta", "Ana Zeta"]);
+  });
+
   it("no revienta con listas vacias o ausentes", () => {
     expect(buildRoster({})).toEqual([]);
     expect(buildRoster()).toEqual([]);
     expect(buildRoster({ members: null, invitations: undefined })).toEqual([]);
-    expect(buildRoster({ members: "nope", invitations: 7 })).toEqual([]);
     expect(buildRoster({ members: [null, undefined], invitations: [null] })).toEqual([]);
+  });
+
+  it("no revienta con colecciones que no se pueden iterar", () => {
+    // Un string SÍ se itera (carácter por carácter) y lo tapaba el filtro de
+    // filas sin correo, así que no probaba el guard. Un número y un objeto
+    // plano no son iterables: sin `Array.isArray` esto lanza TypeError.
+    expect(() => buildRoster({ members: 7, invitations: { a: 1 } })).not.toThrow();
+    expect(buildRoster({ members: 7, invitations: { a: 1 } })).toEqual([]);
+    expect(buildRoster({ members: true, invitations: 0 })).toEqual([]);
+  });
+
+  it("descarta una fila en blanco en vez de pintar una persona sin identidad", () => {
+    // Una fila sin nombre y sin correo no identifica a nadie: ocuparía un renglón
+    // de la tabla sin decir de quién es ni permitir ninguna acción.
+    const rows = buildRoster({
+      members: [
+        { id: 1, email: "", firstname: "", lastname: null, rol_id: 3, active: true, last_login: null },
+        { id: 2, email: "  ", firstname: null, lastname: "  ", rol_id: 3, active: true, last_login: null },
+        { id: 3, email: "real@x.com", firstname: "Real", lastname: "Persona", rol_id: 3, active: true, last_login: null },
+      ],
+      invitations: [
+        { id: 11, email: "", expired: false },
+        { id: 12, email: null, expired: false },
+      ],
+    });
+    expect(rows.map((r) => r.email)).toEqual(["real@x.com"]);
+  });
+});
+
+describe("filterRoster", () => {
+  // El backend filtra con ?q= SOLO a los miembros: las invitaciones vuelven sin
+  // filtrar y sin nombre. Este filtro de navegador es la otra mitad de la
+  // búsqueda mixta que fija el diseño, y vive aquí para poder probarlo sin DOM.
+  const rows = [
+    { key: "member:1", kind: "member", id: 1, email: "ana@hotel.com", displayName: "Ana Muñoz", status: ROW_STATUS.ACTIVE, canAct: true },
+    { key: "member:2", kind: "member", id: 2, email: "bruno@hotel.com", displayName: "bruno@hotel.com", status: ROW_STATUS.NEVER_ENTERED, canAct: true },
+    { key: "invitation:11", kind: "invitation", id: 11, email: "Carlos@Hotel.com", displayName: "Carlos@Hotel.com", status: ROW_STATUS.INVITED, canAct: true },
+  ];
+
+  it("sin busqueda devuelve todo", () => {
+    expect(filterRoster(rows, "")).toEqual(rows);
+    expect(filterRoster(rows, "   ")).toEqual(rows);
+    expect(filterRoster(rows, null)).toEqual(rows);
+    expect(filterRoster(rows)).toEqual(rows);
+  });
+
+  it("filtra por nombre y por correo", () => {
+    expect(filterRoster(rows, "ana").map((r) => r.id)).toEqual([1]);
+    expect(filterRoster(rows, "bruno@").map((r) => r.id)).toEqual([2]);
+    expect(filterRoster(rows, "hotel.com").map((r) => r.id)).toEqual([1, 2, 11]);
+  });
+
+  it("compara sin acentos ni mayusculas", () => {
+    expect(filterRoster(rows, "MUNOZ").map((r) => r.id)).toEqual([1]);
+    expect(filterRoster(rows, "muñoz").map((r) => r.id)).toEqual([1]);
+    expect(filterRoster(rows, "carlos").map((r) => r.id)).toEqual([11]);
+  });
+
+  it("devuelve lista vacia cuando nada coincide, y no revienta con entradas raras", () => {
+    expect(filterRoster(rows, "zzz")).toEqual([]);
+    expect(filterRoster(null, "ana")).toEqual([]);
+    expect(filterRoster(undefined)).toEqual([]);
+    expect(filterRoster("nope", "ana")).toEqual([]);
   });
 });
 
@@ -262,5 +387,58 @@ describe("el modulo es logica pura", () => {
     expect(src).not.toMatch(/\bfetch\s*\(/);
     expect(src).not.toMatch(/from\s+["'](react|next\/|\.\/api|\.\/session)/);
     expect(src).not.toMatch(/^\s*import\b/m);
+  });
+});
+
+describe("lo que la revision encontro sin cercar", () => {
+  it("una fila de miembro y una de invitacion con el MISMO id no comparten key", () => {
+    // La prueba anterior comparaba id 1 contra id 11, asi que no probaba lo que
+    // decia: sin el prefijo, React recibiria dos keys iguales.
+    const r = buildRoster({
+      members: [{ id: 11, email: "m@x.com", firstname: "M", rol_id: 3, active: true, last_login: null }],
+      invitations: [{ id: 11, email: "i@x.com", expired: false }],
+    });
+    expect(new Set(r.map((f) => f.key)).size).toBe(2);
+    expect(r.map((f) => f.key).sort()).toEqual(["invitation:11", "member:11"]);
+  });
+
+  it("members no iterable no revienta (un string SI se itera, por eso no servia)", () => {
+    expect(buildRoster({ members: 7 })).toEqual([]);
+    expect(buildRoster({ members: { a: 1 } })).toEqual([]);
+    expect(buildRoster({ invitations: 7 })).toEqual([]);
+  });
+
+  it("descarta la fila sin correo ni nombre, y la invitacion sin correo", () => {
+    expect(buildRoster({ members: [{ id: 1, email: "", firstname: "", lastname: "" }] })).toEqual([]);
+    expect(buildRoster({ invitations: [{ id: 2, email: "", expired: false }] })).toEqual([]);
+  });
+
+  it("502 y 504 se tratan como servicio no disponible, igual que 503", () => {
+    // Son los que devuelve el proxy de Render cuando el servicio free despierta.
+    for (const status of [502, 503, 504]) {
+      expect(errorMessageFor({ status }, t)).toBe("T:errors.unavailable");
+    }
+  });
+
+  it("lee la segunda forma de error del backend: errors[]", () => {
+    // Los errores de archivo completo vuelven asi, no como `detail`.
+    expect(errorMessageFor({ status: 422, errors: ["El archivo supera el máximo de 50 filas."] }, t))
+      .toBe("El archivo supera el máximo de 50 filas.");
+  });
+
+  it("un error que llega como string pelado conserva su texto y su firma", () => {
+    expect(errorMessageFor("Esta persona ya es miembro o ya tiene una invitación vigente.", t))
+      .toBe("T:errors.already");
+    expect(errorMessageFor("Algo raro y sin firma", t)).toBe("Algo raro y sin firma");
+  });
+
+  it("el 409 de reenviar una invitacion no pendiente se traduce, no se muestra crudo", () => {
+    expect(errorMessageFor({ status: 409, detail: "solo se reenvian invitaciones pendientes" }, t))
+      .toBe("T:errors.notFound");
+  });
+
+  it("rechaza el archivo vacio sin ir al backend", () => {
+    expect(fileRejectionKey({ name: "lista.csv", size: 0 })).toBe("import.reject.empty");
+    expect(fileRejectionKey({ name: "lista.csv", size: 10 })).toBeNull();
   });
 });
