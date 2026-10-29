@@ -488,5 +488,64 @@
     "detailTitle": "Detalle diario",
     "downloadCsv": "Descargar CSV",
     "emptyPeriod": "No hay ventas en este periodo"
+  },
+  "companyAdmin": {
+    "accept": {
+      "pageTitle": "Activa tu cuenta",
+      "loading": "Revisando tu invitación…",
+      "welcome": "Te invitaron a unirte a {company}",
+      "newAccountIntro": "Elige una contraseña para activar tu cuenta.",
+      "joinIntro": "Tu cuenta ya existe. Confirma para unirte a este equipo.",
+      "password": "Contraseña",
+      "confirmPassword": "Confirma la contraseña",
+      "acceptPolicy": "Acepto la Política de Tratamiento de Datos",
+      "policyLink": "Leer la política",
+      "policyRequired": "Debes aceptar la Política de Tratamiento de Datos para continuar.",
+      "passwordRequired": "Elige una contraseña.",
+      "passwordMismatch": "Las dos contraseñas no coinciden.",
+      "activate": "Activar mi cuenta",
+      "confirmJoin": "Unirme a este equipo",
+      "working": "Activando…",
+      "badLinkTitle": "Este enlace ya no sirve",
+      "badLinkBody": "Puede haber vencido, haberse cancelado o haberse usado ya. Si todavía necesitas acceso, pídele a quien te invitó que lo envíe de nuevo.",
+      "goSignIn": "Ir a iniciar sesión"
+    },
+    "status": {
+      "active": "Activo",
+      "neverEntered": "No ha ingresado todavía",
+      "invited": "Invitado",
+      "expired": "Invitación vencida",
+      "deactivated": "Desactivado"
+    },
+    "errors": {
+      "already": "Esta persona ya está en tu equipo, o ya tiene una invitación pendiente.",
+      "rejected": "Este correo no se puede agregar a tu empresa.",
+      "invalidEmail": "Esa dirección de correo no es válida.",
+      "noCompany": "Tu cuenta todavía no está ligada a una empresa.",
+      "notFound": "Eso ya no está disponible. Recarga la página e intenta de nuevo.",
+      "forbidden": "No tienes permiso para hacer eso.",
+      "alreadyInCompany": "Esta cuenta ya pertenece a una empresa.",
+      "needsReview": "Esto necesita revisión manual. Contacta al administrador de la plataforma.",
+      "unavailable": "El servicio está despertando. Intenta de nuevo en un momento.",
+      "network": "No pudimos comunicarnos con el servidor. Revisa tu conexión e intenta de nuevo.",
+      "signedOut": "Tu sesión terminó. Inicia sesión de nuevo.",
+      "generic": "Algo salió mal. Intenta de nuevo."
+    },
+    "import": {
+      "category": {
+        "invite": "Se va a invitar",
+        "join": "Se va a invitar a unirse",
+        "already": "Ya está en tu equipo",
+        "rejected": "No se puede agregar",
+        "invalid": "Fila inválida — revisa el correo, o si está repetido en el archivo",
+        "error": "No se pudo crear",
+        "unknown": "Desconocido"
+      },
+      "reject": {
+        "notCsv": "Elige un archivo .csv.",
+        "empty": "Ese archivo está vacío.",
+        "tooBig": "Ese archivo es muy grande. El límite es {maxKb} KB."
+      }
+    }
   }
 }

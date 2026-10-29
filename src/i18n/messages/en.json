@@ -488,5 +488,64 @@
     "detailTitle": "Daily detail",
     "downloadCsv": "Download CSV",
     "emptyPeriod": "No sales in this period"
+  },
+  "companyAdmin": {
+    "accept": {
+      "pageTitle": "Activate your account",
+      "loading": "Checking your invitation…",
+      "welcome": "You've been invited to join {company}",
+      "newAccountIntro": "Set a password to activate your account.",
+      "joinIntro": "Your account already exists. Confirm to join this team.",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "acceptPolicy": "I accept the Data Processing Policy",
+      "policyLink": "Read the policy",
+      "policyRequired": "You must accept the Data Processing Policy to continue.",
+      "passwordRequired": "Choose a password.",
+      "passwordMismatch": "The two passwords do not match.",
+      "activate": "Activate my account",
+      "confirmJoin": "Join this team",
+      "working": "Activating…",
+      "badLinkTitle": "This link is no longer valid",
+      "badLinkBody": "It may have expired, been cancelled, or already been used. If you still need access, ask the person who invited you to send it again.",
+      "goSignIn": "Go to sign in"
+    },
+    "status": {
+      "active": "Active",
+      "neverEntered": "Has not signed in yet",
+      "invited": "Invited",
+      "expired": "Invitation expired",
+      "deactivated": "Deactivated"
+    },
+    "errors": {
+      "already": "This person is already on your team, or already has a pending invitation.",
+      "rejected": "This email cannot be added to your company.",
+      "invalidEmail": "That email address is not valid.",
+      "noCompany": "Your account is not linked to a company yet.",
+      "notFound": "That is no longer available. Reload the page and try again.",
+      "forbidden": "You do not have permission to do that.",
+      "alreadyInCompany": "This account already belongs to a company.",
+      "needsReview": "This needs manual review. Please contact the platform administrator.",
+      "unavailable": "The service is waking up. Try again in a moment.",
+      "network": "We could not reach the server. Check your connection and try again.",
+      "signedOut": "Your session ended. Sign in again.",
+      "generic": "Something went wrong. Try again."
+    },
+    "import": {
+      "category": {
+        "invite": "Will be invited",
+        "join": "Will be invited to join",
+        "already": "Already on your team",
+        "rejected": "Cannot be added",
+        "invalid": "Invalid row — check the email, or whether it is repeated in the file",
+        "error": "Could not be created",
+        "unknown": "Unknown"
+      },
+      "reject": {
+        "notCsv": "Choose a .csv file.",
+        "empty": "That file is empty.",
+        "tooBig": "That file is too large. The limit is {maxKb} KB."
+      }
+    }
   }
 }
