@@ -208,6 +208,7 @@ const ERROR_CODES = Object.freeze({
   unavailable: "unavailable",
   network: "network",
   signedOut: "signedOut",
+  throttled: "throttled",
   generic: "generic",
 });
 
@@ -225,6 +226,11 @@ const POR_ESTADO = Object.freeze({
   405: ERROR_CODES.generic,
   409: ERROR_CODES.already,
   422: ERROR_CODES.generic,
+  // El throttle de DRF. Su `detail` es prosa INGLESA ("Request was throttled.
+  // Expected available in N seconds."), asi que ademas de esta entrada hay una
+  // firma de texto: sin las dos, el jefe de un cliente hispanohablante lee
+  // ingles del framework.
+  429: ERROR_CODES.throttled,
   500: ERROR_CODES.unavailable,
   502: ERROR_CODES.unavailable,
   503: ERROR_CODES.unavailable,
@@ -257,6 +263,12 @@ const POR_TEXTO = [
   ["tiene datos asociados", ERROR_CODES.needsReview],
   ["tipo de invitacion desconocido", ERROR_CODES.generic],
   ["must be signed in", ERROR_CODES.signedOut],
+  // Los DOS textos en ingles que el backend devuelve tal cual y que el orden de
+  // `errorMessageFor` (codigo -> texto -> estado) pintaria crudos antes de
+  // llegar a POR_ESTADO. El del token vencido es el mas probable de los dos:
+  // `isAuthenticated()` solo comprueba que el token EXISTA, no que sirva.
+  ["token not valid", ERROR_CODES.signedOut],
+  ["request was throttled", ERROR_CODES.throttled],
   ["failed to fetch", ERROR_CODES.network],
   ["network request failed", ERROR_CODES.network],
   ["load failed", ERROR_CODES.network],

@@ -3,11 +3,12 @@
    table), con tokens únicamente.
 
    Dorado: `.btn-primary` (relleno dorado, global) es el ÚNICO elemento dorado,
-   y solo aparece en el estado vacío, que es la única vista con una acción
-   principal. La vista de la tabla no gasta dorado: ni borde superior de tarjeta
+   y aparece en las DOS vistas que tienen una acción principal, una sola vez en
+   cada una: el estado vacío (enviar la invitación) y la sesión vencida (iniciar
+   sesión). La vista de la tabla no gasta dorado: ni borde superior de tarjeta
    ni enlaces dorados, para no pasar del máximo de uno por pantalla que exige
-   claude.md §2.1. Las dos vistas son excluyentes, así que el máximo se cumple
-   en las dos. */
+   claude.md §2.1. Todas las vistas son excluyentes, así que el máximo se cumple
+   en cada una. */
 
 .page {
   background: var(--color-obsidian);
@@ -118,6 +119,13 @@
   color: var(--color-platinum);
 }
 
+/* Indicador VISIBLE de campo obligatorio, que claude.md §5.5 pide junto al
+   atributo `required`. En color de peligro, no en el dorado de marca, que está
+   reservado a un único elemento por pantalla. */
+.requerido {
+  color: var(--color-danger);
+}
+
 .input {
   font-family: var(--font-body);
   font-size: var(--text-base);
@@ -135,8 +143,12 @@
   outline-offset: 2px;
 }
 
+/* `.cardActions` es la fila de controles de una vista SIN formulario —la de
+   fallo de carga, que ofrece reintentar y volver al listado completo—, con el
+   mismo ritmo que las otras dos. */
 .searchActions,
-.inviteActions {
+.inviteActions,
+.cardActions {
   display: flex;
   align-items: center;
   gap: var(--space-4);

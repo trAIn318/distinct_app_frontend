@@ -9,16 +9,19 @@
  * `src/lib/companyAdmin.js`, que no tiene red ni React y está probada aparte.
  * Aquí solo quedan la carga, los estados de pantalla y la tabla.
  *
- * CUATRO situaciones que en pantalla se parecen y no son la misma. Se
+ * CINCO situaciones que en pantalla se parecen y no son la misma. Se
  * distinguen por el ESTADO del error, nunca por si hubo error:
  *   - 403              → no tiene acceso a esta pantalla.
  *   - 400              → su cuenta no está ligada a una empresa.
+ *   - 401              → su sesión venció: a iniciar sesión, NO a reintentar.
  *   - cualquier otro    → no pudimos cargar: error con reintentar.
  *   - carga OK y vacía → la pantalla que invita a empezar.
- * El estado de "empieza a invitar" se muestra SOLO cuando la carga fue exitosa
- * y el roster quedó vacío sin búsqueda. Mostrarlo tras un fallo invitaría al
- * jefe a actuar sobre datos que nunca llegaron, y en Render (plan free) el
- * servicio tarda hasta un minuto en despertar, así que el fallo pasa de verdad.
+ * El estado de "empieza a invitar" se muestra SOLO cuando la carga fue exitosa,
+ * tiene la FORMA esperada, el roster quedó vacío sin búsqueda y estamos en la
+ * primera página. Mostrarlo tras un fallo invitaría al jefe a actuar sobre
+ * datos que nunca llegaron, y en Render (plan free) el servicio tarda hasta un
+ * minuto en despertar, así que el fallo pasa de verdad. Mostrarlo en una página
+ * fuera de rango lo dejaría sin buscador ni paginador: sin camino de vuelta.
  *
  * Las acciones sobre una persona (invitar, reenviar, cancelar, editar,
  * desactivar, desvincular) son de la Tarea 7. Esta pantalla entrega la tabla
@@ -53,6 +56,7 @@ const FASE = {
   LISTO: "listo",
   SIN_ACCESO: "sinAcceso",     // 403: el rol no tiene el permiso
   SIN_EMPRESA: "sinEmpresa",   // 400: la cuenta no está ligada a una empresa
+  SESION_VENCIDA: "sesionVencida", // 401: el token existe pero ya no sirve
   FALLO: "fallo",              // todo lo demás: reintentable
 };
 
@@ -63,7 +67,21 @@ function faseDeError(err) {
   const status = err && err.status;
   if (status === 403) return FASE.SIN_ACCESO;
   if (status === 400) return FASE.SIN_EMPRESA;
+  // `isAuthenticated()` solo comprueba que el token EXISTA, no que sirva, así
+  // que un token vencido pasa el guard y el primer GET vuelve 401. Reintentar
+  // es la única acción que con un token vencido NO puede funcionar.
+  if (status === 401) return FASE.SESION_VENCIDA;
   return FASE.FALLO;
+}
+
+/** La respuesta del listado, solo si tiene la forma que esta pantalla sabe
+ *  leer. `_cuerpo()` en `api.js` devuelve `{}` ante cualquier cuerpo que no sea
+ *  JSON —un 200 del proxy de Render con una página HTML dentro llega así—, y
+ *  sin esta puerta un 200 vacío o malformado se presentaba como "tu empresa
+ *  está vacía": el mismo anti-objetivo que el fallo de carga, pero por la
+ *  puerta del ÉXITO. */
+function tieneForma(res) {
+  return Boolean(res) && Array.isArray(res.members);
 }
 
 export default function AdminCompanyClient() {
@@ -121,7 +139,10 @@ export default function AdminCompanyClient() {
           offset,
         });
         if (!vigente) return;
-        setDatos(res || {});
+        // Sin `detail` ni `status`: `errorMessageFor` da el mensaje genérico,
+        // que es exactamente lo que se sabe de un cuerpo que no se entiende.
+        if (!tieneForma(res)) throw new Error("");
+        setDatos(res);
         setErrorCarga(null);
         setFase(FASE.LISTO);
       } catch (err) {
@@ -139,12 +160,22 @@ export default function AdminCompanyClient() {
     };
   }, [ready, q, offset, intento]);
 
-  /** Vuelve a la pantalla de carga. La llama todo lo que cambia la petición
-   *  (buscar, limpiar, paginar, reintentar), porque es una acción de la persona
-   *  y no un efecto del render. */
+  /** Vuelve a la pantalla de carga Y garantiza una petición nueva. La llama
+   *  todo lo que cambia la petición (buscar, limpiar, paginar, reintentar),
+   *  porque es una acción de la persona y no un efecto del render.
+   *
+   *  El `setIntento` NO es opcional: la petición la dispara el efecto, cuyas
+   *  dependencias son [ready, q, offset, intento]. Fijar la fase en CARGANDO
+   *  sin mover ninguna de ellas dejaba la pantalla colgada para siempre —la
+   *  vista de CARGANDO es un solo <p>: sin buscador, sin paginador, sin
+   *  botón—, y la única salida era recargar. Pasaba con Buscar sobre la misma
+   *  consulta (pulsar Enter dos veces en un type=search lo produce), con
+   *  Limpiar sin búsqueda puesta y con paginar al mismo offset. `intento` cubre
+   *  la clase completa, no solo el caso de Buscar. */
   const empezarCarga = useCallback(() => {
     setFase(FASE.CARGANDO);
     setDespertando(false);
+    setIntento((n) => n + 1);
   }, []);
 
   const buscar = useCallback((e) => {
@@ -168,10 +199,17 @@ export default function AdminCompanyClient() {
     setOffset(siguiente);
   }, [empezarCarga]);
 
-  const reintentar = useCallback(() => {
-    empezarCarga();
-    setIntento((n) => n + 1);
-  }, [empezarCarga]);
+  const volverAlInicio = useCallback(() => {
+    irA(0);
+  }, [irA]);
+
+  /** Reintentar es `empezarCarga` tal cual: repite la MISMA petición, y el
+   *  `intento` que ya incrementa es lo que la dispara. */
+  const reintentar = empezarCarga;
+
+  const irALogin = useCallback(() => {
+    router.replace(`/login?next=${RUTA}`);
+  }, [router]);
 
   if (!ready) return null;
 
@@ -204,6 +242,22 @@ export default function AdminCompanyClient() {
     );
   }
 
+  // 401: la sesión venció. Un botón de reintentar aquí es la única acción que
+  // NO puede funcionar, y el texto crudo del backend ("Given token not valid
+  // for any token type") es prosa del framework en una interfaz que puede estar
+  // en español. La salida es iniciar sesión de nuevo, con ?next= para volver.
+  if (fase === FASE.SESION_VENCIDA) {
+    return (
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>{t("panel.signedOutTitle")}</h2>
+        <p className={styles.muted}>{t("panel.signedOutBody")}</p>
+        <button type="button" className="btn-primary" onClick={irALogin}>
+          {t("panel.signIn")}
+        </button>
+      </section>
+    );
+  }
+
   // La carga falló: el motivo real del backend —el panel es privado, así que
   // `errorMessageFor` va SIN `safe`— y un botón para volver a intentarlo.
   if (fase === FASE.FALLO) {
@@ -212,23 +266,66 @@ export default function AdminCompanyClient() {
         <h2 className={styles.cardTitle}>{t("panel.loadFailedTitle")}</h2>
         <p className={styles.muted}>{t("panel.loadFailedBody")}</p>
         <p className={styles.error} role="alert">{errorMessageFor(errorCarga, t)}</p>
-        <button
-          type="button"
-          className="btn-ghost"
-          onClick={reintentar}
-        >
-          {t("panel.retry")}
-        </button>
+        <div className={styles.cardActions}>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={reintentar}
+          >
+            {t("panel.retry")}
+          </button>
+          {/* Reintentar conserva `q`, así que repite LA BÚSQUEDA. Si la
+              búsqueda es justo lo que falló, sin esto no queda ningún control
+              para volver al listado completo: el buscador no está pintado en
+              esta vista. */}
+          {q && (
+            <button type="button" className={styles.link} onClick={limpiar}>
+              {t("panel.showAllAgain")}
+            </button>
+          )}
+        </div>
       </section>
     );
   }
 
   const total = Number(datos && datos.total) || 0;
-  const roster = filterRoster(buildRoster(datos || {}), q);
+  const invitacionesDelBackend = Array.isArray(datos && datos.invitations)
+    ? datos.invitations
+    : [];
 
-  // Empresa vacía DE VERDAD: carga exitosa, sin búsqueda y sin nadie. Es el
-  // caso de todo cliente nuevo, porque la carga la hace el jefe.
-  if (roster.length === 0 && !q) {
+  // Las invitaciones vuelven COMPLETAS en cada respuesta: el backend no las
+  // pagina (`company_admin_views.py:166-173` — `total` cuenta solo miembros y
+  // el arreglo de invitaciones vuelve entero, sin offset ni limit). Unirlas en
+  // cada página hacía aparecer a la misma persona una vez POR PÁGINA, y con las
+  // acciones de la Tarea 7 encima habría dos elementos con el mismo
+  // `data-actions-for`. Así que entran solo en la primera página, y la nota de
+  // abajo lo dice. El recorte se hace AQUÍ y no en `buildRoster`, que no sabe
+  // —ni tiene por qué— en qué página está la pantalla.
+  const fuente = offset === 0
+    ? (datos || {})
+    : { ...(datos || {}), invitations: [] };
+
+  // La búsqueda es MIXTA: el `?q=` del backend filtra solo a los miembros y
+  // `filterRoster` cubre la otra mitad, las invitaciones, que vuelven sin
+  // filtrar y sin nombre.
+  //
+  // ASIMETRÍA CONOCIDA Y NO ARREGLADA AQUÍ (se documenta a propósito):
+  // `filterRoster` normaliza acentos, pero el `?q=` del backend usa
+  // `icontains`, que en Postgres NO es insensible a acentos. Buscar "Munoz"
+  // ENCUENTRA a una persona invitada cuyo correo contiene "munoz" —vuelve sin
+  // filtrar y el filtro del navegador normaliza— y NO encuentra al miembro
+  // "Muñoz": el servidor ya no lo devolvió, y este filtro solo puede quitar
+  // filas, nunca traerlas. Simetrizarlo es un cambio de BACKEND con
+  // implicación de índice (la extensión `unaccent`), así que está fuera del
+  // alcance de esta pantalla.
+  const roster = filterRoster(buildRoster(fuente), q);
+
+  // Empresa vacía DE VERDAD: carga exitosa, sin búsqueda, en la PRIMERA página
+  // y sin nadie. Es el caso de todo cliente nuevo, porque la carga la hace el
+  // jefe. El `offset === 0` no es un detalle: sin él, una página que vuelve
+  // vacía —alguien desvinculó a cinco personas entre dos peticiones— afirmaba
+  // que la empresa está vacía y quitaba el buscador y el paginador.
+  if (roster.length === 0 && !q && offset === 0) {
     return (
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>{t("panel.emptyTitle")}</h2>
@@ -239,12 +336,19 @@ export default function AdminCompanyClient() {
         <form className={styles.inviteForm} onSubmit={invitarPendienteDeT7}>
           <label className={styles.fieldLabel} htmlFor="invite-email">
             {t("panel.emailLabel")}
+            {/* claude.md §5.5: campo obligatorio = atributo `required` MÁS un
+                indicador visible. El asterisco es el indicador; el texto entre
+                paréntesis es su equivalente para quien usa lector de pantalla,
+                porque un asterisco solo no se lee como "obligatorio". */}
+            <span className={styles.requerido} aria-hidden="true"> *</span>
+            <span className="sr-only"> ({t("accept.required")})</span>
           </label>
           <input
             className={styles.input}
             id="invite-email"
             name="email"
             type="email"
+            required
             autoComplete="off"
           />
           <div className={styles.inviteActions}>
@@ -256,13 +360,32 @@ export default function AdminCompanyClient() {
     );
   }
 
+  // Página fuera de rango: la lista se encogió entre dos peticiones. NO es la
+  // empresa vacía y no se le parece: hay gente, solo que no en esta página. Su
+  // único control es volver a la primera, porque el paginador de abajo no se
+  // pinta cuando no hay tabla.
+  if (roster.length === 0 && !q) {
+    return (
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>{t("panel.outOfRangeTitle")}</h2>
+        <p className={styles.muted}>{t("panel.outOfRangeBody")}</p>
+        <button type="button" className="btn-ghost" onClick={volverAlInicio}>
+          {t("panel.backToFirstPage")}
+        </button>
+      </section>
+    );
+  }
+
   // El contador cuenta MIEMBROS, que son los que el backend pagina y los que
-  // suma en `total`; las invitaciones vuelven completas y no caben en ese rango.
-  const enLaPagina = Array.isArray(datos && datos.members) ? datos.members.length : 0;
-  const desde = total === 0 ? 0 : offset + 1;
+  // suma en `total`; las invitaciones vuelven completas y no caben en ese
+  // rango. Por eso `panel.count` DICE su unidad ("of N team members"): antes la
+  // tabla pintaba miembros más invitaciones y el contador solo miembros, así
+  // que una empresa con 0 miembros y 2 invitaciones recién enviadas mostraba
+  // dos filas y decía "Showing 0–0 of 0".
+  const enLaPagina = datos.members.length;
+  const desde = offset + 1;
   const hasta = offset + enLaPagina;
   const hayMas = offset + POR_PAGINA < total;
-  const hayInvitaciones = roster.some((f) => f.kind === "invitation");
 
   return (
     <section className={styles.card}>
@@ -341,7 +464,12 @@ export default function AdminCompanyClient() {
 
           <div className={styles.pager}>
             <p className={styles.count}>
-              {t("panel.count", { from: desde, to: hasta, total })}
+              {/* Hay filas, pero ninguna es miembro: son invitaciones
+                  pendientes. Decir "0–0 of 0" delante de dos filas es falso;
+                  esta clave dice la verdad Y explica las filas. */}
+              {total === 0
+                ? t("panel.countNoMembers")
+                : t("panel.count", { from: desde, to: hasta, total })}
             </p>
             <div className={styles.pagerButtons}>
               <button
@@ -366,8 +494,11 @@ export default function AdminCompanyClient() {
           {/* Las invitaciones pendientes vuelven COMPLETAS del backend: no se
               paginan, así que se listan en la primera página y se dice, en vez
               de repetirlas en todas y hacer aparecer dos veces a la misma
-              persona al avanzar. */}
-          {total > POR_PAGINA && hayInvitaciones && (
+              persona al avanzar.
+              La condición mira lo que DEVOLVIÓ el backend, no lo que quedó en
+              el roster: en la página 2 el roster ya no las tiene, y es justo
+              ahí donde el jefe necesita saber dónde están. */}
+          {invitacionesDelBackend.length > 0 && (hayMas || offset > 0) && (
             <p className={styles.muted}>{t("panel.pendingNote")}</p>
           )}
         </>

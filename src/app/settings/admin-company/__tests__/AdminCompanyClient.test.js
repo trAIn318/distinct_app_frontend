@@ -396,3 +396,318 @@ describe("el lugar donde la Tarea 7 engancha las acciones", () => {
     expect(document.querySelector('[data-actions-for="invitation:7"]')).not.toBeNull();
   });
 });
+
+// ── Ronda de arreglos 1 ─────────────────────────────────────────────────────
+
+/** `cuantos` miembros consecutivos, para armar paginas de 25. */
+function personas(desde, cuantos) {
+  return Array.from({ length: cuantos }, (_, i) => miembro({
+    id: desde + i,
+    name: `u${desde + i}`,
+    email: `p${String(desde + i).padStart(3, "0")}@hotel.com`,
+    firstname: "P",
+    lastname: String(desde + i).padStart(3, "0"),
+  }));
+}
+
+/** El primer argumento de la ultima llamada al backend. */
+function ultimaPeticion() {
+  return getCompanyMembers.mock.calls.at(-1)[0];
+}
+
+describe("C1 — toda accion de la persona garantiza una peticion nueva", () => {
+  // `empezarCarga` fija fase=CARGANDO, pero el fetch lo dispara un efecto con
+  // dependencias [ready, q, offset, intento]. Si la consulta no cambia, el
+  // efecto no vuelve a correr y nadie saca a la pantalla de CARGANDO, cuya
+  // vista es un solo <p role="status">: sin buscador, sin paginador, sin boton.
+  // La unica salida es recargar.
+
+  it("Buscar con el campo vacio desde la tabla ya cargada no congela la pantalla", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByText("Juan Perez")).toBeInTheDocument());
+    const antes = getCompanyMembers.mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => {
+      expect(getCompanyMembers.mock.calls.length).toBe(antes + 1);
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+  });
+
+  it("Buscar dos veces con el mismo texto deja la tabla a la vista", async () => {
+    // El campo es type=search dentro de un form, asi que pulsar Enter dos veces
+    // —habito universal— produce exactamente esto.
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByText("Juan Perez")).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText(/search by name or email/i), {
+      target: { value: "juan" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => {
+      expect(getCompanyMembers).toHaveBeenLastCalledWith(expect.objectContaining({ q: "juan" }));
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+    const antes = getCompanyMembers.mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => {
+      expect(getCompanyMembers.mock.calls.length).toBe(antes + 1);
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+  });
+
+  it("Buscar con solo espacios tampoco deja la pantalla sin salida", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByText("Juan Perez")).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText(/search by name or email/i), {
+      target: { value: "   " },
+    });
+    const antes = getCompanyMembers.mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => {
+      expect(getCompanyMembers.mock.calls.length).toBe(antes + 1);
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+    // Y el texto en blanco no se manda como busqueda.
+    expect(ultimaPeticion()).toEqual({ limit: 25, offset: 0 });
+  });
+});
+
+describe("C2+C3 — lo que la pagina pinta y lo que el contador cuenta", () => {
+  // Medido en el backend (company_admin_views.py:166-173): `total = qs.count()`
+  // cuenta SOLO miembros, e `invitations` vuelve COMPLETO en cada respuesta,
+  // sin offset ni limit.
+
+  it("0 miembros y 2 invitaciones: el contador no dice 0 de 0 delante de dos filas", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({
+      members: [],
+      invitations: [
+        { id: 7, email: "uno@hotel.com", expired: false },
+        { id: 8, email: "dos@hotel.com", expired: false },
+      ],
+      total: 0,
+    }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(filas()).toHaveLength(2));
+    expect(screen.getByText(/no team members yet/i)).toBeInTheDocument();
+    expect(screen.queryByText(/0.0 of 0/)).not.toBeInTheDocument();
+  });
+
+  it("la persona invitada aparece UNA sola vez en todo el listado", async () => {
+    // Con las acciones de la Tarea 7 encima, repetirla por pagina daria DOS
+    // elementos con el mismo data-actions-for.
+    const inv = { id: 7, email: "zz.invitada@hotel.com", expired: false };
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), invitations: [inv], total: 32 }))
+      .mockResolvedValueOnce(respuesta({ members: personas(26, 7), invitations: [inv], total: 32 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(filas()).toHaveLength(26));
+    expect(screen.getByText("zz.invitada@hotel.com")).toBeInTheDocument();
+    // La nota es verdad en la pagina 1...
+    expect(screen.getByText(/first page only/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() => expect(filas()).toHaveLength(7));
+    expect(screen.queryByText("zz.invitada@hotel.com")).not.toBeInTheDocument();
+    // ...y es justo en la pagina 2 donde hace falta, donde el roster ya no las
+    // tiene. Por eso la condicion mira lo que DEVOLVIO el backend.
+    expect(screen.getByText(/first page only/i)).toBeInTheDocument();
+  });
+
+  it("m3: la nota de pendientes NO sale cuando todo cabe en una pagina", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({
+      members: [miembro()],
+      invitations: [{ id: 7, email: "zoe@hotel.com", expired: false }],
+      total: 1,
+    }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(filas()).toHaveLength(2));
+    expect(screen.queryByText(/first page/i)).not.toBeInTheDocument();
+  });
+
+  it("m4: el contador cuenta MIEMBROS y lo dice, no cuenta las filas que se ven", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({
+      members: [miembro()],
+      invitations: [
+        { id: 7, email: "a.invitada@hotel.com", expired: false },
+        { id: 8, email: "b.invitada@hotel.com", expired: false },
+      ],
+      total: 1,
+    }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(filas()).toHaveLength(3));
+    expect(screen.getByText(/showing 1.1 of 1 team members/i)).toBeInTheDocument();
+    expect(screen.queryByText(/of 3/)).not.toBeInTheDocument();
+  });
+
+  it("buscar el correo de una persona invitada la encuentra", async () => {
+    const inv = { id: 7, email: "zoe@hotel.com", expired: false };
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: [miembro()], invitations: [inv], total: 1 }))
+      .mockResolvedValue(respuesta({ members: [], invitations: [inv], total: 0 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(filas()).toHaveLength(2));
+    fireEvent.change(screen.getByLabelText(/search by name or email/i), {
+      target: { value: "zoe@hotel.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => {
+      expect(screen.getByText("zoe@hotel.com")).toBeInTheDocument();
+      expect(filas()).toHaveLength(1);
+    });
+  });
+});
+
+describe("I1 — una pagina que vuelve vacia", () => {
+  it("no se presenta como empresa vacia, y tiene camino de vuelta", async () => {
+    // Alguien desvinculo a 5 personas entre las dos peticiones.
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), total: 30 }))
+      .mockResolvedValueOnce(respuesta({ members: [], invitations: [], total: 30 }))
+      .mockResolvedValue(respuesta({ members: personas(1, 25), total: 25 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /next/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() => expect(screen.getByText(/this page no longer has anyone/i)).toBeInTheDocument());
+    expect(screen.queryByText(EMPEZAR)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /go to the first page/i }));
+    await waitFor(() => expect(ultimaPeticion().offset).toBe(0));
+  });
+});
+
+describe("I2 — un 200 cuyo cuerpo no tiene la forma esperada", () => {
+  // `_cuerpo()` en api.js devuelve {} ante cualquier cuerpo que no sea JSON: un
+  // 200 del proxy con HTML dentro llega asi. La prueba del fallo usa un
+  // RECHAZO, asi que no cubre esta puerta, la del EXITO.
+  for (const [nombre, cuerpo] of [["{}", {}], ["null", null]]) {
+    it(`resolver ${nombre} es un fallo con reintentar, no una empresa vacia`, async () => {
+      getCompanyMembers.mockResolvedValue(cuerpo);
+      render(<AdminCompanyClient />);
+      await waitFor(() => expect(screen.getByRole("button", { name: REINTENTAR })).toBeInTheDocument());
+      expect(screen.queryByText(EMPEZAR)).not.toBeInTheDocument();
+      expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    });
+  }
+});
+
+describe("I3 e I4 — los dos errores que pintaban ingles del framework", () => {
+  it("I3: la sesion vencida (401) tiene su propio estado, con ir a iniciar sesion", async () => {
+    // `isAuthenticated()` solo comprueba que EXISTA un token, no que sirva.
+    getCompanyMembers.mockRejectedValue(Object.assign(
+      new Error("Given token not valid for any token type"),
+      { status: 401 },
+    ));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByText(/your session ended/i)).toBeInTheDocument());
+    expect(document.body.textContent).not.toMatch(/token not valid/i);
+    // Reintentar es la unica accion que NO puede funcionar con un token vencido.
+    expect(screen.queryByRole("button", { name: REINTENTAR })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
+    expect(replace).toHaveBeenCalledWith("/login?next=/settings/admin-company");
+  });
+
+  it("I4: un 429 del throttle no pinta la prosa inglesa del framework", async () => {
+    getCompanyMembers.mockRejectedValue(Object.assign(
+      new Error("Request was throttled. Expected available in 42 seconds."),
+      { status: 429 },
+    ));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByText(/too many requests/i)).toBeInTheDocument());
+    expect(document.body.textContent).not.toMatch(/throttled/i);
+  });
+});
+
+describe("I5 — una busqueda que falla no es un callejon sin salida", () => {
+  it("ofrece volver al listado completo, y lo pide SIN q", async () => {
+    // `reintentar` conserva `q`, asi que repite LA BUSQUEDA: sin este control no
+    // queda forma de volver al listado completo.
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: [miembro()], total: 1 }))
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByText("Juan Perez")).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText(/search by name or email/i), {
+      target: { value: "nadie" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => expect(screen.getByRole("button", { name: REINTENTAR })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /show everyone again/i }));
+    await waitFor(() => {
+      expect(ultimaPeticion()).not.toHaveProperty("q");
+      expect(ultimaPeticion().offset).toBe(0);
+      expect(screen.getByText("Juan Perez")).toBeInTheDocument();
+    });
+  });
+});
+
+describe("los controles de la pantalla que ninguna prueba sostenia", () => {
+  it("m1: con un total multiplo de la pagina, la ultima pagina no deja avanzar", async () => {
+    // El borde exacto: total 50, offset 25. Con `<=` en vez de `<` habria una
+    // pagina 3 que vuelve vacia.
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), total: 50 }))
+      .mockResolvedValueOnce(respuesta({ members: personas(26, 25), total: 50 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /next/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() => expect(screen.getByText(/26.50 of 50/)).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /previous/i })).toBeEnabled();
+  });
+
+  it("m2: Limpiar vuelve al listado completo y vacia el campo", async () => {
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: [miembro()], total: 1 }))
+      .mockResolvedValueOnce(respuesta({ members: [miembro()], total: 1 }))
+      .mockResolvedValue(respuesta({
+        members: [
+          miembro(),
+          miembro({ id: 2, name: "abravo", email: "ana@hotel.com", firstname: "Ana", lastname: "Bravo" }),
+        ],
+        total: 2,
+      }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByText("Juan Perez")).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText(/search by name or email/i), {
+      target: { value: "juan" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /^clear$/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /^clear$/i }));
+    await waitFor(() => {
+      expect(ultimaPeticion()).not.toHaveProperty("q");
+      expect(ultimaPeticion().offset).toBe(0);
+      expect(screen.getByText("Ana Bravo")).toBeInTheDocument();
+    });
+    expect(screen.getByLabelText(/search by name or email/i)).toHaveValue("");
+    expect(screen.queryByRole("button", { name: /^clear$/i })).not.toBeInTheDocument();
+  });
+
+  it("m2: Anterior retrocede una pagina, no avanza", async () => {
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), total: 60 }))
+      .mockResolvedValueOnce(respuesta({ members: personas(26, 25), total: 60 }))
+      .mockResolvedValue(respuesta({ members: personas(1, 25), total: 60 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /next/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() => expect(screen.getByText(/26.50 of 60/)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /previous/i }));
+    await waitFor(() => expect(ultimaPeticion().offset).toBe(0));
+    await waitFor(() => expect(screen.getByText(/1.25 of 60/)).toBeInTheDocument());
+  });
+
+  it("m6: el campo de correo del estado vacio es obligatorio, con indicador visible", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [], invitations: [], total: 0 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByText(EMPEZAR)).toBeInTheDocument());
+    expect(screen.getByLabelText(/email address/i)).toBeRequired();
+    const etiqueta = document.querySelector('label[for="invite-email"]');
+    const visible = [...etiqueta.querySelectorAll("span")]
+      .filter((s) => !String(s.className).includes("sr-only"));
+    expect(visible.some((s) => s.textContent.includes("*"))).toBe(true);
+    // Y el indicador visible tiene su equivalente para lector de pantalla.
+    expect(etiqueta.textContent).toMatch(/required/i);
+  });
+});

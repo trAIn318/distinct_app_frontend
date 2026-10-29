@@ -527,3 +527,27 @@ describe("lo que encontro la re-revision", () => {
     expect(fileRejectionKey({ name: "lista.pdf", size: 0 })).toBe("import.reject.notCsv");
   });
 });
+
+describe("los dos textos crudos que el backend pinta en ingles", () => {
+  it("I3: el 401 de un token vencido se traduce, no se muestra crudo", () => {
+    // `isAuthenticated()` solo comprueba que EXISTA un token, no que sirva, asi
+    // que un token vencido pasa el guard y el primer GET es un 401 cuyo detail
+    // es "Given token not valid for any token type". El orden de
+    // `errorMessageFor` consulta el texto del backend ANTES del estado (Tarea
+    // 3, no se reabre), asi que lo que lo arregla es una FIRMA de texto.
+    expect(errorMessageFor({ status: 401, detail: "Given token not valid for any token type" }, t))
+      .toBe("T:errors.signedOut");
+    // Y tambien desde una pantalla que no mira el estado.
+    expect(errorMessageFor(new Error("Given token not valid for any token type"), t))
+      .toBe("T:errors.signedOut");
+  });
+
+  it("I4: el 429 del throttle tiene su propio codigo, por texto y por estado", () => {
+    expect(errorMessageFor(
+      { status: 429, detail: "Request was throttled. Expected available in 42 seconds." },
+      t,
+    )).toBe("T:errors.throttled");
+    // Sin `detail` el estado solo ya identifica el caso.
+    expect(errorMessageFor({ status: 429 }, t)).toBe("T:errors.throttled");
+  });
+});
