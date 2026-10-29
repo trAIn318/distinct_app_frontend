@@ -508,7 +508,14 @@
       "working": "Activando…",
       "badLinkTitle": "Este enlace ya no sirve",
       "badLinkBody": "Puede haber vencido, haberse cancelado o haberse usado ya. Si todavía necesitas acceso, pídele a quien te invitó que lo envíe de nuevo.",
-      "goSignIn": "Ir a iniciar sesión"
+      "goSignIn": "Ir a iniciar sesión",
+      "passwordTooShort": "Usa al menos 8 caracteres.",
+      "welcomeNoCompany": "Te invitaron a unirte a un equipo",
+      "waking": "El servicio está despertando. Puede tardar hasta un minuto…",
+      "loadFailedTitle": "No pudimos revisar tu invitación",
+      "loadFailedBody": "El servicio puede estar despertando, o se cayó tu conexión. Tu enlace sigue sirviendo — vuelve a intentar.",
+      "retry": "Intentar de nuevo",
+      "required": "Obligatorio"
     },
     "status": {
       "active": "Activo",

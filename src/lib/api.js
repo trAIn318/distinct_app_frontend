@@ -564,11 +564,38 @@ async function _cuerpo(res) {
   }
 }
 
-/** Convierte una respuesta no-ok en un Error con todo lo que el backend dio. */
+/** Convierte una respuesta no-ok en un Error con todo lo que el backend dio.
+ *
+ * El mensaje NO lleva prosa inventada en inglés. `companyAdmin.errorMessageFor`
+ * usa el texto crudo del error como penúltimo recurso, así que una frase en
+ * inglés puesta aquí se pintaba LITERALMENTE en una interfaz en español cada
+ * vez que el backend no mandaba `detail` (un 500 de Django, por ejemplo). El
+ * texto que lee la persona lo decide esa función, con sus claves i18n; aquí
+ * solo viaja lo que el backend dijo, más el estado para que pueda traducirlo.
+ *
+ * `respaldo` queda como mensaje de diagnóstico para la consola cuando no hay
+ * nada del backend, nunca como texto de pantalla: va a `devMessage`.
+ */
 function _errorDe(res, data, respaldo) {
-  const err = new Error(data.detail || respaldo || `Error ${res.status}`);
+  const err = new Error(data.detail || "");
   err.status = res.status;
-  if (data.errors !== undefined) err.errors = data.errors;
+  err.devMessage = respaldo || `HTTP ${res.status}`;
+
+  if (data.errors !== undefined) {
+    err.errors = data.errors;
+    return err;
+  }
+  // CUARTA forma de error del backend: los errores de campo de DRF al TOPE del
+  // cuerpo, sin envolver. Es lo que devuelve `invitation_accept_view` en su 400
+  // (`Response(ser.errors, 400)`), por ejemplo cuando la contraseña no llega a
+  // los 8 caracteres que exige el serializador. Sin leerla, la persona invitada
+  // veía un mensaje que no decía nada en la única pantalla que debe pasar para
+  // existir en el sistema.
+  const campos = Object.entries(data).filter(
+    ([, v]) => typeof v === "string"
+      || (Array.isArray(v) && v.some((x) => typeof x === "string")),
+  );
+  if (campos.length) err.errors = Object.fromEntries(campos);
   return err;
 }
 
@@ -620,8 +647,11 @@ async function _apiUpload(path, file, respaldo) {
  * backend lo omite a propósito para no confirmar que una dirección fue invitada.
  */
 export async function getInvitationInfo(token) {
-  const res = await fetch(`${API_URL}/api/invitations/${encodeURIComponent(token)}/`, {
-    headers: { "Content-Type": "application/json" },
+  // fetchResilient, no `fetch` pelado: esta es la PRIMERA peticion que hace una
+  // persona nueva, y en Render free el servicio tarda ~30-60 s en despertar. El
+  // login ya usa este helper por el mismo motivo; aqui hacia mas falta todavia,
+  // porque un fallo se le presentaba como "tu enlace esta muerto".
+  const res = await fetchResilient(`${API_URL}/api/invitations/${encodeURIComponent(token)}/`, {
     cache: "no-store",
   });
   const data = await _cuerpo(res);

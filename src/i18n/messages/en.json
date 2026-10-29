@@ -508,7 +508,14 @@
       "working": "Activating…",
       "badLinkTitle": "This link is no longer valid",
       "badLinkBody": "It may have expired, been cancelled, or already been used. If you still need access, ask the person who invited you to send it again.",
-      "goSignIn": "Go to sign in"
+      "goSignIn": "Go to sign in",
+      "passwordTooShort": "Use at least 8 characters.",
+      "welcomeNoCompany": "You've been invited to join a team",
+      "waking": "The service is waking up. This can take up to a minute…",
+      "loadFailedTitle": "We could not check your invitation",
+      "loadFailedBody": "The service may be waking up, or your connection dropped. Your link is still fine — try again.",
+      "retry": "Try again",
+      "required": "Required"
     },
     "status": {
       "active": "Active",

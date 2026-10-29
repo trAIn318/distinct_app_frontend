@@ -218,6 +218,14 @@ const POR_ESTADO = Object.freeze({
   404: ERROR_CODES.notFound,
   // 502 y 504 los devuelve el proxy de Render cuando el servicio free esta
   // despertando: es el escenario numero 1 del Review Focus del plan.
+  // Sin estos, un backend que responde sin `detail` -un 500 de Django, un 405
+  // por un metodo equivocado- caia en el texto crudo del Error, que antes era
+  // prosa en ingles inventada por la capa de red.
+  400: ERROR_CODES.generic,
+  405: ERROR_CODES.generic,
+  409: ERROR_CODES.already,
+  422: ERROR_CODES.generic,
+  500: ERROR_CODES.unavailable,
   502: ERROR_CODES.unavailable,
   503: ERROR_CODES.unavailable,
   504: ERROR_CODES.unavailable,
@@ -282,7 +290,10 @@ function textoDeError(error) {
   const deLista = Array.isArray(e.errors)
     ? e.errors
     : (e.errors && typeof e.errors === "object" ? Object.values(e.errors) : []);
-  const primero = deLista.find((x) => typeof x === "string" && x.trim());
+  // Los valores pueden ser strings o ARREGLOS de strings: DRF devuelve
+  // {"password": ["Ensure this field has at least 8 characters."]}.
+  const planos = deLista.flatMap((x) => (Array.isArray(x) ? x : [x]));
+  const primero = planos.find((x) => typeof x === "string" && x.trim());
   if (primero) return primero;
   return e.message || e.detail || "";
 }
@@ -294,24 +305,44 @@ function codigoDe(error) {
   for (const [firma, codigo] of POR_TEXTO) {
     if (mensaje.includes(firma)) return codigo;
   }
-  if (Object.hasOwn(POR_ESTADO, e.status)) return POR_ESTADO[e.status];
   return null;
+}
+
+/** Código deducido del estado HTTP. Se consulta DESPUES del texto del backend:
+ *  un 422 que explica "el archivo supera el máximo de 50 filas" dice mucho más
+ *  que un "algo salió mal" genérico, así que el texto manda y el estado solo
+ *  cubre los casos en que el backend no dijo nada. */
+function codigoPorEstado(error) {
+  const e = error || {};
+  return Object.hasOwn(POR_ESTADO, e.status) ? POR_ESTADO[e.status] : null;
 }
 
 /**
  * Texto que ve la persona para un error. `t` es el `useT("companyAdmin")` de la
  * pantalla.
  *
- * Orden: código reconocido → firma de texto conocida → estado HTTP → el texto
- * crudo del backend → un mensaje genérico. Nunca devuelve cadena vacía: un
- * fallo silencioso está prohibido.
+ * Orden: código reconocido → firma de texto conocida → el texto del backend →
+ * estado HTTP → un mensaje genérico. Con `{ safe: true }` se salta el paso del
+ * texto del backend, para pantallas públicas. Nunca devuelve cadena vacía: un fallo
+ * silencioso está prohibido.
+ *
+ * El texto va ANTES del estado a propósito: un 422 que explica "el archivo
+ * supera el máximo de 50 filas" dice mucho más que un genérico. Y el estado
+ * puede ir al final sin riesgo porque `api.js` ya no inventa prosa en inglés
+ * como mensaje: lo único que llega ahí es lo que el backend dijo.
  */
-export function errorMessageFor(error, t) {
+export function errorMessageFor(error, t, { safe = false } = {}) {
   const tr = typeof t === "function" ? t : (clave) => clave;
   const codigo = codigoDe(error);
   if (codigo) return tr(`${ERROR_KEY_PREFIX}${codigo}`);
-  const crudo = texto(textoDeError(error));
-  return crudo || tr(`${ERROR_KEY_PREFIX}${ERROR_CODES.generic}`);
+  // `safe` para pantallas PUBLICAS: nunca se pinta el texto crudo del backend,
+  // porque bastaria un mensaje futuro que mencione una direccion para romper la
+  // garantia de privacidad del backend (no revelar que un correo fue invitado).
+  const crudo = safe ? "" : texto(textoDeError(error));
+  if (crudo) return crudo;
+  const porEstado = codigoPorEstado(error);
+  if (porEstado) return tr(`${ERROR_KEY_PREFIX}${porEstado}`);
+  return tr(`${ERROR_KEY_PREFIX}${ERROR_CODES.generic}`);
 }
 
 // ── Carga por archivo ──────────────────────────────────────────────────────

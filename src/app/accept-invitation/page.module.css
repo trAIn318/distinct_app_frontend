@@ -1,10 +1,16 @@
-/* Activar invitación. Solo tokens: ningún color, tamaño ni espaciado literal. */
+/* Activar invitación.
+   Colores y espaciados: SOLO tokens. Los dos tamaños literales (`max-width`
+   y el `calc` del alto) son medidas de maquetación, como en el resto del
+   repo; la cabecera anterior afirmaba que no había ninguno y era falso. */
 
+/* Fondo obsidiana, no charcoal: en el tema claro `--color-charcoal` vale
+   #FFFFFF, y claude.md §2.1 prohibe el blanco puro. Es ademas lo que usan
+   login, forgot-password y account. */
 .page {
   padding-top: var(--space-12);
   padding-bottom: var(--space-12);
-  background-color: var(--color-charcoal);
-  min-height: 70vh;
+  background-color: var(--color-obsidian);
+  min-height: calc(100vh - 80px);
 }
 
 .wrapper {
@@ -21,12 +27,15 @@
   margin-bottom: var(--space-6);
 }
 
+/* `--color-platinum`, no `--color-smoke`: medido, smoke da 3.36:1 sobre el
+   fondo oscuro y AA pide 4.5. Afectaba a los unicos textos que explican que
+   hacer, y el resto del repo ya usa platinum para texto secundario. */
 .estado,
 .intro {
   font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: 1.618;
-  color: var(--color-smoke);
+  color: var(--color-platinum);
 }
 
 .bienvenida {
@@ -56,10 +65,16 @@
 /* Etiqueta propia asociada al campo, no un placeholder: claude.md lo exige. */
 .label {
   font-family: var(--font-label);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-smoke);
+  color: var(--color-platinum);
+}
+
+/* Indicador visible de campo obligatorio, que claude.md §5.5 pide junto al
+   atributo `required`. En color de peligro, no en el dorado de marca. */
+.requerido {
+  color: var(--color-danger);
 }
 
 .input {
@@ -73,7 +88,7 @@
 }
 
 .input:focus-visible {
-  outline: 2px solid var(--color-gold);
+  outline: 2px solid var(--color-ivory);
   outline-offset: 2px;
 }
 
@@ -93,19 +108,24 @@
   font-size: var(--text-sm);
   color: var(--color-ivory);
   text-decoration: underline;
-  text-decoration-color: var(--color-smoke);
+  text-decoration-color: var(--color-platinum);
   text-underline-offset: 0.25em;
 }
 
 /* El error va DEBAJO de su campo, nunca en un alert(). */
+/* Color de PELIGRO, no el dorado de marca: en este repo `.btn-primary` ya es
+   dorado relleno, asi que el boton de enviar gasta el unico elemento dorado que
+   claude.md permite por pantalla. Y el resto del producto usa estos tokens para
+   errores, asi que el dorado aqui significaba lo contrario. */
 .errorCampo,
 .errorEnvio {
   font-family: var(--font-body);
   font-size: var(--text-sm);
   line-height: 1.618;
   color: var(--color-ivory);
-  border-left: 2px solid var(--color-gold);
-  padding-left: var(--space-3);
+  background-color: var(--color-danger-surface);
+  border-left: 2px solid var(--color-danger);
+  padding: var(--space-3);
 }
 
 .aviso {
@@ -126,5 +146,5 @@
   font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: 1.618;
-  color: var(--color-smoke);
+  color: var(--color-platinum);
 }
