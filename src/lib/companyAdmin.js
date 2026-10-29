@@ -130,6 +130,7 @@ export function buildRoster(payload) {
       id: m.id,
       email,
       displayName,
+      name: texto(m.name),   // usr_name: el ?q= del backend lo busca
       status: memberStatus(m),
       canAct: m.rol_id === ROL_STAFF,
     });
@@ -174,7 +175,13 @@ export function filterRoster(rows, q) {
   const aguja = normalizar(q).trim();
   if (!aguja) return filas.slice();
   return filas.filter((f) => {
-    const campos = `${normalizar(f && f.displayName)} ${normalizar(f && f.email)}`;
+    // CUATRO campos, los mismos que el ?q= del backend
+    // (usr_name | usr_email | usr_firstname | usr_lastname). Con dos, buscar
+    // por el nombre de usuario encontraba a la persona en el servidor y este
+    // filtro la escondia: tabla vacia con el contador diciendo 1.
+    const campos = [f && f.displayName, f && f.email, f && f.name]
+      .map(normalizar)
+      .join("");
     return campos.includes(aguja);
   });
 }
@@ -232,7 +239,15 @@ const POR_TEXTO = [
   ["not found or no longer valid", ERROR_CODES.notFound],
   ["temporarily unable", ERROR_CODES.unavailable],
   // Texto interno del backend; sin firma se mostraria literal al cliente.
+  // Los CINCO textos internos que el backend devuelve tal cual en los 409 de
+  // reenviar y cancelar. Sin firma se muestran literales al jefe de un cliente,
+  // y uno de ellos ENUMERA NOMBRES DE TABLAS de la base de datos. Arreglar solo
+  // el del reenvio dejaba viva la mitad peor de la misma familia.
   ["solo se reenvian", ERROR_CODES.notFound],
+  ["ya no esta pendiente", ERROR_CODES.notFound],
+  ["ya activo su cuenta", ERROR_CODES.already],
+  ["tiene datos asociados", ERROR_CODES.needsReview],
+  ["tipo de invitacion desconocido", ERROR_CODES.generic],
   ["must be signed in", ERROR_CODES.signedOut],
   ["failed to fetch", ERROR_CODES.network],
   ["network request failed", ERROR_CODES.network],
@@ -242,7 +257,7 @@ const POR_TEXTO = [
 function normalizar(valor) {
   return String(valor || "")
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")   // marcas combinantes, con escapes
+    .replace(/[\u0300-\u036f]/g, "")   // marcas combinantes, con escapes
     .toLowerCase();
 }
 
@@ -258,7 +273,17 @@ function normalizar(valor) {
 function textoDeError(error) {
   if (typeof error === "string") return error;
   const e = error || {};
-  if (Array.isArray(e.errors) && e.errors.length) return String(e.errors[0] || "");
+  // Tres formas, no dos. `errors` llega como ARREGLO en los errores de archivo
+  // completo y como OBJETO por campo en la edicion de un miembro
+  // (MemberEditError). Sin la segunda, la pantalla de editar mostraria el
+  // mensaje generico para TODA validacion de campo. m1/m2: se descartan los
+  // elementos en blanco y los que no son texto, para no pintar
+  // "[object Object]" al cliente ni tragarse un `message` con firma conocida.
+  const deLista = Array.isArray(e.errors)
+    ? e.errors
+    : (e.errors && typeof e.errors === "object" ? Object.values(e.errors) : []);
+  const primero = deLista.find((x) => typeof x === "string" && x.trim());
+  if (primero) return primero;
   return e.message || e.detail || "";
 }
 

@@ -442,3 +442,88 @@ describe("lo que la revision encontro sin cercar", () => {
     expect(fileRejectionKey({ name: "lista.csv", size: 10 })).toBeNull();
   });
 });
+
+describe("lo que encontro la re-revision", () => {
+  it("filterRoster busca en los MISMOS campos que el ?q= del backend", () => {
+    // El backend busca en usr_name | usr_email | usr_firstname | usr_lastname.
+    // Con dos campos, buscar por el nombre de usuario encontraba a la persona
+    // en el servidor y este filtro la escondia: tabla vacia con el contador
+    // diciendo 1. Es el caso mas natural de busqueda.
+    const r = buildRoster({
+      members: [{ id: 1, name: "jperez", email: "juan@hotel.com",
+                  firstname: "Juan", lastname: "Perez", rol_id: 3,
+                  active: true, last_login: null }],
+    });
+    expect(filterRoster(r, "jperez").map((f) => f.id)).toEqual([1]);
+    expect(filterRoster(r, "juan").map((f) => f.id)).toEqual([1]);
+    expect(filterRoster(r, "perez").map((f) => f.id)).toEqual([1]);
+  });
+
+  it("el NOMBRE es la clave primaria del orden, no el correo", () => {
+    // Las pruebas anteriores usaban datos donde los dos criterios coincidian,
+    // asi que hacer del correo la clave primaria pasaba en verde.
+    const r = buildRoster({
+      members: [
+        { id: 1, email: "zz@x.com", firstname: "Ana", rol_id: 3, active: true, last_login: null },
+        { id: 2, email: "aa@x.com", firstname: "Ana", lastname: "Beta", rol_id: 3, active: true, last_login: null },
+      ],
+    });
+    expect(r.map((f) => f.displayName)).toEqual(["Ana", "Ana Beta"]);
+  });
+
+  it("el orden usa un idioma explicito y no el del sistema", () => {
+    // Sin idioma explicito, localeCompare usa el del runtime y dos personas con
+    // el mismo panel ven dos ordenes distintos.
+    const r = buildRoster({
+      members: [
+        { id: 1, email: "a@x.com", firstname: "Zoe", rol_id: 3, active: true, last_login: null },
+        { id: 2, email: "b@x.com", firstname: "Ángel", rol_id: 3, active: true, last_login: null },
+        { id: 3, email: "c@x.com", firstname: "Ñandu", rol_id: 3, active: true, last_login: null },
+      ],
+    });
+    // En "en", los acentuados se plegan a su base: Angel, Nandu, Zoe.
+    expect(r.map((f) => f.displayName)).toEqual(["Ángel", "Ñandu", "Zoe"]);
+  });
+
+  it("traduce los cuatro textos internos de cancelar, sin filtrar nombres de tablas", () => {
+    expect(errorMessageFor({ status: 409, detail: "la invitación ya no está pendiente" }, t))
+      .toBe("T:errors.notFound");
+    expect(errorMessageFor({ status: 409, detail: "el usuario invitado ya activó su cuenta" }, t))
+      .toBe("T:errors.already");
+    const conTablas = errorMessageFor(
+      { status: 409, detail: "el usuario invitado tiene datos asociados: analytics.user_property, evaluations" }, t);
+    expect(conTablas).toBe("T:errors.needsReview");
+    expect(conTablas).not.toContain("analytics.");
+    expect(conTablas).not.toContain("evaluations");
+  });
+
+  it("lee la TERCERA forma de error: errors como objeto por campo", () => {
+    // MemberEditError responde {"errors": {campo: motivo}} con 400. Sin esto, la
+    // pantalla de editar mostraria el generico para TODA validacion de campo.
+    expect(errorMessageFor({ status: 400, errors: { firstname: "no puede estar vacío" } }, t))
+      .toBe("no puede estar vacío");
+  });
+
+  it("descarta elementos de errors en blanco o que no son texto", () => {
+    // Sin esto se tragaba un message con firma conocida, o pintaba
+    // "[object Object]" al cliente.
+    expect(errorMessageFor({ errors: [null], message: "ya es miembro" }, t)).toBe("T:errors.already");
+    expect(errorMessageFor({ errors: ["   "], detail: "ya es miembro" }, t)).toBe("T:errors.already");
+    expect(errorMessageFor({ status: 422, errors: [{ row: 3 }] }, t)).not.toContain("[object");
+  });
+
+  it("filterRoster no comparte el arreglo con la entrada ni revienta con filas nulas", () => {
+    const rows = [{ key: "k", kind: "member", id: 1, email: "a@x.com", displayName: "Ana" }, null];
+    const out = filterRoster(rows, "");
+    expect(out).not.toBe(rows);
+    out.push({ key: "z" });
+    expect(rows).toHaveLength(2);
+    expect(() => filterRoster(rows, "ana")).not.toThrow();
+    expect(filterRoster(rows, "ana").map((f) => f.id)).toEqual([1]);
+  });
+
+  it("un archivo que no es csv Y esta vacio se reporta como no-csv", () => {
+    // La extension es lo mas accionable para quien sube el archivo.
+    expect(fileRejectionKey({ name: "lista.pdf", size: 0 })).toBe("import.reject.notCsv");
+  });
+});
