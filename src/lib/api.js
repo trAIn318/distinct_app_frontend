@@ -704,7 +704,19 @@ export async function addCompanyMember(email) {
   });
 }
 
-/** PATCH /api/company-admin/members/<id>/ */
+/**
+ * PATCH /api/company-admin/members/<id>/
+ *
+ * OJO con los nombres: el backend **lee** con `firstname`/`lastname`/`phone` y
+ * **escribe** con `usr_firstname`/`usr_lastname`/`usr_phone`/`lang_code` (su
+ * lista blanca `EDITABLE_FIELDS`). O sea que los nombres NO coinciden en tres
+ * de los cuatro campos. Pasar los de lectura hace que el backend no encuentre
+ * ningun campo editable y responda un 400 con texto interno
+ * ("no hay campos editables en la solicitud"), que acabaria en pantalla.
+ *
+ * @param {Object} fields - solo `usr_firstname`, `usr_lastname`, `usr_phone`,
+ *   `lang_code`.
+ */
 export async function updateCompanyMember(id, fields) {
   return _apiAuth(`/company-admin/members/${id}/`, {
     method: "PATCH", body: fields, respaldo: "Could not save the changes.",

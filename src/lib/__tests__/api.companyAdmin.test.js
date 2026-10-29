@@ -205,3 +205,102 @@ describe("carga por archivo", () => {
     expect(await getImportTemplate()).toBe("correo,nombre,apellido\r\n");
   });
 });
+
+describe("propiedades que la revision encontro sin fijar", () => {
+  // Las aserciones de ruta usan regex ANCLADA y no `toContain`: la URL de
+  // reenviar contiene "/invitations/11/" como subcadena, asi que apuntar
+  // cancelar a reenviar pasaba en verde (y daria un 405 real).
+  it("las dos subidas de archivo usan POST", async () => {
+    fetchMock.mockResolvedValue(respuesta({ total: 0, counts: {}, rows: [] }));
+    const f = new File(["x"], "a.csv");
+    await previewMembersImport(f);
+    expect(ultimaLlamada().opts.method).toBe("POST");
+    await commitMembersImport(f);
+    expect(ultimaLlamada().opts.method).toBe("POST");
+  });
+
+  it("addCompanyMember usa POST, que es lo unico que lo distingue de listar", async () => {
+    // members_view acepta GET y POST en la MISMA ruta.
+    fetchMock.mockResolvedValue(respuesta({ invitation: {}, email_sent: true }));
+    await addCompanyMember("a@x.com");
+    expect(ultimaLlamada().opts.method).toBe("POST");
+  });
+
+  it("el metodo por omision de las peticiones autenticadas es GET", async () => {
+    fetchMock.mockResolvedValue(respuesta({ members: [], invitations: [], total: 0 }));
+    await getCompanyMembers();
+    expect(ultimaLlamada().opts.method).toBe("GET");
+  });
+
+  it("la ruta del listado es exactamente la del backend", async () => {
+    fetchMock.mockResolvedValue(respuesta({ members: [], invitations: [], total: 0 }));
+    await getCompanyMembers();
+    expect(ultimaLlamada().url).toMatch(/\/api\/company-admin\/members\/$/);
+  });
+
+  it("cancelar NO apunta a la ruta de reenviar", async () => {
+    fetchMock.mockResolvedValue(respuesta({}));
+    await cancelInvitation(11);
+    expect(ultimaLlamada().url).toMatch(/\/api\/company-admin\/invitations\/11\/$/);
+    await resendInvitation(11);
+    expect(ultimaLlamada().url).toMatch(/\/invitations\/11\/resend\/$/);
+  });
+
+  it("editar NO apunta a desactivar ni a desvincular, y manda los campos", async () => {
+    fetchMock.mockResolvedValue(respuesta({}));
+    await updateCompanyMember(7, { usr_firstname: "Ana" });
+    expect(ultimaLlamada().url).toMatch(/\/api\/company-admin\/members\/7\/$/);
+    expect(JSON.parse(ultimaLlamada().opts.body)).toEqual({ usr_firstname: "Ana" });
+  });
+
+  it("la plantilla lanza en error, en vez de descargarse la pagina de error", async () => {
+    // Sin el throw, T8 entregaria el cuerpo del 403 como plantilla_personal.csv.
+    fetchMock.mockResolvedValue(respuesta({ detail: "No tiene permiso." },
+      { ok: false, status: 403, text: '{"detail": "No tiene permiso."}' }));
+    await expect(getImportTemplate()).rejects.toMatchObject({ status: 403 });
+  });
+
+  it("la plantilla manda el Bearer", async () => {
+    fetchMock.mockResolvedValue(respuesta(null, { text: "correo,nombre,apellido" }));
+    await getImportTemplate();
+    expect(ultimaLlamada().opts.headers.Authorization).toBe("Bearer tok-123");
+  });
+
+  it("accept_policy viaja en FALSE cuando la persona no marco la casilla", async () => {
+    // Es el unico dato con consecuencia legal que esta capa transmite, y nada
+    // impedia fabricarlo en true.
+    fetchMock.mockResolvedValue(respuesta({ access: "a", refresh: "r", user: {} }));
+    await acceptInvitation("t", { password: "x", confirmPassword: "x", acceptPolicy: false });
+    expect(JSON.parse(ultimaLlamada().opts.body).accept_policy).toBe(false);
+  });
+
+  it("los datos de personal no se sirven de cache", async () => {
+    fetchMock.mockResolvedValue(respuesta({ members: [], invitations: [], total: 0 }));
+    await getCompanyMembers();
+    expect(ultimaLlamada().opts.cache).toBe("no-store");
+    await previewMembersImport(new File(["x"], "a.csv"));
+    expect(ultimaLlamada().opts.cache).toBe("no-store");
+  });
+
+  it("lee la CUARTA forma de error: los campos de DRF al tope del cuerpo", async () => {
+    // Es lo que devuelve el 400 de aceptar, y sin esto la persona invitada
+    // recibia un mensaje que no decia nada.
+    fetchMock.mockResolvedValue(respuesta(
+      { password: ["Ensure this field has at least 8 characters."] },
+      { ok: false, status: 400 }));
+    await expect(acceptInvitation("t", { password: "corto", confirmPassword: "corto", acceptPolicy: true }))
+      .rejects.toMatchObject({
+        status: 400,
+        errors: { password: ["Ensure this field has at least 8 characters."] },
+      });
+  });
+
+  it("el mensaje del Error NO lleva prosa inventada en ingles", async () => {
+    // errorMessageFor usa el texto crudo como penultimo recurso, asi que una
+    // frase puesta aqui se pintaba literalmente en una interfaz en espanol.
+    fetchMock.mockResolvedValue(respuesta({}, { ok: false, status: 500 }));
+    const err = await getCompanyMembers().catch((e) => e);
+    expect(err.message).toBe("");
+    expect(err.devMessage).toBeTruthy();   // el diagnostico queda, aparte
+  });
+});
