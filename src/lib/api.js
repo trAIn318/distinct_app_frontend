@@ -543,3 +543,191 @@ export async function getSalesReport({ start, end, propertyId } = {}) {
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
   return authFetch(`/analytics/reports/sales/${suffix}`);
 }
+
+// ── Panel de administración de compañía e invitaciones ──────────────────────
+//
+// Dos grupos: los endpoints PÚBLICOS de la invitación (sin sesión, porque la
+// persona todavía no tiene cuenta usable) y los del panel (con Bearer).
+//
+// Todos adjuntan al Error el `status` y, cuando el backend la usa, la forma
+// `errors`. El patrón heredado del repo lanzaba `new Error(detail)` y perdía el
+// estado, así que `companyAdmin.errorMessageFor` solo podía traducir por texto;
+// con el estado traduce también los 401/403/404/422/5xx, y con `errors` puede
+// mostrar el motivo real de un archivo rechazado en vez del genérico.
+
+/** Lee el cuerpo como JSON, o devuelve {} si no es JSON. */
+async function _cuerpo(res) {
+  try {
+    return (await res.json()) ?? {};
+  } catch {
+    return {};
+  }
+}
+
+/** Convierte una respuesta no-ok en un Error con todo lo que el backend dio. */
+function _errorDe(res, data, respaldo) {
+  const err = new Error(data.detail || respaldo || `Error ${res.status}`);
+  err.status = res.status;
+  if (data.errors !== undefined) err.errors = data.errors;
+  return err;
+}
+
+function _bearer() {
+  const token = getAccessToken();
+  if (!token) throw new Error("You must be signed in.");
+  return token;
+}
+
+/** Petición autenticada con cuerpo JSON (o sin cuerpo). */
+async function _apiAuth(path, { method = "GET", body, respaldo } = {}) {
+  const token = _bearer();
+  const headers = { Authorization: `Bearer ${token}` };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const res = await fetch(`${API_URL}/api${path}`, {
+    method,
+    headers,
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    cache: "no-store",
+  });
+  const data = await _cuerpo(res);
+  if (!res.ok) throw _errorDe(res, data, respaldo);
+  return data;
+}
+
+/** Petición autenticada que sube un archivo.
+ *  NO fija Content-Type: el navegador tiene que poner el boundary del
+ *  multipart, y fijarlo a mano produce una petición que el backend no parsea. */
+async function _apiUpload(path, file, respaldo) {
+  const token = _bearer();
+  const body = new FormData();
+  body.append("file", file);
+  const res = await fetch(`${API_URL}/api${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body,
+    cache: "no-store",
+  });
+  const data = await _cuerpo(res);
+  if (!res.ok) throw _errorDe(res, data, respaldo);
+  return data;
+}
+
+// ── Invitación: público, sin sesión ────────────────────────────────────────
+
+/**
+ * GET /api/invitations/<token>/
+ * De qué empresa es la invitación y de qué tipo. NO devuelve el correo: el
+ * backend lo omite a propósito para no confirmar que una dirección fue invitada.
+ */
+export async function getInvitationInfo(token) {
+  const res = await fetch(`${API_URL}/api/invitations/${encodeURIComponent(token)}/`, {
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+  });
+  const data = await _cuerpo(res);
+  if (!res.ok) throw _errorDe(res, data, "This invitation link is not valid.");
+  return data;
+}
+
+/**
+ * POST /api/invitations/<token>/accept/
+ * Activa la cuenta y devuelve la sesión (igual que el login).
+ * Para una cuenta nueva el backend EXIGE `accept_policy`; para una cuenta que ya
+ * existe ignora el cuerpo, así que se manda vacío.
+ */
+export async function acceptInvitation(token, { password, confirmPassword, acceptPolicy } = {}) {
+  const body = {};
+  if (password !== undefined) {
+    body.password = password;
+    body.confirm_password = confirmPassword;
+    body.accept_policy = Boolean(acceptPolicy);
+  }
+  const res = await fetch(`${API_URL}/api/invitations/${encodeURIComponent(token)}/accept/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  const data = await _cuerpo(res);
+  if (!res.ok) throw _errorDe(res, data, "Could not activate your account.");
+  return data;
+}
+
+// ── Panel: requiere sesión ─────────────────────────────────────────────────
+
+/** GET /api/company-admin/members/ → {members, invitations, total} */
+export async function getCompanyMembers({ q, limit, offset } = {}) {
+  const qs = new URLSearchParams();
+  if (q) qs.set("q", q);
+  if (limit !== undefined && limit !== null) qs.set("limit", String(limit));
+  if (offset !== undefined && offset !== null) qs.set("offset", String(offset));
+  const cola = qs.toString();
+  return _apiAuth(`/company-admin/members/${cola ? `?${cola}` : ""}`, {
+    respaldo: "Could not load your staff.",
+  });
+}
+
+/** POST /api/company-admin/members/ → {invitation, email_sent} */
+export async function addCompanyMember(email) {
+  return _apiAuth("/company-admin/members/", {
+    method: "POST", body: { email }, respaldo: "Could not send the invitation.",
+  });
+}
+
+/** PATCH /api/company-admin/members/<id>/ */
+export async function updateCompanyMember(id, fields) {
+  return _apiAuth(`/company-admin/members/${id}/`, {
+    method: "PATCH", body: fields, respaldo: "Could not save the changes.",
+  });
+}
+
+/** POST /api/company-admin/members/<id>/deactivate/ */
+export async function deactivateCompanyMember(id) {
+  return _apiAuth(`/company-admin/members/${id}/deactivate/`, {
+    method: "POST", respaldo: "Could not deactivate this person.",
+  });
+}
+
+/** POST /api/company-admin/members/<id>/unlink/ */
+export async function unlinkCompanyMember(id) {
+  return _apiAuth(`/company-admin/members/${id}/unlink/`, {
+    method: "POST", respaldo: "Could not remove this person from your team.",
+  });
+}
+
+/** POST /api/company-admin/invitations/<id>/resend/ → {invitation, email_sent} */
+export async function resendInvitation(id) {
+  return _apiAuth(`/company-admin/invitations/${id}/resend/`, {
+    method: "POST", respaldo: "Could not resend the invitation.",
+  });
+}
+
+/** DELETE /api/company-admin/invitations/<id>/ */
+export async function cancelInvitation(id) {
+  return _apiAuth(`/company-admin/invitations/${id}/`, {
+    method: "DELETE", respaldo: "Could not cancel the invitation.",
+  });
+}
+
+// ── Carga por archivo ──────────────────────────────────────────────────────
+
+/** GET /api/company-admin/import/template/ → el CSV como TEXTO, no JSON. */
+export async function getImportTemplate() {
+  const token = _bearer();
+  const res = await fetch(`${API_URL}/api/company-admin/import/template/`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) throw _errorDe(res, await _cuerpo(res), "Could not download the template.");
+  return res.text();
+}
+
+/** POST /api/company-admin/import/preview/ → qué pasaría, sin escribir nada. */
+export async function previewMembersImport(file) {
+  return _apiUpload("/company-admin/import/preview/", file, "Could not read the file.");
+}
+
+/** POST /api/company-admin/import/ → emite las invitaciones. */
+export async function commitMembersImport(file) {
+  return _apiUpload("/company-admin/import/", file, "Could not import the file.");
+}
