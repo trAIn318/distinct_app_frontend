@@ -18,15 +18,33 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getSalesReport, getProperties } from "../../../lib/api";
 import { isAuthenticated } from "../../../lib/session";
-import { buildSalesCsv, formatDeltaPct, salesByWeekday } from "../../../lib/analytics";
+import {
+  buildSalesCsv,
+  formatDeltaPct,
+  salesByWeekday,
+  monthlySales,
+  monthOverMonthPct,
+} from "../../../lib/analytics";
 import { useT } from "../../../i18n/client";
 import SalesTrendChart from "../../../components/analytics/SalesTrendChart";
 import SalesByPropertyChart from "../../../components/analytics/SalesByPropertyChart";
 import SalesByWeekdayChart from "../../../components/analytics/SalesByWeekdayChart";
 import TrafficTrendChart from "../../../components/analytics/TrafficTrendChart";
+import SalesByMonthChart from "../../../components/analytics/SalesByMonthChart";
+import { getChartPrefs, setChartPrefs, defaultChartPrefs, CHART_IDS } from "../../../lib/analyticsPrefs";
 import styles from "./page.module.css";
 
 const WD_KEYS = ["wdSun", "wdMon", "wdTue", "wdWed", "wdThu", "wdFri", "wdSat"];
+
+// Mapa id de gráfica (CHART_IDS, ver src/lib/analyticsPrefs.js) -> clave i18n
+// de su título, para etiquetar cada casilla de mostrar/ocultar.
+const CHART_LABEL_KEYS = {
+  trend: "trendTitle",
+  weekday: "weekdayTitle",
+  traffic: "trafficTitle",
+  byProperty: "byPropertyTitle",
+  monthly: "monthlyTitle",
+};
 
 export default function PanelClient() {
   const t = useT("analytics");
@@ -39,6 +57,9 @@ export default function PanelClient() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Sincronizado desde localStorage en el efecto de montaje (no en el
+  // render inicial) para evitar desajustes SSR/hidratación.
+  const [chartPrefs, setChartPrefsState] = useState(defaultChartPrefs());
 
   // Página privada: sin sesión, a login con ?next= (mismo patrón que
   // EvalClient.js / AnalyticsUploadClient.js).
@@ -80,6 +101,7 @@ export default function PanelClient() {
       })
       .catch(() => {});
     load();
+    setChartPrefsState(getChartPrefs());
     return () => {
       cancelled = true;
     };
@@ -90,6 +112,14 @@ export default function PanelClient() {
 
   function applyFilters() {
     load({ start: start || undefined, end: end || undefined, propertyId });
+  }
+
+  function toggleChart(id) {
+    setChartPrefsState((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      setChartPrefs(next);
+      return next;
+    });
   }
 
   function downloadCsv(cur) {
@@ -147,6 +177,21 @@ export default function PanelClient() {
         </button>
       </div>
 
+      {/* Mostrar/ocultar gráficas (preferencia por navegador, ver src/lib/analyticsPrefs.js) */}
+      <fieldset className={styles.chartToggles}>
+        <legend className={styles.fieldLabel}>{t("showCharts")}</legend>
+        {CHART_IDS.map((id) => (
+          <label key={id} className={styles.toggleItem}>
+            <input
+              type="checkbox"
+              checked={chartPrefs[id]}
+              onChange={() => toggleChart(id)}
+            />
+            <span>{t(CHART_LABEL_KEYS[id])}</span>
+          </label>
+        ))}
+      </fieldset>
+
       {error ? (
         <div className={styles.error} role="alert">
           {error}
@@ -191,12 +236,45 @@ export default function PanelClient() {
               ))}
             </div>
 
-            {/* Gráficas */}
-            <h3 className={styles.cardTitle}>{t("trendTitle")}</h3>
-            <div className={styles.chart} data-testid={`trend-${cur.currency}`}>
-              <SalesTrendChart data={cur.daily} />
-            </div>
-            {cur.by_property.length > 1 && (
+            {/* Gráficas (cada bloque respeta su toggle de chartPrefs, ver
+                fieldset .chartToggles arriba) */}
+            {chartPrefs.trend && (
+              <>
+                <h3 className={styles.cardTitle}>{t("trendTitle")}</h3>
+                <div className={styles.chart} data-testid={`trend-${cur.currency}`}>
+                  <SalesTrendChart data={cur.daily} />
+                </div>
+              </>
+            )}
+
+            {chartPrefs.monthly && (() => {
+              const monthly = monthlySales(cur.daily);
+              const mom = monthOverMonthPct(monthly);
+              return (
+                <>
+                  <h3 className={styles.cardTitle}>{t("monthlyTitle")}</h3>
+                  {formatDeltaPct(mom) && (
+                    <span
+                      className={
+                        mom > 0
+                          ? styles.deltaUp
+                          : mom < 0
+                          ? styles.deltaDown
+                          : styles.deltaFlat
+                      }
+                    >
+                      {formatDeltaPct(mom)}{" "}
+                      <span className={styles.muted}>{t("vsPrevMonth")}</span>
+                    </span>
+                  )}
+                  <div className={styles.chart}>
+                    <SalesByMonthChart data={monthly} />
+                  </div>
+                </>
+              );
+            })()}
+
+            {chartPrefs.byProperty && cur.by_property.length > 1 && (
               <>
                 <h3 className={styles.cardTitle}>{t("byPropertyTitle")}</h3>
                 <div
@@ -208,24 +286,32 @@ export default function PanelClient() {
               </>
             )}
 
-            <h3 className={styles.cardTitle}>{t("weekdayTitle")}</h3>
-            <div className={styles.chart}>
-              <SalesByWeekdayChart
-                data={salesByWeekday(cur.daily).map((b) => ({
-                  label: t(WD_KEYS[b.dow]),
-                  net: b.net,
-                }))}
-              />
-            </div>
+            {chartPrefs.weekday && (
+              <>
+                <h3 className={styles.cardTitle}>{t("weekdayTitle")}</h3>
+                <div className={styles.chart}>
+                  <SalesByWeekdayChart
+                    data={salesByWeekday(cur.daily).map((b) => ({
+                      label: t(WD_KEYS[b.dow]),
+                      net: b.net,
+                    }))}
+                  />
+                </div>
+              </>
+            )}
 
-            <h3 className={styles.cardTitle}>{t("trafficTitle")}</h3>
-            <div className={styles.chart}>
-              <TrafficTrendChart
-                data={cur.daily}
-                ordersLabel={t("kpiOrders")}
-                guestsLabel={t("kpiGuests")}
-              />
-            </div>
+            {chartPrefs.traffic && (
+              <>
+                <h3 className={styles.cardTitle}>{t("trafficTitle")}</h3>
+                <div className={styles.chart}>
+                  <TrafficTrendChart
+                    data={cur.daily}
+                    ordersLabel={t("kpiOrders")}
+                    guestsLabel={t("kpiGuests")}
+                  />
+                </div>
+              </>
+            )}
 
             {/* Tabla + CSV */}
             <div className={styles.tableHeader}>

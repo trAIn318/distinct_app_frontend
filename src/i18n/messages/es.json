@@ -28,7 +28,7 @@
     "adminCompany": "Administrar empresa",
     "eval": "Evaluación",
     "pay": "Pago",
-    "analytics": "Ventas"
+    "analytics": "Analíticas"
   },
   "rail": {
     "home": "Inicio",
@@ -116,6 +116,7 @@
     "title": "Hablemos.",
     "sidebar": "Seas operador hotelero, inversionista o aliado potencial — queremos escucharte. Distinct se mueve rápido, y nosotros también.",
     "whatsapp": "Escríbenos por WhatsApp →",
+    "meeting": "También puedes contactarnos aquí",
     "name": "Nombre",
     "namePlaceholder": "Tu Nombre",
     "email": "Correo",
@@ -139,7 +140,7 @@
     "cookies": "Política de Cookies",
     "location": "Ubicación: Con sede en Miami, FL. Operando en EE. UU., Latinoamérica y el Sudeste Asiático.",
     "response": "Tiempo de respuesta: Respondemos todas las consultas en menos de 24 horas.",
-    "copyright": "© 2026 Distinct Hospitality Solutions LLC — Todos los Derechos Reservados."
+    "copyright": "© 2026 Distinct Luxury Hospitality LLC d/b/a Distinct Hospitality Solutions. Todos los derechos reservados."
   },
   "card": {
     "viewMore": "Ver Más",
@@ -439,8 +440,10 @@
     "save": "Guardar",
     "cancel": "Cancelar",
     "chooseFile": "Archivo del export de ventas",
+    "downloadTemplate": "Descargar plantilla",
     "fileHint": "Sube el export de Toast (ZIP) o el archivo Sales by day.csv.",
     "fileTypeError": "Elige un archivo .zip o .csv.",
+    "templateHint": "¿No sabes el formato? Descarga la plantilla de ventas.",
     "preview": "Vista previa",
     "previewLoading": "Verificando…",
     "confirm": "Confirmar carga",
@@ -468,10 +471,13 @@
     "kpiGuests": "Comensales",
     "kpiAvgTicket": "Ticket promedio",
     "vsPrevPeriod": "vs. periodo anterior",
+    "showCharts": "Gráficas",
     "trendTitle": "Tendencia",
     "byPropertyTitle": "Por propiedad",
     "weekdayTitle": "Ventas por día de la semana",
     "trafficTitle": "Tráfico (órdenes y comensales)",
+    "monthlyTitle": "Comparativo mensual",
+    "vsPrevMonth": "vs. mes anterior",
     "wdSun": "Dom",
     "wdMon": "Lun",
     "wdTue": "Mar",

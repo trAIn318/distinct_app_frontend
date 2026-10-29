@@ -64,6 +64,20 @@ export default function ContactForm() {
             >
               {t("whatsapp")}
             </a>
+            {/* Canal aparte, en su propia línea y separado del de WhatsApp.
+                Antes era un botón pegado debajo, y la flecha de "Message us on
+                WhatsApp →" parecía apuntarle, así que se leía como si el botón
+                fuera de WhatsApp. Es un enlace de texto, no un botón, y no usa
+                el dorado: claude.md permite un solo elemento dorado por
+                pantalla y el de WhatsApp ya lo gasta. */}
+            <a
+              href="https://meet.hubspot.com/veronica-straw"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.meetingLink}
+            >
+              {t("meeting")}
+            </a>
           </div>
 
           {/* Form */}

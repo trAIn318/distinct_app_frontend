@@ -99,6 +99,32 @@
   box-shadow: 0 0 0 1px var(--gold-30), 0 0 16px var(--gold-08);
 }
 
+/* ── Mostrar/ocultar gráficas ─────────────────────────────────────────── */
+
+.chartToggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+  border: 0;
+  padding: 0;
+  margin: 0 0 var(--space-8) 0;
+}
+
+.chartToggles .fieldLabel {
+  margin: 0 var(--space-2) 0 0;
+}
+
+.toggleItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ivory);
+  cursor: pointer;
+}
+
 /* ── Estados ───────────────────────────────────────────────────────────── */
 
 .muted {

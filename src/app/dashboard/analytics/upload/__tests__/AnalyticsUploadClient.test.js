@@ -106,4 +106,13 @@ describe("AnalyticsUploadClient — carga", () => {
     fireEvent.change(screen.getByLabelText(/selectProperty|Propiedad|Property/i), { target: { value: "20" } });
     expect(screen.queryByRole("button", { name: /confirm|confirmar/i })).not.toBeInTheDocument();
   });
+
+  it("muestra el botón de descargar plantilla", async () => {
+    isAuthenticated.mockReturnValue(true);
+    getProperties.mockResolvedValue([]);
+    render(<AnalyticsUploadClient />);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /template|plantilla/i })).toBeInTheDocument()
+    );
+  });
 });

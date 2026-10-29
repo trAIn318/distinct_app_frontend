@@ -56,3 +56,38 @@ export function salesByWeekday(daily) {
   }
   return buckets;
 }
+
+/** Agrupa la serie diaria por mes ("YYYY-MM") sumando net_sales. Ordenado
+ *  cronológicamente. Seguro ante zona horaria (usa el prefijo del texto de la
+ *  fecha, sin construir Date). Vacío/null → []. */
+export function monthlySales(daily) {
+  const map = new Map();
+  for (const d of daily || []) {
+    if (!d || !d.date) continue;
+    const month = String(d.date).slice(0, 7); // "YYYY-MM"
+    if (month.length !== 7) continue;
+    map.set(month, (map.get(month) || 0) + (Number(d.net_sales) || 0));
+  }
+  return [...map.entries()]
+    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    .map(([month, net]) => ({ month, net }));
+}
+
+/** Variación % (1 decimal) del último mes vs. el anterior. null si <2 meses
+ *  o si el mes anterior es 0. */
+export function monthOverMonthPct(monthly) {
+  if (!monthly || monthly.length < 2) return null;
+  const prev = monthly[monthly.length - 2].net;
+  const last = monthly[monthly.length - 1].net;
+  if (!prev) return null;
+  return Math.round(((last - prev) / prev) * 1000) / 10;
+}
+
+/** Plantilla CSV de Ventas (formato del reporte diario de Toast) para descargar:
+ *  header real + una fila de ejemplo para que el cliente sepa el formato. */
+export function salesTemplateCsv() {
+  return [
+    "yyyyMMdd,Net sales,Total orders,Total guests",
+    "20260506,1345.50,24,39",
+  ].join("\n");
+}

@@ -20,7 +20,12 @@ import {
   commitUpload,
 } from "../../../../lib/api";
 import { isAuthenticated } from "../../../../lib/session";
-import { deriveCompanies, activeProperties, isAcceptedFile } from "../../../../lib/analytics";
+import {
+  deriveCompanies,
+  activeProperties,
+  isAcceptedFile,
+  salesTemplateCsv,
+} from "../../../../lib/analytics";
 import { useT } from "../../../../i18n/client";
 import styles from "./page.module.css";
 
@@ -83,6 +88,17 @@ export default function AnalyticsUploadClient() {
   const companies = deriveCompanies(properties || []);
   const showCompanySelect = companies.length > 1;
   const activeList = activeProperties(properties || []);
+
+  function downloadTemplate() {
+    const csv = salesTemplateCsv();
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "plantilla_ventas_toast.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   function resetPreview() {
     setSummary(null);
@@ -265,6 +281,15 @@ export default function AnalyticsUploadClient() {
           {fileError}
         </div>
       )}
+
+      <button
+        type="button"
+        className={styles.ghostButton}
+        onClick={downloadTemplate}
+      >
+        {t("downloadTemplate")}
+      </button>
+      <span className={styles.muted}>{t("templateHint")}</span>
 
       {/* Vista previa */}
       <button

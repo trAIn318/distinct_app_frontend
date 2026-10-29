@@ -28,7 +28,7 @@
     "adminCompany": "Admin Company",
     "eval": "Eval",
     "pay": "Pay",
-    "analytics": "Sales"
+    "analytics": "Analytics"
   },
   "rail": {
     "home": "Home",
@@ -116,6 +116,7 @@
     "title": "Let's Talk.",
     "sidebar": "Whether you're a hotel operator, investor, or potential partner — we want to hear from you. Distinct moves fast and so do we.",
     "whatsapp": "Message us on WhatsApp →",
+    "meeting": "You can also contact us here",
     "name": "Name",
     "namePlaceholder": "Your Name",
     "email": "Email",
@@ -139,7 +140,7 @@
     "cookies": "Cookie Policy",
     "location": "Location: Based in Miami, FL. Operating across the USA, Latin America, and Southeast Asia.",
     "response": "Response time: We respond to all inquiries within 24 hours.",
-    "copyright": "© 2026 Distinct Hospitality Solutions LLC — All Rights Reserved."
+    "copyright": "© 2026 Distinct Luxury Hospitality LLC d/b/a Distinct Hospitality Solutions. All rights reserved."
   },
   "card": {
     "viewMore": "View More",
@@ -439,8 +440,10 @@
     "save": "Save",
     "cancel": "Cancel",
     "chooseFile": "Sales export file",
+    "downloadTemplate": "Download template",
     "fileHint": "Upload the Toast export (ZIP) or the Sales by day.csv file.",
     "fileTypeError": "Please choose a .zip or .csv file.",
+    "templateHint": "Not sure of the format? Download the sales template.",
     "preview": "Preview",
     "previewLoading": "Checking…",
     "confirm": "Confirm upload",
@@ -468,10 +471,13 @@
     "kpiGuests": "Guests",
     "kpiAvgTicket": "Average ticket",
     "vsPrevPeriod": "vs. previous period",
+    "showCharts": "Charts",
     "trendTitle": "Trend",
     "byPropertyTitle": "By property",
     "weekdayTitle": "Sales by weekday",
     "trafficTitle": "Traffic (orders & guests)",
+    "monthlyTitle": "Monthly comparison",
+    "vsPrevMonth": "vs. previous month",
     "wdSun": "Sun",
     "wdMon": "Mon",
     "wdTue": "Tue",
