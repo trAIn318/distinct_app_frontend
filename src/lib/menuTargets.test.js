@@ -60,6 +60,15 @@ describe("resolveMenuTarget", () => {
   it("da la clave i18n analytics para dashboard/analytics", () => {
     expect(menuLabelKey("dashboard/analytics")).toBe("analytics");
   });
+
+  it("settings/admin-company lleva al panel y no a En construcción", () => {
+    expect(resolveMenuTarget("settings/admin-company")).toEqual({
+      type: "route", href: "/settings/admin-company",
+    });
+    expect(resolveMenuTarget("/settings/admin-company")).toEqual({
+      type: "route", href: "/settings/admin-company",
+    });
+  });
 });
 
 describe("getMenuLabel", () => {

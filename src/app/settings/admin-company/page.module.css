@@ -1,0 +1,307 @@
+/* Panel Admin Company — la tabla de su gente.
+   Mismo lenguaje visual que src/app/dashboard/analytics (card / field / error /
+   table), con tokens únicamente.
+
+   Dorado: `.btn-primary` (relleno dorado, global) es el ÚNICO elemento dorado,
+   y solo aparece en el estado vacío, que es la única vista con una acción
+   principal. La vista de la tabla no gasta dorado: ni borde superior de tarjeta
+   ni enlaces dorados, para no pasar del máximo de uno por pantalla que exige
+   claude.md §2.1. Las dos vistas son excluyentes, así que el máximo se cumple
+   en las dos. */
+
+.page {
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
+  min-height: calc(100vh - 80px);
+  padding: var(--space-8) 0;
+}
+
+/* Móvil primero: el ancho se abre con min-width, nunca al contrario. */
+.wrapper {
+  margin: 0 auto;
+  animation: panelEnter 0.6s var(--ease-luxe) both;
+}
+
+@media (min-width: 48rem) {
+  .page {
+    padding: var(--space-12) 0;
+  }
+}
+
+@keyframes panelEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin: 0 0 var(--space-6) 0;
+  color: var(--color-ivory);
+}
+
+@media (min-width: 48rem) {
+  .h1 {
+    font-size: var(--text-2xl);
+  }
+}
+
+.card {
+  background: var(--color-surface-dark);
+  border: 1px solid var(--ivory-08);
+  padding: var(--space-5);
+  /* El retardo del escalonado de claude.md §2.5: la tarjeta entra tras el
+     título, no al mismo tiempo. */
+  animation: panelEnter 0.6s var(--ease-luxe) 0.08s both;
+}
+
+@media (min-width: 48rem) {
+  .card {
+    padding: var(--space-8);
+  }
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* `--color-platinum`, no `--color-smoke`: medido, smoke da 3.36:1 sobre este
+   fondo y AA pide 4.5 en cuerpo. */
+.muted {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-platinum);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.error {
+  background: var(--color-danger-surface);
+  border-left: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  margin: 0 0 var(--space-5) 0;
+}
+
+/* ── Formularios: búsqueda y, en el estado vacío, el correo ──────────── */
+
+.searchForm,
+.inviteForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+/* Etiqueta propia asociada al campo, no un placeholder (claude.md §5.5). */
+.fieldLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+.input {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-ivory);
+  background: var(--color-obsidian);
+  border: 1px solid var(--color-platinum);
+  border-radius: 0;
+  width: 100%;
+  transition: border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-ivory);
+  outline-offset: 2px;
+}
+
+.searchActions,
+.inviteActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+
+.link {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ivory);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+/* ── La tabla ────────────────────────────────────────────────────────── */
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--ivory-08);
+  margin-bottom: var(--space-5);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ivory);
+}
+
+.table th,
+.table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--ivory-08);
+}
+
+.table thead th {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+  white-space: nowrap;
+}
+
+.personCell {
+  font-weight: 400;
+}
+
+.personName,
+.personEmail {
+  display: block;
+}
+
+.personName {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+}
+
+/* DM Mono para datos (claude.md §2.2): el correo es un dato técnico. */
+.personEmail {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  color: var(--color-platinum);
+  margin-top: var(--space-1);
+}
+
+/* ── El estado de cada persona: color MÁS texto ──────────────────────
+   El texto lo pone el componente y es lo que se lee; el borde de color solo
+   acompaña. Nada depende solo del color, y ninguno de estos colores es el
+   dorado, que está reservado a un único elemento por pantalla. */
+
+.estado {
+  display: inline-block;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: var(--space-1) var(--space-3);
+  border-left: 2px solid var(--color-platinum);
+  color: var(--color-platinum);
+}
+
+.estado_active {
+  border-left-color: var(--color-ivory);
+  color: var(--color-ivory);
+}
+
+.estado_neverEntered {
+  border-left-style: dotted;
+}
+
+.estado_invited {
+  border-left-style: dashed;
+}
+
+.estado_expired {
+  border-left-color: var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-surface);
+}
+
+.estado_deactivated {
+  border-left-style: double;
+  border-left-width: 4px;
+}
+
+/* ── Paginación ──────────────────────────────────────────────────────── */
+
+.pager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .pager {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* DM Mono para cifras (claude.md §2.2). */
+.count {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  color: var(--color-platinum);
+  margin: 0;
+}
+
+.pagerButtons {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.pagerButtons button:disabled {
+  /* Sin `opacity` arbitraria: el token de texto secundario ya marca el botón
+     como inerte, y un control deshabilitado queda fuera del mínimo de
+     contraste de WCAG. */
+  color: var(--color-smoke);
+  border-color: var(--color-smoke);
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrapper,
+  .card {
+    animation: none;
+  }
+  .input {
+    transition: none;
+  }
+}
