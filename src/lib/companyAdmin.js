@@ -31,8 +31,32 @@ export const IMPORT_LIMITS = Object.freeze({
   maxRows: 50,            // filas (svc.MAX_IMPORT_ROWS)
 });
 
+/**
+ * Lo que el PATCH de un miembro acepta: **nombre de la columna → ancho máximo**.
+ *
+ * LA TRAMPA DE ESTE ENDPOINT: el listado DEVUELVE `firstname`, `lastname`,
+ * `phone` y `lang_code`, pero el PATCH EXIGE `usr_firstname`, `usr_lastname`,
+ * `usr_phone` y `lang_code` (su lista blanca `EDITABLE_FIELDS`, medida en
+ * `company_admin_service.py:931`). Solo **uno de los cuatro** coincide, y el
+ * bucle del backend descarta en silencio toda clave que no esté en su lista:
+ * mandar los nombres de lectura no da error, **guarda sin guardar nada**, o
+ * responde "no hay campos editables en la solicitud". Por eso el cuerpo se
+ * arma en un solo sitio —`buildMemberPatch`— con su prueba.
+ */
+export const EDIT_LIMITS = Object.freeze({
+  usr_firstname: 50,
+  usr_lastname: 50,
+  usr_phone: 20,
+  lang_code: 10,
+});
+
 /** Rol del personal de una empresa cliente. Los demás son pares administradores. */
 const ROL_STAFF = 3;
+
+/** Prefijo de las claves i18n de la pantalla del panel. */
+const PANEL_KEY_PREFIX = "panel.";
+
+const MS_POR_HORA = 60 * 60 * 1000;
 
 function texto(valor) {
   return typeof valor === "string" ? valor.trim() : "";
@@ -131,6 +155,12 @@ export function buildRoster(payload) {
       email,
       displayName,
       name: texto(m.name),   // usr_name: el ?q= del backend lo busca
+      // Los cuatro editables, por separado: `displayName` ya viene unido y el
+      // formulario de edición necesita nombre y apellido en campos distintos.
+      firstname: texto(m.firstname),
+      lastname: texto(m.lastname),
+      phone: texto(m.phone),
+      langCode: texto(m.lang_code),
       status: memberStatus(m),
       canAct: m.rol_id === ROL_STAFF,
     });
@@ -147,6 +177,9 @@ export function buildRoster(payload) {
       id: inv.id,
       email,
       displayName: email,
+      // La vigencia es de 72 h y el estado es binario, así que sin la fecha el
+      // jefe no puede saber si a una invitación le quedan 2 horas o 70.
+      expiresAt: texto(inv.expires_at),
       status: inv.expired ? ROW_STATUS.EXPIRED : ROW_STATUS.INVITED,
       canAct: true,
     });
@@ -209,6 +242,13 @@ const ERROR_CODES = Object.freeze({
   network: "network",
   signedOut: "signedOut",
   throttled: "throttled",
+  // Los cuatro de la edición de un miembro (MemberEditError). El backend los
+  // escribe en español y `errorMessageFor` usa el texto crudo como penúltimo
+  // recurso, así que sin estos códigos se pintarían literales en inglés.
+  tooLong: "tooLong",
+  invalidValue: "invalidValue",
+  emptyValue: "emptyValue",
+  noChanges: "noChanges",
   generic: "generic",
 });
 
@@ -269,6 +309,17 @@ const POR_TEXTO = [
   // `isAuthenticated()` solo comprueba que el token EXISTA, no que sirva.
   ["token not valid", ERROR_CODES.signedOut],
   ["request was throttled", ERROR_CODES.throttled],
+  // Los CUATRO mensajes del PATCH de un miembro. Llegan como
+  // {errors: {campo: motivo}} y son prosa española escrita dentro del backend.
+  // "caracteres" es la firma del tope de ancho ("máximo 50 caracteres"): la
+  // firma NO puede ser "maximo", porque los dos errores de archivo completo
+  // ("El archivo supera el máximo de 50 filas." y el de los KB) la llevan
+  // también, y el dictamen de la Tarea 3 manda que esos sigan mostrando su
+  // texto real, que explica el problema mejor que cualquier clave.
+  ["caracteres", ERROR_CODES.tooLong],
+  ["debe ser texto", ERROR_CODES.invalidValue],
+  ["no puede estar vacio", ERROR_CODES.emptyValue],
+  ["campos editables", ERROR_CODES.noChanges],
   ["failed to fetch", ERROR_CODES.network],
   ["network request failed", ERROR_CODES.network],
   ["load failed", ERROR_CODES.network],
@@ -398,4 +449,72 @@ export function fileRejectionKey(file) {
   if (Number(file.size) === 0) return `${REJECTION_KEY_PREFIX}empty`;
   if (Number(file.size) > IMPORT_LIMITS.maxBytes) return `${REJECTION_KEY_PREFIX}tooBig`;
   return null;
+}
+
+// ── Editar a una persona ───────────────────────────────────────────────────
+
+/**
+ * Cuerpo del PATCH a partir de lo que escribió el jefe, **con los nombres que
+ * exige el backend**. Es el único sitio donde se hace esa traducción, para que
+ * las dos fuentes de verdad no puedan separarse sin que una prueba lo diga.
+ *
+ * Manda siempre los cuatro campos: el formulario los muestra todos, así que
+ * todos son intención de la persona, y un cuerpo vacío es justo el caso que el
+ * backend rechaza con texto interno.
+ */
+export function buildMemberPatch(values) {
+  const v = values || {};
+  return {
+    usr_firstname: texto(v.firstname),
+    usr_lastname: texto(v.lastname),
+    usr_phone: texto(v.phone),
+    lang_code: texto(v.langCode),
+  };
+}
+
+/**
+ * Lo que el navegador puede rechazar **sin llamar al backend**:
+ * `{campo: {key, vars}}`, vacío si el cuerpo sirve.
+ *
+ * Existe porque los mensajes de validación del backend son prosa española
+ * ("máximo 50 caracteres") y se pintarían en una interfaz en inglés; y porque
+ * un viaje de red para decir lo que ya se sabe aquí es un viaje de más.
+ */
+export function memberEditErrors(patch) {
+  const cuerpo = patch && typeof patch === "object" ? patch : {};
+  const errores = {};
+  for (const [campo, max] of Object.entries(EDIT_LIMITS)) {
+    if (!Object.hasOwn(cuerpo, campo)) continue;
+    const valor = texto(cuerpo[campo]);
+    if (valor.length > max) {
+      errores[campo] = { key: `${PANEL_KEY_PREFIX}tooLong`, vars: { max } };
+      continue;
+    }
+    // El idioma es el único que el backend no acepta vacío: los otros tres se
+    // guardan como nulos, que es legítimo (los 50 heredados no tienen nombre).
+    if (campo === "lang_code" && !valor) {
+      errores[campo] = { key: `${PANEL_KEY_PREFIX}languageRequired` };
+    }
+  }
+  return errores;
+}
+
+/**
+ * Horas que le quedan a una invitación, redondeando **hacia arriba**, o `null`
+ * si no hay fecha o no se entiende.
+ *
+ * `null` y `0` son cosas distintas a propósito: `0` es "ya venció" y `null` es
+ * "no sabemos", y pintar "vence en 0 h" sobre una fecha que no se pudo leer
+ * sería afirmar algo que no se midió. Hacia arriba porque a una invitación con
+ * veinte minutos de vida le queda *una hora larga* desde el punto de vista del
+ * jefe, no cero.
+ */
+export function hoursUntilExpiry(expiresAt, now = Date.now()) {
+  const crudo = texto(expiresAt);
+  if (!crudo) return null;
+  const fin = Date.parse(crudo);
+  if (Number.isNaN(fin)) return null;
+  const falta = fin - Number(now);
+  if (falta <= 0) return 0;
+  return Math.ceil(falta / MS_POR_HORA);
 }

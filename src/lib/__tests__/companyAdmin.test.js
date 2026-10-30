@@ -9,6 +9,10 @@ import {
   errorMessageFor,
   previewCategoryKey,
   fileRejectionKey,
+  EDIT_LIMITS,
+  buildMemberPatch,
+  memberEditErrors,
+  hoursUntilExpiry,
 } from "../companyAdmin";
 
 // t() de mentira: devuelve la clave marcada, así cada aserción comprueba QUÉ
@@ -500,8 +504,17 @@ describe("lo que encontro la re-revision", () => {
   it("lee la TERCERA forma de error: errors como objeto por campo", () => {
     // MemberEditError responde {"errors": {campo: motivo}} con 400. Sin esto, la
     // pantalla de editar mostraria el generico para TODA validacion de campo.
-    expect(errorMessageFor({ status: 400, errors: { firstname: "no puede estar vacío" } }, t))
-      .toBe("no puede estar vacío");
+    //
+    // TAREA 7: el motivo de ejemplo era "no puede estar vacío", que desde esta
+    // tarea TIENE firma y se traduce. La garantia que esta prueba sostiene es
+    // que la forma de objeto por campo SE LEE, no que su texto quede crudo, asi
+    // que el ejemplo pasa a ser un motivo sin firma -lo que le ocurriria a un
+    // mensaje de campo que el backend agregue manana- y se fija aparte que los
+    // motivos conocidos de hoy si se traducen.
+    expect(errorMessageFor({ status: 400, errors: { firstname: "formato no reconocido" } }, t))
+      .toBe("formato no reconocido");
+    expect(errorMessageFor({ status: 400, errors: { usr_firstname: "no puede estar vacío" } }, t))
+      .toBe("T:errors.emptyValue");
   });
 
   it("descarta elementos de errors en blanco o que no son texto", () => {
@@ -549,5 +562,165 @@ describe("los dos textos crudos que el backend pinta en ingles", () => {
     )).toBe("T:errors.throttled");
     // Sin `detail` el estado solo ya identifica el caso.
     expect(errorMessageFor({ status: 429 }, t)).toBe("T:errors.throttled");
+  });
+});
+
+// ── Tarea 7 — las acciones sobre una persona ────────────────────────────────
+
+describe("EDIT_LIMITS y buildMemberPatch — la trampa de los nombres", () => {
+  it("publica los cuatro topes que impone el backend, congelados", () => {
+    expect(EDIT_LIMITS).toEqual({
+      usr_firstname: 50,
+      usr_lastname: 50,
+      usr_phone: 20,
+      lang_code: 10,
+    });
+    expect(Object.isFrozen(EDIT_LIMITS)).toBe(true);
+  });
+
+  it("el cuerpo del PATCH usa los nombres de ESCRITURA, no los de lectura", () => {
+    // El GET devuelve firstname/lastname/phone/lang_code y el PATCH exige
+    // usr_firstname/usr_lastname/usr_phone/lang_code: solo UNO de los cuatro
+    // coincide. El backend descarta en silencio toda clave fuera de su lista
+    // blanca, asi que mandar los de lectura no da error: GUARDA SIN GUARDAR
+    // NADA, o responde "no hay campos editables en la solicitud".
+    expect(buildMemberPatch({
+      firstname: "Ana",
+      lastname: "Bravo",
+      phone: "+57 300 000 0000",
+      langCode: "es",
+    })).toEqual({
+      usr_firstname: "Ana",
+      usr_lastname: "Bravo",
+      usr_phone: "+57 300 000 0000",
+      lang_code: "es",
+    });
+  });
+
+  it("recorta los espacios y convierte lo ausente en cadena vacia", () => {
+    expect(buildMemberPatch({ firstname: "  Ana  ", lastname: null, langCode: "en" }))
+      .toEqual({ usr_firstname: "Ana", usr_lastname: "", usr_phone: "", lang_code: "en" });
+    expect(buildMemberPatch()).toEqual({
+      usr_firstname: "", usr_lastname: "", usr_phone: "", lang_code: "",
+    });
+  });
+
+  it("no deja pasar ninguna clave de lectura ni de privilegio", () => {
+    const cuerpo = buildMemberPatch({
+      firstname: "Ana", lastname: "B", phone: "1", langCode: "en",
+      rol_id: 1, comp_id: 9, usr_active: true, email: "otra@x.com",
+    });
+    expect(Object.keys(cuerpo).sort())
+      .toEqual(["lang_code", "usr_firstname", "usr_lastname", "usr_phone"]);
+  });
+});
+
+describe("memberEditErrors — la validacion que evita el mensaje del backend", () => {
+  it("acepta un cuerpo dentro de los topes", () => {
+    expect(memberEditErrors(buildMemberPatch({
+      firstname: "Ana", lastname: "Bravo", phone: "3000000", langCode: "es",
+    }))).toEqual({});
+  });
+
+  it("senala el campo que pasa de su tope, con el tope en la variable", () => {
+    const errores = memberEditErrors({
+      usr_firstname: "A".repeat(51),
+      usr_lastname: "B".repeat(50),
+      usr_phone: "9".repeat(21),
+      lang_code: "es",
+    });
+    expect(errores.usr_firstname).toEqual({ key: "panel.tooLong", vars: { max: 50 } });
+    expect(errores.usr_phone).toEqual({ key: "panel.tooLong", vars: { max: 20 } });
+    expect(errores.usr_lastname).toBeUndefined();
+  });
+
+  it("el idioma no puede quedar vacio: el backend lo rechaza con prosa espanola", () => {
+    expect(memberEditErrors({ usr_firstname: "Ana", lang_code: "" }))
+      .toEqual({ lang_code: { key: "panel.languageRequired" } });
+  });
+
+  it("no revienta con un cuerpo que no es objeto", () => {
+    expect(memberEditErrors(null)).toEqual({});
+    expect(memberEditErrors("nope")).toEqual({});
+  });
+});
+
+describe("hoursUntilExpiry — las 72 h de la invitacion, en texto", () => {
+  const AHORA = Date.UTC(2026, 9, 30, 12, 0, 0);
+
+  it("dice cuantas horas quedan, redondeando hacia arriba", () => {
+    expect(hoursUntilExpiry(new Date(AHORA + 72 * 3600_000).toISOString(), AHORA)).toBe(72);
+    expect(hoursUntilExpiry(new Date(AHORA + 2.1 * 3600_000).toISOString(), AHORA)).toBe(3);
+    // Menos de una hora NO es cero: el jefe tiene que saber que todavia sirve.
+    expect(hoursUntilExpiry(new Date(AHORA + 60_000).toISOString(), AHORA)).toBe(1);
+  });
+
+  it("una invitacion ya vencida da 0, nunca un negativo", () => {
+    expect(hoursUntilExpiry(new Date(AHORA - 3600_000).toISOString(), AHORA)).toBe(0);
+    expect(hoursUntilExpiry(new Date(AHORA).toISOString(), AHORA)).toBe(0);
+  });
+
+  it("sin fecha, o con una fecha ilegible, devuelve null y no 0", () => {
+    // 0 pintaria "vence en 0 h" sobre una invitacion cuya fecha no conocemos.
+    expect(hoursUntilExpiry(null, AHORA)).toBeNull();
+    expect(hoursUntilExpiry("", AHORA)).toBeNull();
+    expect(hoursUntilExpiry("manana", AHORA)).toBeNull();
+    expect(hoursUntilExpiry(undefined, AHORA)).toBeNull();
+  });
+});
+
+describe("buildRoster lleva la fecha de vencimiento a la fila de la invitacion", () => {
+  it("la fila de una invitacion trae expiresAt, y la de un miembro no", () => {
+    const r = buildRoster({
+      members: [{ id: 1, email: "m@x.com", firstname: "M", rol_id: 3, active: true, last_login: null }],
+      invitations: [{ id: 7, email: "i@x.com", expired: false, expires_at: "2026-11-02T12:00:00Z" }],
+    });
+    const inv = r.find((f) => f.kind === "invitation");
+    const mem = r.find((f) => f.kind === "member");
+    expect(inv.expiresAt).toBe("2026-11-02T12:00:00Z");
+    expect(mem.expiresAt).toBeUndefined();
+  });
+
+  it("una invitacion sin expires_at trae cadena vacia, no undefined de un null", () => {
+    const r = buildRoster({ invitations: [{ id: 7, email: "i@x.com", expired: false }] });
+    expect(r[0].expiresAt).toBe("");
+  });
+});
+
+describe("los cuatro mensajes del PATCH que el backend manda en espanol", () => {
+  // Espejo exacto del Critical 2 de la Tarea 4: `errorMessageFor` usa el texto
+  // crudo como PENULTIMO recurso, asi que sin firma estas frases se pintan
+  // literalmente en una interfaz en ingles. Llegan como {errors: {campo: motivo}}
+  // (MemberEditError), la forma de objeto por campo que el modulo ya sabe leer.
+  it("maximo N caracteres", () => {
+    expect(errorMessageFor({ status: 400, errors: { usr_firstname: "máximo 50 caracteres" } }, t))
+      .toBe("T:errors.tooLong");
+    expect(errorMessageFor({ status: 400, errors: { usr_phone: "máximo 20 caracteres" } }, t))
+      .toBe("T:errors.tooLong");
+  });
+
+  it("debe ser texto", () => {
+    expect(errorMessageFor({ status: 400, errors: { usr_lastname: "debe ser texto" } }, t))
+      .toBe("T:errors.invalidValue");
+  });
+
+  it("no puede estar vacio", () => {
+    expect(errorMessageFor({ status: 400, errors: { lang_code: "no puede estar vacío" } }, t))
+      .toBe("T:errors.emptyValue");
+  });
+
+  it("no hay campos editables en la solicitud", () => {
+    expect(errorMessageFor({ status: 400, errors: { detail: "no hay campos editables en la solicitud" } }, t))
+      .toBe("T:errors.noChanges");
+  });
+
+  it("y la firma de los caracteres NO se come los topes del archivo", () => {
+    // El dictamen de la Tarea 3 dice que un 422 que explica el motivo real vale
+    // mas que un generico, asi que estos DOS tienen que seguir cayendo al texto
+    // crudo del backend. Una firma por "maximo" se los habria tragado.
+    expect(errorMessageFor({ status: 422, errors: ["El archivo supera el máximo de 50 filas."] }, t))
+      .toBe("El archivo supera el máximo de 50 filas.");
+    expect(errorMessageFor({ status: 422, errors: ["El archivo supera el máximo de 1024 KB."] }, t))
+      .toBe("El archivo supera el máximo de 1024 KB.");
   });
 });

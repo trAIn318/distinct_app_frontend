@@ -7,11 +7,25 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
 const isAuthenticated = vi.fn();
 vi.mock("../../../../lib/session", () => ({
   isAuthenticated: (...a) => isAuthenticated(...a),
+  // `lib/preferences` -de donde sale la lista de idiomas del formulario de
+  // edicion- lo importa. Sin esta clave el modulo mockeado no provee el export
+  // y la importacion revienta.
+  getAccessToken: () => "token",
 }));
 
+// Las seis mutaciones de la Tarea 7 viven en el mismo modulo, asi que el mock
+// tiene que proveerlas aunque esta tanda de pruebas no las ejercite: un export
+// que falta en la factory revienta la importacion del componente. Lo que hacen
+// se prueba en AdminCompanyActions.test.js.
 const getCompanyMembers = vi.fn();
 vi.mock("../../../../lib/api", () => ({
   getCompanyMembers: (...a) => getCompanyMembers(...a),
+  addCompanyMember: vi.fn(),
+  resendInvitation: vi.fn(),
+  cancelInvitation: vi.fn(),
+  updateCompanyMember: vi.fn(),
+  deactivateCompanyMember: vi.fn(),
+  unlinkCompanyMember: vi.fn(),
 }));
 
 import AdminCompanyClient from "../AdminCompanyClient";
