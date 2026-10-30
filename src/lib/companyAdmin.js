@@ -249,6 +249,20 @@ const ERROR_CODES = Object.freeze({
   invalidValue: "invalidValue",
   emptyValue: "emptyValue",
   noChanges: "noChanges",
+  // Los SEIS errores de archivo completo de la carga por archivo. Vuelven como
+  // {"errors": [...]} con 422 y son prosa ESPAÑOLA escrita dentro del backend,
+  // así que sin clave propia se pintarían literales en una interfaz en inglés
+  // —el mismo defecto que ya apareció en las Tareas 4 y 7—. Cada uno tiene su
+  // clave y no una genérica, porque el dictamen de la Tarea 3 manda que el
+  // motivo real del 422 se conserve: "el archivo supera el máximo de 50 filas"
+  // dice mucho más que "algo salió mal", y es lo único que la pantalla no puede
+  // saber sin leer el archivo.
+  fileTooBig: "fileTooBig",
+  fileEmpty: "fileEmpty",
+  fileNoRows: "fileNoRows",
+  fileNoEmailColumn: "fileNoEmailColumn",
+  fileUnreadable: "fileUnreadable",
+  fileTooManyRows: "fileTooManyRows",
   generic: "generic",
 });
 
@@ -309,6 +323,23 @@ const POR_TEXTO = [
   // `isAuthenticated()` solo comprueba que el token EXISTA, no que sirva.
   ["token not valid", ERROR_CODES.signedOut],
   ["request was throttled", ERROR_CODES.throttled],
+  // Los SEIS errores de archivo completo de la carga por archivo
+  // (`CsvImportError`, 422, forma `errors[]`). Van ANTES del grupo de la
+  // edición a propósito: "caracteres" no los toca, pero cualquier firma futura
+  // sobre "maximo" sí los tocaría, y aquí el primero que coincide gana.
+  //
+  // Los dos topes llevan su número y el número sale de `IMPORT_LIMITS`, que es
+  // el mismo que ya decide `fileRejectionKey`: así las dos mitades de ese
+  // contrato no se pueden separar en silencio. Si el backend cambiara un tope
+  // sin que cambie aquí, la firma no coincide y el mensaje cae al texto del
+  // backend — degradado, no roto.
+  [`supera el maximo de ${IMPORT_LIMITS.maxBytes / 1024} kb`, ERROR_CODES.fileTooBig],
+  [`supera el maximo de ${IMPORT_LIMITS.maxRows} filas`, ERROR_CODES.fileTooManyRows],
+  // "no tiene filas de datos" va antes que nada que pudiera mirar "filas".
+  ["no tiene filas de datos", ERROR_CODES.fileNoRows],
+  ["el archivo esta vacio", ERROR_CODES.fileEmpty],
+  ["falta la columna obligatoria", ERROR_CODES.fileNoEmailColumn],
+  ["no se pudo leer el archivo", ERROR_CODES.fileUnreadable],
   // Los CUATRO mensajes del PATCH de un miembro. Llegan como
   // {errors: {campo: motivo}} y son prosa española escrita dentro del backend.
   // "caracteres" es la firma del tope de ancho ("máximo 50 caracteres"): la

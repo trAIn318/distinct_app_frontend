@@ -425,9 +425,14 @@ describe("lo que la revision encontro sin cercar", () => {
   });
 
   it("lee la segunda forma de error del backend: errors[]", () => {
-    // Los errores de archivo completo vuelven asi, no como `detail`.
+    // Los errores de archivo completo vuelven asi, no como `detail`. La
+    // garantia de esta prueba es que el ARREGLO se lee: que la firma del tope
+    // de filas coincida solo es posible si su texto se leyo de ahi.
     expect(errorMessageFor({ status: 422, errors: ["El archivo supera el máximo de 50 filas."] }, t))
-      .toBe("El archivo supera el máximo de 50 filas.");
+      .toBe("T:errors.fileTooManyRows");
+    // Y un texto sin firma sigue saliendo del arreglo tal cual.
+    expect(errorMessageFor({ status: 422, errors: ["Algo que el backend dira manana."] }, t))
+      .toBe("Algo que el backend dira manana.");
   });
 
   it("un error que llega como string pelado conserva su texto y su firma", () => {
@@ -716,11 +721,46 @@ describe("los cuatro mensajes del PATCH que el backend manda en espanol", () => 
 
   it("y la firma de los caracteres NO se come los topes del archivo", () => {
     // El dictamen de la Tarea 3 dice que un 422 que explica el motivo real vale
-    // mas que un generico, asi que estos DOS tienen que seguir cayendo al texto
-    // crudo del backend. Una firma por "maximo" se los habria tragado.
+    // mas que un generico, asi que estos DOS no pueden caer en `tooLong`: cada
+    // uno conserva SU motivo, ahora con su propia clave en los dos idiomas.
+    // Una firma por "maximo" se los habria tragado a los dos.
     expect(errorMessageFor({ status: 422, errors: ["El archivo supera el máximo de 50 filas."] }, t))
-      .toBe("El archivo supera el máximo de 50 filas.");
+      .toBe("T:errors.fileTooManyRows");
     expect(errorMessageFor({ status: 422, errors: ["El archivo supera el máximo de 1024 KB."] }, t))
-      .toBe("El archivo supera el máximo de 1024 KB.");
+      .toBe("T:errors.fileTooBig");
+  });
+});
+
+describe("los SEIS errores de archivo completo de la carga por archivo", () => {
+  // Son los unicos que la pantalla NO puede saber sin red -el tope de 50 filas
+  // no se sabe sin leer el archivo-, vuelven con 422 y la forma `errors[]`, y
+  // el backend los escribe en espanol. Sin firma se pintan literales en una
+  // interfaz en ingles. Cada uno conserva su motivo: ninguno cae en el generico.
+  const casos = [
+    ["El archivo supera el máximo de 1024 KB.", "fileTooBig"],
+    ["El archivo supera el máximo de 50 filas.", "fileTooManyRows"],
+    ["El archivo está vacío.", "fileEmpty"],
+    ["El archivo no tiene filas de datos.", "fileNoRows"],
+    ["Falta la columna obligatoria 'correo'.", "fileNoEmailColumn"],
+    ["No se pudo leer el archivo: revisa que sea un CSV válido.", "fileUnreadable"],
+  ];
+
+  for (const [texto, clave] of casos) {
+    it(`"${texto}" se traduce a ${clave}`, () => {
+      expect(errorMessageFor({ status: 422, errors: [texto] }, t)).toBe(`T:errors.${clave}`);
+    });
+  }
+
+  it("los seis dan SEIS mensajes distintos, no uno repetido", () => {
+    // Sin esto, mapearlos todos a la misma clave pasaria las seis de arriba.
+    const claves = new Set(
+      casos.map(([texto]) => errorMessageFor({ status: 422, errors: [texto] }, t)),
+    );
+    expect(claves.size).toBe(6);
+  });
+
+  it("y ninguno se confunde con el tope de ancho de un campo editado", () => {
+    expect(errorMessageFor({ status: 400, errors: { usr_firstname: "máximo 50 caracteres" } }, t))
+      .toBe("T:errors.tooLong");
   });
 });
