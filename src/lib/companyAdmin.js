@@ -332,6 +332,21 @@ const POR_TEXTO = [
   ["tiene datos asociados", ERROR_CODES.needsReview],
   ["tipo de invitacion desconocido", ERROR_CODES.generic],
   ["must be signed in", ERROR_CODES.signedOut],
+  // Prosa del FRAMEWORK, no del backend: estos cuatro los escribe DRF, en
+  // ingles, y se pintaban LITERALES en una interfaz que puede estar en espanol.
+  // Medido uno por uno. El 404 es el de las CUATRO escrituras del panel
+  // -editar, desactivar, reactivar, desvincular- cuando la persona ya no esta.
+  // Van DESPUES de las firmas propias del backend a proposito: la lista se
+  // recorre en orden y gana la primera, asi que un mensaje especifico del
+  // backend tiene que ganarle a esta prosa generica.
+  // El punto final de "not found." importa: sin el se comeria
+  // "not found or no longer valid", que es un mensaje del backend.
+  ["not found.", ERROR_CODES.notFound],
+  ["do not have permission", ERROR_CODES.forbidden],
+  ["authentication credentials were not provided", ERROR_CODES.signedOut],
+  // Un metodo equivocado es un defecto NUESTRO, no algo que el jefe pueda
+  // arreglar: mensaje generico y no uno que le pida hacer algo.
+  ["not allowed.", ERROR_CODES.generic],
   // Los DOS textos en ingles que el backend devuelve tal cual y que el orden de
   // `errorMessageFor` (codigo -> texto -> estado) pintaria crudos antes de
   // llegar a POR_ESTADO. El del token vencido es el mas probable de los dos:
