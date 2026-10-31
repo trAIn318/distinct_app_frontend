@@ -487,7 +487,12 @@
     "wdSat": "Sat",
     "detailTitle": "Daily detail",
     "downloadCsv": "Download CSV",
-    "emptyPeriod": "No sales in this period"
+    "emptyPeriod": "No sales in this period",
+    "byLocationTitle": "Sales by location",
+    "locationCol": "Location",
+    "shareCol": "Share of total",
+    "totalLabel": "TOTAL",
+    "downloadLocationCsv": "Download by location"
   },
   "companyAdmin": {
     "accept": {

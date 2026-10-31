@@ -91,3 +91,103 @@ export function salesTemplateCsv() {
     "20260506,1345.50,24,39",
   ].join("\n");
 }
+
+// ── Por sede: una empresa con varias sedes ─────────────────────────────────
+//
+// El negocio real de este cliente NO son grupos de compañías: es UNA compañía
+// —Mucura, por ejemplo— con varias sedes. El backend ya devuelve `by_property`
+// con ventas, órdenes y comensales por sede, pero **sin ticket promedio y sin
+// participación**, y la única tabla del panel es por FECHA. Estas dos funciones
+// son lo que faltaba para leer "cuánto hizo cada sede" junto a "cuánto hizo la
+// compañía".
+
+const PROPERTY_CSV_HEADER =
+  "property,net_sales,order_count,guest_count,avg_ticket,share_pct";
+
+function _fijo(n, decimales) {
+  return (Number.isFinite(n) ? n : 0).toFixed(decimales);
+}
+
+/** Ticket promedio de una sede. El backend lo calcula igual (ventas/órdenes)
+ *  pero no lo manda por sede. Con CERO órdenes devuelve "0.00" en vez de
+ *  dividir: ventas sin órdenes contadas es un dato posible del export real, y
+ *  un Infinity se pintaría literalmente en la tabla.
+ *
+ *  Medido por mutación: quitar este guard NO rompe ninguna prueba, porque
+ *  `_fijo` ya descarta Infinity y NaN. O sea que es defensa en profundidad y no
+ *  la única barrera; se deja porque dice la intención en el sitio donde ocurre
+ *  la división, pero quien toque `_fijo` tiene que saber que esto depende de
+ *  su `Number.isFinite`. */
+function _ticket(ventas, ordenes) {
+  const o = Number(ordenes);
+  if (!o) return "0.00";
+  return _fijo(Number(ventas) / o, 2);
+}
+
+/** Campo de CSV. `buildSalesCsv` no necesita esto porque solo escribe fechas y
+ *  números; aquí entra el NOMBRE de la sede, y una coma en "Mucura, Centro"
+ *  partiría la fila en dos columnas y desplazaría todo lo demás. */
+function _campoCsv(valor) {
+  const s = String(valor ?? "");
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+/**
+ * Filas de la tabla por sede, más una fila de TOTAL al final.
+ *
+ * El total es el KPI del backend, **no la suma de las filas**: cada
+ * `net_sales` llega ya redondeado a dos decimales, así que sumarlos puede dar
+ * un centavo distinto del KPI que el panel pinta arriba, y dos totales que se
+ * contradicen en la misma pantalla es peor que un redondeo invisible.
+ *
+ * Sin sedes devuelve lista vacía: una fila de total sola, sin nada que
+ * totalizar, afirmaría que hay datos donde no hay.
+ */
+export function buildPropertyRows(byProperty, kpis) {
+  const sedes = Array.isArray(byProperty) ? byProperty : [];
+  if (sedes.length === 0) return [];
+  const k = kpis || {};
+  const totalNeto = Number(k.net_sales);
+  const filas = sedes.map((s) => ({
+    property_id: s.property_id,
+    // Una sede sin nombre se identifica por su id: en blanco no se puede
+    // distinguir de otra sin nombre.
+    property_name: s.property_name || `#${s.property_id}`,
+    net_sales: String(s.net_sales ?? "0.00"),
+    order_count: s.order_count ?? 0,
+    guest_count: s.guest_count ?? 0,
+    avg_ticket: _ticket(s.net_sales, s.order_count),
+    share_pct: totalNeto
+      ? _fijo((Number(s.net_sales) / totalNeto) * 100, 1)
+      : "0.0",
+    is_total: false,
+  }));
+  filas.push({
+    property_id: null,
+    property_name: "",
+    net_sales: String(k.net_sales ?? "0.00"),
+    order_count: k.order_count ?? 0,
+    guest_count: k.guest_count ?? 0,
+    avg_ticket: String(k.avg_ticket ?? _ticket(k.net_sales, k.order_count)),
+    share_pct: "100.0",
+    is_total: true,
+  });
+  return filas;
+}
+
+/** CSV de la tabla por sede, con el total incluido. */
+export function buildPropertyCsv(rows) {
+  const filas = (Array.isArray(rows) ? rows : []).map((f) =>
+    [
+      f.is_total ? "TOTAL" : f.property_name,
+      f.net_sales,
+      f.order_count,
+      f.guest_count,
+      f.avg_ticket,
+      f.share_pct,
+    ]
+      .map(_campoCsv)
+      .join(",")
+  );
+  return [PROPERTY_CSV_HEADER, ...filas].join("\n");
+}

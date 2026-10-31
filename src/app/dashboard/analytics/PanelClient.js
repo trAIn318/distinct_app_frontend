@@ -24,6 +24,8 @@ import {
   salesByWeekday,
   monthlySales,
   monthOverMonthPct,
+  buildPropertyRows,
+  buildPropertyCsv,
 } from "../../../lib/analytics";
 import { useT } from "../../../i18n/client";
 import SalesTrendChart from "../../../components/analytics/SalesTrendChart";
@@ -129,6 +131,20 @@ export default function PanelClient() {
     const a = document.createElement("a");
     a.href = url;
     a.download = `ventas_${cur.currency}_${report?.range?.start || ""}_${report?.range?.end || ""}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /** CSV de la tabla por sede. Aparte del diario porque responden preguntas
+   *  distintas: el diario es "cómo vengo en el tiempo", este es "cuánto pone
+   *  cada sede". */
+  function downloadPropertyCsv(cur) {
+    const csv = buildPropertyCsv(buildPropertyRows(cur.by_property, cur.kpis));
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ventas_por_sede_${cur.currency}_${report?.range?.start || ""}_${report?.range?.end || ""}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -312,6 +328,64 @@ export default function PanelClient() {
                 </div>
               </>
             )}
+
+            {/* Tabla por sede. Una compañía como Mucura tiene varias sedes, y
+                hasta aquí lo único por sede era una gráfica de barras detrás de
+                una preferencia: el jefe no podía LEER cuánto puso cada una.
+                NO va detrás de `chartPrefs`: esa preferencia esconde gráficas,
+                y esto son los datos. Se muestra con 2+ sedes, porque con una
+                sola la tabla repetiría los KPIs de arriba. */}
+            {cur.by_property.length > 1 && (() => {
+              const sedes = buildPropertyRows(cur.by_property, cur.kpis);
+              return (
+                <>
+                  <div className={styles.tableHeader}>
+                    <h3 className={styles.cardTitle}>{t("byLocationTitle")}</h3>
+                    <button
+                      type="button"
+                      className={styles.ghostButton}
+                      onClick={() => downloadPropertyCsv(cur)}
+                    >
+                      {t("downloadLocationCsv")}
+                    </button>
+                  </div>
+                  <div className={styles.tableWrap}>
+                    <table
+                      className={styles.table}
+                      data-testid={`bysede-${cur.currency}`}
+                    >
+                      <thead>
+                        <tr>
+                          <th>{t("locationCol")}</th>
+                          <th>{t("kpiNetSales")}</th>
+                          <th>{t("kpiOrders")}</th>
+                          <th>{t("kpiGuests")}</th>
+                          <th>{t("kpiAvgTicket")}</th>
+                          <th>{t("shareCol")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sedes.map((f) => (
+                          <tr
+                            key={f.is_total ? "total" : f.property_id}
+                            data-total={f.is_total ? "1" : undefined}
+                          >
+                            <th scope="row">
+                              {f.is_total ? t("totalLabel") : f.property_name}
+                            </th>
+                            <td>{f.net_sales}</td>
+                            <td>{f.order_count}</td>
+                            <td>{f.guest_count}</td>
+                            <td>{f.avg_ticket}</td>
+                            <td>{f.share_pct}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              );
+            })()}
 
             {/* Tabla + CSV */}
             <div className={styles.tableHeader}>
