@@ -543,3 +543,233 @@ export async function getSalesReport({ start, end, propertyId } = {}) {
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
   return authFetch(`/analytics/reports/sales/${suffix}`);
 }
+
+// ── Panel de administración de compañía e invitaciones ──────────────────────
+//
+// Dos grupos: los endpoints PÚBLICOS de la invitación (sin sesión, porque la
+// persona todavía no tiene cuenta usable) y los del panel (con Bearer).
+//
+// Todos adjuntan al Error el `status` y, cuando el backend la usa, la forma
+// `errors`. El patrón heredado del repo lanzaba `new Error(detail)` y perdía el
+// estado, así que `companyAdmin.errorMessageFor` solo podía traducir por texto;
+// con el estado traduce también los 401/403/404/422/5xx, y con `errors` puede
+// mostrar el motivo real de un archivo rechazado en vez del genérico.
+
+/** Lee el cuerpo como JSON, o devuelve {} si no es JSON. */
+async function _cuerpo(res) {
+  try {
+    return (await res.json()) ?? {};
+  } catch {
+    return {};
+  }
+}
+
+/** Convierte una respuesta no-ok en un Error con todo lo que el backend dio.
+ *
+ * El mensaje NO lleva prosa inventada en inglés. `companyAdmin.errorMessageFor`
+ * usa el texto crudo del error como penúltimo recurso, así que una frase en
+ * inglés puesta aquí se pintaba LITERALMENTE en una interfaz en español cada
+ * vez que el backend no mandaba `detail` (un 500 de Django, por ejemplo). El
+ * texto que lee la persona lo decide esa función, con sus claves i18n; aquí
+ * solo viaja lo que el backend dijo, más el estado para que pueda traducirlo.
+ *
+ * `respaldo` queda como mensaje de diagnóstico para la consola cuando no hay
+ * nada del backend, nunca como texto de pantalla: va a `devMessage`.
+ */
+function _errorDe(res, data, respaldo) {
+  const err = new Error(data.detail || "");
+  err.status = res.status;
+  err.devMessage = respaldo || `HTTP ${res.status}`;
+
+  if (data.errors !== undefined) {
+    err.errors = data.errors;
+    return err;
+  }
+  // CUARTA forma de error del backend: los errores de campo de DRF al TOPE del
+  // cuerpo, sin envolver. Es lo que devuelve `invitation_accept_view` en su 400
+  // (`Response(ser.errors, 400)`), por ejemplo cuando la contraseña no llega a
+  // los 8 caracteres que exige el serializador. Sin leerla, la persona invitada
+  // veía un mensaje que no decía nada en la única pantalla que debe pasar para
+  // existir en el sistema.
+  const campos = Object.entries(data).filter(
+    ([, v]) => typeof v === "string"
+      || (Array.isArray(v) && v.some((x) => typeof x === "string")),
+  );
+  if (campos.length) err.errors = Object.fromEntries(campos);
+  return err;
+}
+
+function _bearer() {
+  const token = getAccessToken();
+  if (!token) throw new Error("You must be signed in.");
+  return token;
+}
+
+/** Petición autenticada con cuerpo JSON (o sin cuerpo). */
+async function _apiAuth(path, { method = "GET", body, respaldo } = {}) {
+  const token = _bearer();
+  const headers = { Authorization: `Bearer ${token}` };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const res = await fetch(`${API_URL}/api${path}`, {
+    method,
+    headers,
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    cache: "no-store",
+  });
+  const data = await _cuerpo(res);
+  if (!res.ok) throw _errorDe(res, data, respaldo);
+  return data;
+}
+
+/** Petición autenticada que sube un archivo.
+ *  NO fija Content-Type: el navegador tiene que poner el boundary del
+ *  multipart, y fijarlo a mano produce una petición que el backend no parsea. */
+async function _apiUpload(path, file, respaldo) {
+  const token = _bearer();
+  const body = new FormData();
+  body.append("file", file);
+  const res = await fetch(`${API_URL}/api${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body,
+    cache: "no-store",
+  });
+  const data = await _cuerpo(res);
+  if (!res.ok) throw _errorDe(res, data, respaldo);
+  return data;
+}
+
+// ── Invitación: público, sin sesión ────────────────────────────────────────
+
+/**
+ * GET /api/invitations/<token>/
+ * De qué empresa es la invitación y de qué tipo. NO devuelve el correo: el
+ * backend lo omite a propósito para no confirmar que una dirección fue invitada.
+ */
+export async function getInvitationInfo(token) {
+  // fetchResilient, no `fetch` pelado: esta es la PRIMERA peticion que hace una
+  // persona nueva, y en Render free el servicio tarda ~30-60 s en despertar. El
+  // login ya usa este helper por el mismo motivo; aqui hacia mas falta todavia,
+  // porque un fallo se le presentaba como "tu enlace esta muerto".
+  const res = await fetchResilient(`${API_URL}/api/invitations/${encodeURIComponent(token)}/`, {
+    cache: "no-store",
+  });
+  const data = await _cuerpo(res);
+  if (!res.ok) throw _errorDe(res, data, "This invitation link is not valid.");
+  return data;
+}
+
+/**
+ * POST /api/invitations/<token>/accept/
+ * Activa la cuenta y devuelve la sesión (igual que el login).
+ * Para una cuenta nueva el backend EXIGE `accept_policy`; para una cuenta que ya
+ * existe ignora el cuerpo, así que se manda vacío.
+ */
+export async function acceptInvitation(token, { password, confirmPassword, acceptPolicy } = {}) {
+  const body = {};
+  if (password !== undefined) {
+    body.password = password;
+    body.confirm_password = confirmPassword;
+    body.accept_policy = Boolean(acceptPolicy);
+  }
+  const res = await fetch(`${API_URL}/api/invitations/${encodeURIComponent(token)}/accept/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  const data = await _cuerpo(res);
+  if (!res.ok) throw _errorDe(res, data, "Could not activate your account.");
+  return data;
+}
+
+// ── Panel: requiere sesión ─────────────────────────────────────────────────
+
+/** GET /api/company-admin/members/ → {members, invitations, total} */
+export async function getCompanyMembers({ q, limit, offset } = {}) {
+  const qs = new URLSearchParams();
+  if (q) qs.set("q", q);
+  if (limit !== undefined && limit !== null) qs.set("limit", String(limit));
+  if (offset !== undefined && offset !== null) qs.set("offset", String(offset));
+  const cola = qs.toString();
+  return _apiAuth(`/company-admin/members/${cola ? `?${cola}` : ""}`, {
+    respaldo: "Could not load your staff.",
+  });
+}
+
+/** POST /api/company-admin/members/ → {invitation, email_sent} */
+export async function addCompanyMember(email) {
+  return _apiAuth("/company-admin/members/", {
+    method: "POST", body: { email }, respaldo: "Could not send the invitation.",
+  });
+}
+
+/**
+ * PATCH /api/company-admin/members/<id>/
+ *
+ * OJO con los nombres: el backend **lee** con `firstname`/`lastname`/`phone` y
+ * **escribe** con `usr_firstname`/`usr_lastname`/`usr_phone`/`lang_code` (su
+ * lista blanca `EDITABLE_FIELDS`). O sea que los nombres NO coinciden en tres
+ * de los cuatro campos. Pasar los de lectura hace que el backend no encuentre
+ * ningun campo editable y responda un 400 con texto interno
+ * ("no hay campos editables en la solicitud"), que acabaria en pantalla.
+ *
+ * @param {Object} fields - solo `usr_firstname`, `usr_lastname`, `usr_phone`,
+ *   `lang_code`.
+ */
+export async function updateCompanyMember(id, fields) {
+  return _apiAuth(`/company-admin/members/${id}/`, {
+    method: "PATCH", body: fields, respaldo: "Could not save the changes.",
+  });
+}
+
+/** POST /api/company-admin/members/<id>/deactivate/ */
+export async function deactivateCompanyMember(id) {
+  return _apiAuth(`/company-admin/members/${id}/deactivate/`, {
+    method: "POST", respaldo: "Could not deactivate this person.",
+  });
+}
+
+/** POST /api/company-admin/members/<id>/unlink/ */
+export async function unlinkCompanyMember(id) {
+  return _apiAuth(`/company-admin/members/${id}/unlink/`, {
+    method: "POST", respaldo: "Could not remove this person from your team.",
+  });
+}
+
+/** POST /api/company-admin/invitations/<id>/resend/ → {invitation, email_sent} */
+export async function resendInvitation(id) {
+  return _apiAuth(`/company-admin/invitations/${id}/resend/`, {
+    method: "POST", respaldo: "Could not resend the invitation.",
+  });
+}
+
+/** DELETE /api/company-admin/invitations/<id>/ */
+export async function cancelInvitation(id) {
+  return _apiAuth(`/company-admin/invitations/${id}/`, {
+    method: "DELETE", respaldo: "Could not cancel the invitation.",
+  });
+}
+
+// ── Carga por archivo ──────────────────────────────────────────────────────
+
+/** GET /api/company-admin/import/template/ → el CSV como TEXTO, no JSON. */
+export async function getImportTemplate() {
+  const token = _bearer();
+  const res = await fetch(`${API_URL}/api/company-admin/import/template/`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) throw _errorDe(res, await _cuerpo(res), "Could not download the template.");
+  return res.text();
+}
+
+/** POST /api/company-admin/import/preview/ → qué pasaría, sin escribir nada. */
+export async function previewMembersImport(file) {
+  return _apiUpload("/company-admin/import/preview/", file, "Could not read the file.");
+}
+
+/** POST /api/company-admin/import/ → emite las invitaciones. */
+export async function commitMembersImport(file) {
+  return _apiUpload("/company-admin/import/", file, "Could not import the file.");
+}

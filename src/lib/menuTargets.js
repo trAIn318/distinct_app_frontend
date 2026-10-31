@@ -30,6 +30,7 @@ export function splitMenuByGroup(items) {
  * NO requiere tocar el frontend.
  *   - dashboard/trainy → acción Entrenar (SSO).
  *   - settings/language→ se sustituye por el control de idioma inline.
+ *   - settings/admin-company → el panel de personal de la empresa.
  *   - resto            → navegación a /coming-soon (En construcción).
  * @param {string} url
  * @returns {{type:"train"}|{type:"language"}|{type:"route",href:string}}
@@ -40,6 +41,7 @@ export function resolveMenuTarget(url) {
   if (key === "settings/language") return { type: "language" };
   if (key === "dashboard/eval") return { type: "route", href: "/dashboard/eval" };
   if (key === "dashboard/analytics") return { type: "route", href: "/dashboard/analytics" };
+  if (key === "settings/admin-company") return { type: "route", href: "/settings/admin-company" };
   return { type: "route", href: "/coming-soon" };
 }
 
