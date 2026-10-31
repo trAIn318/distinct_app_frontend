@@ -19,7 +19,7 @@
   /* Sin backdrop-filter: un elemento con blur solapado al panel scrolleable
      desactiva el scroll por GPU en Chrome y lo fuerza al hilo principal
      (causa del lag). El oscurecido solo ya separa el panel del fondo. */
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--scrim);
   z-index: 290;
   opacity: 0;
   pointer-events: none;
