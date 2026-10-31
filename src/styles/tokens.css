@@ -12,6 +12,24 @@
   --color-surface-dark: #111111;   /* card backgrounds in dark mode */
   --color-surface-light:#FAFAF8;   /* card backgrounds in light mode */
 
+  /* Texto SOBRE el dorado. Existe porque es el unico par de la paleta que NO
+     se puede invertir con el tema: obsidiana y marfil se intercambian en tema
+     claro, pero el dorado se queda en tono medio en los dos (#C9A96E oscuro,
+     #A8895A claro). Pintar el texto con --color-obsidian daba texto casi
+     blanco sobre dorado en tema claro: 2.91:1, por debajo del 4.5 de AA.
+     Este token NO se redefine en [data-theme="light"] a proposito.
+     Medido: 8.85:1 en tema oscuro y 6.03:1 en tema claro. */
+  --color-on-gold:      #0A0A0A;
+
+  /* Velo que oscurece la pagina detras de un panel deslizante. Basado en
+     obsidiana y NO en negro puro, que claude.md 2.1 prohibe. No se redefine en
+     tema claro a proposito: un velo oscurece en los dos temas. */
+  --scrim:              rgba(10, 10, 10, 0.6);
+
+  /* Brillo que barre el boton dorado. Marfil y no blanco puro (claude.md 2.1).
+     Tampoco se invierte: un brillo sobre dorado es claro en los dos temas. */
+  --gloss:              rgba(247, 244, 239, 0.4);
+
   /* ── Semantic ─────────────────────────────────────────────── */
   --color-text-primary:   var(--color-obsidian);
   --color-text-secondary: var(--color-smoke);
@@ -103,9 +121,9 @@
   --color-gold:         #A8895A;   /* dorado con contraste sobre claro */
   --color-gold-muted:   #8C714A;
   --color-platinum:     #44434A;   /* texto secundario */
-  --color-charcoal:     #FFFFFF;   /* paneles/cards claras */
+  --color-charcoal:     #FDFCFA;   /* paneles/cards claras. NO #FFFFFF: claude.md 2.1 prohibe el blanco puro. */
   --color-smoke:        #6E6E73;
-  --color-surface-dark: #FFFFFF;
+  --color-surface-dark: #FDFCFA;   /* idem: sin blanco puro */
   --color-surface-light:#FAFAF8;
 
   --gold-08:  rgba(168, 137, 90, 0.10);
