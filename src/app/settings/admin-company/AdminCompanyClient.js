@@ -105,6 +105,14 @@ function faseDeError(err) {
   return FASE.FALLO;
 }
 
+/** Si el error de una ESCRITURA es que la sesión venció. Mismo criterio que
+ *  `faseDeError` —el estado, nunca el texto— y la misma consecuencia: la salida
+ *  no es reintentar, es iniciar sesión. Sin esto, un 401 en una acción de fila
+ *  decía "Sign in again." dentro del diálogo sin un solo control para hacerlo. */
+function esSesionVencida(err) {
+  return faseDeError(err) === FASE.SESION_VENCIDA;
+}
+
 /** La respuesta del listado, solo si tiene la forma que esta pantalla sabe
  *  leer. `_cuerpo()` en `api.js` devuelve `{}` ante cualquier cuerpo que no sea
  *  JSON —un 200 del proxy de Render con una página HTML dentro llega así—, y
@@ -145,6 +153,12 @@ export default function AdminCompanyClient() {
   const ocupadoRef = useRef(false);
   const [avisoInvitar, setAvisoInvitar] = useState(null);   // {key, vars, invitationId}
   const [errorInvitar, setErrorInvitar] = useState(null);
+  // El error del reenvío que se ofrece DENTRO del aviso tiene su propio cajón.
+  // Mandarlo al de `errorInvitar` marcaba inválido el campo de correo —vacío,
+  // porque invitar lo limpia al terminar— con `aria-invalid` y
+  // `aria-describedby`, así que un lector de pantalla anunciaba inválida la
+  // dirección cuando lo que había fallado era la red.
+  const [errorReenvio, setErrorReenvio] = useState(null);
   const [aviso, setAviso] = useState(null);                 // acciones de fila
   const [errorAccion, setErrorAccion] = useState(null);
   const [dialogo, setDialogo] = useState(null);             // {tipo, fila}
@@ -301,6 +315,9 @@ export default function AdminCompanyClient() {
     }
     correr("invite", async () => {
       setAvisoInvitar(null);
+      // El error del reenvío anterior no sobrevive a una invitación nueva: su
+      // aviso, que es lo que ofrecía reenviar, tampoco.
+      setErrorReenvio(null);
       const res = await addCompanyMember(email);
       // `email_sent: false` NO es un error: la invitacion existe. Render
       // bloquea SMTP y el envio va por un tercero, asi que pasa de verdad;
@@ -338,8 +355,11 @@ export default function AdminCompanyClient() {
     reenviar("row", id, email, setErrorAccion);
   }, [reenviar]);
 
+  /** El reenvío que se ofrece dentro del aviso. Sigue siendo del tipo "invite"
+   *  —es el mismo bloque y comparte su `disabled`—, pero su error va a SU
+   *  cajón, no al del campo de correo. */
   const reenviarDelAviso = useCallback((id, email) => {
-    reenviar("invite", id, email, setErrorInvitar);
+    reenviar("invite", id, email, setErrorReenvio);
   }, [reenviar]);
 
   const cancelar = useCallback((id) => {
@@ -498,6 +518,19 @@ export default function AdminCompanyClient() {
             minuto en despertar— y entonces "no ha cambiado nada" sería falso
             justo después de sacar a alguien del equipo. */}
         {aviso && <p className={styles.notice} role="status">{textoDe(aviso)}</p>}
+        {/* Y lo que hizo la INVITACIÓN, que es el camino más frecuente y el que
+            quedaba fuera: `invitar` también termina en `recargar()`. Con
+            `email_sent: false` este aviso es el ÚNICO sitio donde se le dice al
+            jefe que el correo no salió y que tiene que avisar por otra vía, así
+            que perderlo consume la invitación de 72 h en silencio. */}
+        <AvisoInvitacion
+          t={t}
+          aviso={avisoInvitar}
+          texto={textoDe(avisoInvitar)}
+          errorReenvio={textoDe(errorReenvio)}
+          ocupado={Boolean(enCurso)}
+          onReenviar={reenviarDelAviso}
+        />
         <p className={styles.muted}>{t("panel.loadFailedBody")}</p>
         <p className={styles.error} role="alert">{errorMessageFor(errorCarga, t)}</p>
         <div className={styles.cardActions}>
@@ -563,6 +596,10 @@ export default function AdminCompanyClient() {
     return (
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>{t("panel.emptyTitle")}</h2>
+        {/* A este estado se llega también sacando a la última persona del
+            equipo, y entonces "nadie todavía" es el resultado de lo que el jefe
+            acaba de hacer: sin el aviso parece que la pantalla se olvidó. */}
+        {aviso && <p className={styles.notice} role="status">{textoDe(aviso)}</p>}
         <p className={styles.muted}>{t("panel.emptyBody")}</p>
         {/* El formulario existe porque el diseño §6.3 lo pide en este estado:
             un campo de correo VISIBLE con su etiqueta. Es el MISMO bloque que
@@ -577,6 +614,7 @@ export default function AdminCompanyClient() {
           error={textoDe(errorInvitar)}
           aviso={avisoInvitar}
           avisoTexto={textoDe(avisoInvitar)}
+          errorReenvio={textoDe(errorReenvio)}
           onReenviar={reenviarDelAviso}
         >
           {/* La carga por archivo es la Tarea 8; este enlace es el que el
@@ -595,6 +633,10 @@ export default function AdminCompanyClient() {
     return (
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>{t("panel.outOfRangeTitle")}</h2>
+        {/* Tras sacar a la última persona de una página se cae justo aquí, y
+            "la lista cambió mientras la mirabas" le atribuye al azar lo que
+            acaba de hacer él. */}
+        {aviso && <p className={styles.notice} role="status">{textoDe(aviso)}</p>}
         <p className={styles.muted}>{t("panel.outOfRangeBody")}</p>
         <button type="button" className="btn-ghost" onClick={volverAlInicio}>
           {t("panel.backToFirstPage")}
@@ -632,8 +674,20 @@ export default function AdminCompanyClient() {
         error={textoDe(errorInvitar)}
         aviso={avisoInvitar}
         avisoTexto={textoDe(avisoInvitar)}
+        errorReenvio={textoDe(errorReenvio)}
         onReenviar={reenviarDelAviso}
-      />
+      >
+        {/* La carga por archivo va TAMBIÉN aquí, y no solo en el estado vacío:
+            ese estado exige `roster.length === 0 && !q && offset === 0`, así que
+            la primera invitación lo hacía desaparecer y no volvía nunca. Con el
+            enlace solo allí, y el menú enrutando únicamente
+            `settings/admin-company`, la pantalla de carga era inalcanzable en
+            cuanto la empresa tenía a alguien —y `panel.emptyBody` prometía
+            "or upload a file with several at once"—.
+            Va como enlace de texto, no como botón dorado: el dorado de esta
+            vista es el de invitar (claude.md §2.1, máximo uno por vista). */}
+        <a className={styles.link} href={`${RUTA}/import`}>{t("panel.uploadFile")}</a>
+      </BloqueInvitar>
 
       {/* Lo que pasó con la última acción de una fila. Mientras hay un diálogo
           abierto el error se pinta DENTRO del diálogo, que es donde está
@@ -641,8 +695,13 @@ export default function AdminCompanyClient() {
       {aviso && !dialogoAbierto && (
         <p className={styles.notice} role="status">{textoDe(aviso)}</p>
       )}
-      {errorAccion && !dialogoAbierto && (
-        <p className={styles.error} role="alert">{textoDe(errorAccion)}</p>
+      {!dialogoAbierto && (
+        <ErrorDeAccion
+          t={t}
+          error={errorAccion}
+          texto={textoDe(errorAccion)}
+          onIrALogin={irALogin}
+        />
       )}
 
       <form className={styles.searchForm} onSubmit={buscar} role="search">
@@ -911,9 +970,12 @@ export default function AdminCompanyClient() {
               )}
             </div>
 
-            {errorAccion && (
-              <p className={styles.error} role="alert">{textoDe(errorAccion)}</p>
-            )}
+            <ErrorDeAccion
+              t={t}
+              error={errorAccion}
+              texto={textoDe(errorAccion)}
+              onIrALogin={irALogin}
+            />
 
             <div className={styles.dialogActions}>
               <button
@@ -948,9 +1010,12 @@ export default function AdminCompanyClient() {
               { name: dialogo.fila.displayName },
             )}
           </p>
-          {errorAccion && (
-            <p className={styles.error} role="alert">{textoDe(errorAccion)}</p>
-          )}
+          <ErrorDeAccion
+            t={t}
+            error={errorAccion}
+            texto={textoDe(errorAccion)}
+            onIrALogin={irALogin}
+          />
           <div className={styles.dialogActions}>
             {/* El primer control, y el que recibe el foco al abrir, es el de NO
                 hacerlo: en una acción destructiva el camino por omisión del
@@ -1004,6 +1069,30 @@ function Dialogo({ titulo, children }) {
   );
 }
 
+/** El error de una escritura, con la salida que ese error admite.
+ *
+ *  Un 401 no se arregla reintentando: la única acción posible es iniciar sesión
+ *  de nuevo, y hasta ahora el mensaje "Sign in again." aparecía DENTRO del
+ *  diálogo sin un solo control para hacerlo —el camino de carga sí lo tiene—.
+ *
+ *  El botón va en `btn-ghost` y no en `btn-primary`: la vista de la tabla ya
+ *  gasta su único dorado en invitar (claude.md §2.1), y con un diálogo abierto
+ *  encima se contarían dos.
+ */
+function ErrorDeAccion({ t, error, texto, onIrALogin }) {
+  if (!error) return null;
+  return (
+    <>
+      <p className={styles.error} role="alert">{texto}</p>
+      {esSesionVencida(error) && (
+        <button type="button" className="btn-ghost" onClick={onIrALogin}>
+          {t("panel.signIn")}
+        </button>
+      )}
+    </>
+  );
+}
+
 /** Un campo de texto del formulario de edición, con su etiqueta asociada de
  *  verdad y su error DEBAJO del campo (claude.md §5.5), nunca en un `alert()`. */
 function CampoEdicion({
@@ -1040,7 +1129,7 @@ function CampoEdicion({
  */
 function BloqueInvitar({
   t, titulo, correo, onCorreo, onSubmit, ocupado, enviando, error, aviso, avisoTexto,
-  onReenviar, children,
+  errorReenvio, onReenviar, children,
 }) {
   return (
     <div className={styles.inviteBlock}>
@@ -1081,9 +1170,36 @@ function BloqueInvitar({
         </div>
       </form>
       {enviando && <p className={styles.muted} role="status">{t("panel.sending")}</p>}
+      <AvisoInvitacion
+        t={t}
+        aviso={aviso}
+        texto={avisoTexto}
+        errorReenvio={errorReenvio}
+        ocupado={ocupado}
+        onReenviar={onReenviar}
+      />
+    </div>
+  );
+}
+
+/** Lo que la invitación SÍ hizo, con su botón de reenviar y con el sitio propio
+ *  del error de ese reenvío.
+ *
+ *  Vive aparte porque lo pintan DOS vistas: el bloque de invitar y la vista de
+ *  FALLO DE CARGA. Cada acción recarga el listado al terminar, así que la
+ *  recarga puede fallar sobre una invitación que sí se creó —Render tarda hasta
+ *  un minuto en despertar— y ahí este aviso es lo único que distingue "no ha
+ *  cambiado nada" de "la invitación existe pero el correo no salió".
+ *
+ *  El error del reenvío va en su propio párrafo y NO al cajón del campo de
+ *  correo: lo que falla aquí es la red, no la dirección que escribió el jefe. */
+function AvisoInvitacion({ t, aviso, texto, errorReenvio, ocupado, onReenviar }) {
+  if (!aviso && !errorReenvio) return null;
+  return (
+    <>
       {aviso && (
         <p className={styles.notice} role="status">
-          {avisoTexto}
+          {texto}
           {aviso.invitationId ? (
             <button
               type="button"
@@ -1096,6 +1212,9 @@ function BloqueInvitar({
           ) : null}
         </p>
       )}
-    </div>
+      {errorReenvio && (
+        <p className={styles.error} role="alert">{errorReenvio}</p>
+      )}
+    </>
   );
 }

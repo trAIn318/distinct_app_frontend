@@ -712,6 +712,35 @@ describe("los controles de la pantalla que ninguna prueba sostenia", () => {
     await waitFor(() => expect(screen.getByText(/1.25 of 60/)).toBeInTheDocument());
   });
 
+  it("M51: Limpiar desde la pagina 2 de una busqueda vuelve a la PRIMERA pagina", async () => {
+    // Asimetrico: la misma linea de `buscar` si estaba sostenida ("una busqueda
+    // nueva vuelve a la primera pagina") y la de `limpiar` no, porque la prueba
+    // de Limpiar se hacia desde la pagina 1, donde el offset ya era 0. Limpiar
+    // desde la pagina 2 de una busqueda caia en la vista de "pagina fuera de
+    // rango" en cuanto el listado completo tuviera menos de 26 personas.
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), total: 60 }))
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), total: 60 }))
+      .mockResolvedValueOnce(respuesta({ members: personas(26, 25), total: 60 }))
+      .mockResolvedValue(respuesta({ members: personas(1, 25), total: 60 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /next/i })).toBeEnabled());
+    fireEvent.change(screen.getByLabelText(/search by name or email/i), {
+      target: { value: "p0" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => expect(ultimaPeticion()).toEqual({ q: "p0", limit: 25, offset: 0 }));
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() => expect(ultimaPeticion()).toEqual({ q: "p0", limit: 25, offset: 25 }));
+    fireEvent.click(screen.getByRole("button", { name: /^clear$/i }));
+    await waitFor(() => {
+      expect(ultimaPeticion()).not.toHaveProperty("q");
+      expect(ultimaPeticion().offset).toBe(0);
+    });
+    // Y se queda en la tabla, no en la vista de pagina fuera de rango.
+    expect(screen.getByRole("table")).toBeInTheDocument();
+  });
+
   it("m6: el campo de correo del estado vacio es obligatorio, con indicador visible", async () => {
     getCompanyMembers.mockResolvedValue(respuesta({ members: [], invitations: [], total: 0 }));
     render(<AdminCompanyClient />);
@@ -723,5 +752,100 @@ describe("los controles de la pantalla que ninguna prueba sostenia", () => {
     expect(visible.some((s) => s.textContent.includes("*"))).toBe(true);
     // Y el indicador visible tiene su equivalente para lector de pantalla.
     expect(etiqueta.textContent).toMatch(/required/i);
+  });
+});
+
+// ── C2: la carga por archivo tiene que ser alcanzable ───────────────────────
+
+describe("C2 — la carga por archivo se alcanza con la empresa ya poblada", () => {
+  // El unico enlace a /settings/admin-company/import vivia dentro del estado
+  // vacio, que exige `roster.length === 0 && !q && offset === 0`: la primera
+  // invitacion lo hacia desaparecer y no volvia nunca, y el menu solo enruta
+  // `settings/admin-company`. O sea que no habia segundo camino: la pantalla de
+  // carga era inalcanzable en produccion en cuanto la empresa tenia a alguien.
+
+  const ENLACE = { name: /upload a file/i };
+
+  it("el enlace esta en la vista de la TABLA, no solo en el estado vacio", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    // Y no hay estado vacio a la vista: el enlace sale de la tabla.
+    expect(screen.queryByText(EMPEZAR)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", ENLACE))
+      .toHaveAttribute("href", "/settings/admin-company/import");
+  });
+
+  it("y tambien con una busqueda puesta y en la pagina 2", async () => {
+    // Los dos estados en los que el jefe pasa el dia: buscando, y paginando.
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), total: 60 }))
+      .mockResolvedValue(respuesta({ members: personas(26, 25), total: 60 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /next/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() => expect(ultimaPeticion().offset).toBe(25));
+    expect(screen.getByRole("link", ENLACE)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/search by name or email/i), {
+      target: { value: "p0" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => expect(ultimaPeticion().q).toBe("p0"));
+    expect(screen.getByRole("link", ENLACE)).toBeInTheDocument();
+  });
+
+  it("y sigue siendo UNO solo, no dos caminos pintados a la vez", async () => {
+    // El estado vacio tiene el suyo; la tabla, el suyo. Nunca los dos.
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [], invitations: [], total: 0 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByText(EMPEZAR)).toBeInTheDocument());
+    expect(screen.getAllByRole("link", ENLACE)).toHaveLength(1);
+  });
+});
+
+describe("claude.md 2.1 — como maximo UN dorado por vista, en todos los estados", () => {
+  // `.btn-primary` es el unico relleno dorado del repositorio, asi que se
+  // cuenta. Los estados de error y el de un dialogo abierto incluidos: son
+  // justo los que crecen cuando se le agrega un control a una vista.
+  const dorados = () => document.querySelectorAll(".btn-primary").length;
+
+  it("la tabla, con un dialogo abierto encima", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(dorados(), "la tabla").toBe(1);
+    fireEvent.click(screen.getByRole("button", { name: /^edit juan perez$/i }));
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+    expect(dorados(), "la tabla con el dialogo abierto").toBe(1);
+  });
+
+  it("el estado vacio, la pagina fuera de rango y los cuatro estados de error", async () => {
+    const casos = [
+      ["estado vacio", respuesta({ members: [], invitations: [], total: 0 }), null, EMPEZAR, 1],
+      ["fallo de carga", null, new TypeError("Failed to fetch"), /could not load your team/i, 0],
+      ["403", null, conEstado(403), /do not have access/i, 0],
+      ["400", null, conEstado(400), /not linked to a company/i, 0],
+      ["401", null, conEstado(401), /your session ended/i, 1],
+    ];
+    for (const [nombre, cuerpo, fallo, texto, esperado] of casos) {
+      getCompanyMembers.mockReset();
+      if (fallo) getCompanyMembers.mockRejectedValue(fallo);
+      else getCompanyMembers.mockResolvedValue(cuerpo);
+      const { unmount } = render(<AdminCompanyClient />);
+      await waitFor(() => expect(screen.getByText(texto)).toBeInTheDocument());
+      expect(dorados(), nombre).toBe(esperado);
+      unmount();
+    }
+  });
+
+  it("la pagina fuera de rango", async () => {
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), total: 30 }))
+      .mockResolvedValue(respuesta({ members: [], invitations: [], total: 30 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /next/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() => expect(screen.getByText(/this page no longer has anyone/i)).toBeInTheDocument());
+    expect(dorados()).toBe(0);
   });
 });

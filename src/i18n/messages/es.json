@@ -615,12 +615,12 @@
       "invalidValue": "Uno de esos datos no es válido. Revísalo e intenta de nuevo.",
       "emptyValue": "Eso no puede quedar vacío.",
       "noChanges": "No había nada nuevo que guardar.",
-      "fileTooBig": "Ese archivo es muy grande. El límite es 1024 KB.",
+      "fileTooBig": "Ese archivo es muy grande. El límite es {maxKb} KB.",
       "fileEmpty": "Ese archivo está vacío.",
       "fileNoRows": "Ese archivo tiene los encabezados pero no tiene a nadie dentro.",
       "fileNoEmailColumn": "Ese archivo no tiene la columna 'correo'. Descarga la plantilla y conserva sus encabezados.",
       "fileUnreadable": "No pudimos leer ese archivo. Vuelve a guardarlo como .csv e inténtalo otra vez.",
-      "fileTooManyRows": "Ese archivo tiene más de 50 filas. Divídelo en archivos más pequeños y súbelos de a uno."
+      "fileTooManyRows": "Ese archivo tiene más de {maxRows} filas. Divídelo en archivos más pequeños y súbelos de a uno."
     },
     "import": {
       "pageTitle": "Subir un archivo",
@@ -631,7 +631,7 @@
       "columnsBody": "Una fila por persona. La primera fila lleva los encabezados de columna, y tienen que estar escritos exactamente así:",
       "columnsOnlyEmail": "Solo la columna del correo es obligatoria — las otras dos pueden ir vacías. La plantilla ya trae estos encabezados, así que rellenarla es el camino más seguro.",
       "separators": "Sirven la coma, el punto y coma y el tabulador, y también un archivo guardado desde Excel.",
-      "limits": "Hasta {maxRows} personas por archivo, y 1 MB de tamaño.",
+      "limits": "Hasta {maxRows} personas por archivo, y {maxKb} KB de tamaño.",
       "rowsNote": "Los números de fila cuentan a las personas de tu archivo. La fila de encabezados y las líneas en blanco no se cuentan.",
       "downloadTemplate": "Descargar la plantilla",
       "templateHint": "La plantilla trae los encabezados correctos y ninguna fila de ejemplo, así nada se puede subir por accidente.",
@@ -655,7 +655,7 @@
       "resultSummaryLabel": "Qué pasó, por resultado",
       "resultTableCaption": "El resultado de cada fila de tu archivo",
       "colResult": "Resultado",
-      "notYetMembers": "Todavía no hay nadie en tu equipo. Cada persona aparece ahí cuando abre su invitación y pone su propia contraseña.",
+      "notYetMembers": "Ninguna de estas personas está todavía en tu equipo. Cada una aparece ahí cuando abre su invitación y pone su propia contraseña.",
       "emailFailedTitle": "No pudimos enviarle el correo a estas personas",
       "emailFailedBody": "Están invitadas y sus enlaces funcionan. Avísales por otra vía, o vuelve a enviar la invitación desde la página de tu equipo.",
       "emailSent": "Correo enviado",

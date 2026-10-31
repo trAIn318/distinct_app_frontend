@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, cleanup, waitFor, fireEvent, within } from "@testing-library/react";
 
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
@@ -620,6 +620,234 @@ describe("las filas sobre las que el jefe no puede actuar", () => {
     expect(screen.queryByRole("button", { name: /ana jefa/i })).not.toBeInTheDocument();
     // Tampoco se explica por que: explicarlo exigiria hablar de roles.
     expect(document.body.textContent).not.toMatch(/\brole\b|\brol\b|permission/i);
+  });
+});
+
+// ── Ronda de arreglos de rama ───────────────────────────────────────────────
+
+/** `cuantos` miembros consecutivos, para armar paginas de 25. */
+function personas(desde, cuantos) {
+  return Array.from({ length: cuantos }, (_, i) => miembro({
+    id: desde + i,
+    name: `u${desde + i}`,
+    email: `p${String(desde + i).padStart(3, "0")}@hotel.com`,
+    firstname: "P",
+    lastname: String(desde + i).padStart(3, "0"),
+  }));
+}
+
+describe("I1 — lo que la INVITACION si hizo sobrevive a una recarga que falla", () => {
+  // `invitar` termina en `recargar()`, y en Render la recarga puede caer (hasta
+  // un minuto para despertar) sobre una invitacion que SI se creo. La vista de
+  // fallo pintaba `aviso` -las acciones de fila- pero nunca `avisoInvitar`, asi
+  // que el jefe leia "Nothing has changed" justo despues de invitar. Con
+  // `email_sent: false` perdia ademas el UNICO sitio donde se le dice que el
+  // correo no salio, y la invitacion de 72 h se consumia en silencio.
+
+  async function invitarYQueFalleLaRecarga({ email_sent }) {
+    addCompanyMember.mockResolvedValue({
+      invitation: invitacion({ id: 55, email: "nuevo@hotel.com" }),
+      email_sent,
+    });
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: [miembro()], total: 1 }))
+      .mockRejectedValue(new TypeError("Failed to fetch"));
+    render(<AdminCompanyClient />);
+    await tablaCon(1);
+    fireEvent.change(screen.getByLabelText(CAMPO_CORREO), {
+      target: { value: "nuevo@hotel.com" },
+    });
+    fireEvent.click(screen.getByRole("button", BOTON_INVITAR));
+    await waitFor(() => expect(
+      screen.getByRole("button", { name: /try again/i }),
+    ).toBeInTheDocument());
+  }
+
+  it("la invitacion enviada se dice en la vista de fallo", async () => {
+    await invitarYQueFalleLaRecarga({ email_sent: true });
+    expect(screen.getByText(/invitation sent to nuevo@hotel.com/i)).toBeInTheDocument();
+  });
+
+  it("y con el correo sin enviar, el aviso llega con su boton de reenviar", async () => {
+    await invitarYQueFalleLaRecarga({ email_sent: false });
+    expect(screen.getByText(/could not send the email to nuevo@hotel.com/i))
+      .toBeInTheDocument();
+    // El boton tiene que FUNCIONAR desde aqui: es la unica salida que le queda.
+    fireEvent.click(screen.getByRole("button", { name: /^resend$/i }));
+    await waitFor(() => expect(resendInvitation).toHaveBeenCalledWith(55));
+  });
+});
+
+describe("m1 — las dos vistas que tampoco decian lo que acababa de pasar", () => {
+  it("la pagina fuera de rango dice lo que el jefe acaba de hacer", async () => {
+    // Saca a la ultima persona de la pagina 2: la recarga vuelve vacia y la
+    // pantalla decia "The list changed while you were looking at it",
+    // atribuyendole al azar lo que acababa de hacer el.
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), total: 26 }))
+      .mockResolvedValueOnce(respuesta({ members: [miembro()], total: 26 }))
+      .mockResolvedValue(respuesta({ members: [], invitations: [], total: 25 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /next/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await tablaCon(1);
+    fireEvent.click(screen.getByRole("button", {
+      name: /^remove juan perez from your team$/i,
+    }));
+    await screen.findByRole("dialog");
+    fireEvent.click(screen.getByRole("button", { name: /^remove from team$/i }));
+    await waitFor(() => expect(
+      screen.getByText(/this page no longer has anyone/i),
+    ).toBeInTheDocument());
+    expect(screen.getByText(/juan perez is no longer on your team/i)).toBeInTheDocument();
+  });
+
+  it("y la empresa que se queda vacia tambien", async () => {
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: [miembro()], total: 1 }))
+      .mockResolvedValue(respuesta({ members: [], invitations: [], total: 0 }));
+    render(<AdminCompanyClient />);
+    await tablaCon(1);
+    fireEvent.click(screen.getByRole("button", {
+      name: /^remove juan perez from your team$/i,
+    }));
+    await screen.findByRole("dialog");
+    fireEvent.click(screen.getByRole("button", { name: /^remove from team$/i }));
+    await waitFor(() => expect(screen.getByText(/no one on your team yet/i)).toBeInTheDocument());
+    expect(screen.getByText(/juan perez is no longer on your team/i)).toBeInTheDocument();
+  });
+});
+
+describe("I2 — el error de un reenvio no es un error del campo de correo", () => {
+  it("un fallo de red al reenviar desde el aviso no marca invalido el campo", async () => {
+    // `reenviarDelAviso` mandaba el error a `setErrorInvitar`, que es el cajon
+    // del CAMPO (con aria-invalid y aria-describedby). Resultado medido: el
+    // campo de correo -vacio, porque invitar lo limpia al terminar- quedaba
+    // marcado invalido y un lector de pantalla anunciaba invalida la direccion,
+    // cuando lo que fallo fue la red.
+    addCompanyMember.mockResolvedValue({
+      invitation: invitacion({ id: 55, email: "nuevo@hotel.com" }),
+      email_sent: false,
+    });
+    resendInvitation.mockRejectedValue(new TypeError("Failed to fetch"));
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await tablaCon(1);
+    fireEvent.change(screen.getByLabelText(CAMPO_CORREO), {
+      target: { value: "nuevo@hotel.com" },
+    });
+    fireEvent.click(screen.getByRole("button", BOTON_INVITAR));
+    await waitFor(() => expect(screen.getByRole("button", { name: /^resend$/i }))
+      .toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /^resend$/i }));
+    // El fallo SI se dice -ninguno falla en silencio-, pero no sobre el campo.
+    await waitFor(() => expect(
+      screen.getByText(/could not reach the server/i),
+    ).toBeInTheDocument());
+    const campo = screen.getByLabelText(CAMPO_CORREO);
+    expect(campo).toHaveValue("");
+    expect(campo).not.toHaveAttribute("aria-invalid");
+    expect(campo).not.toHaveAttribute("aria-describedby");
+    expect(document.getElementById("invite-email-error")).toBeNull();
+  });
+
+  it("y el error del CAMPO sigue yendo al campo", async () => {
+    // El positivo que impide cerrar I2 vaciando el cajon del campo.
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await tablaCon(1);
+    fireEvent.submit(screen.getByRole("button", BOTON_INVITAR).closest("form"));
+    await waitFor(() => expect(screen.getByText(/enter an email address/i)).toBeInTheDocument());
+    expect(screen.getByLabelText(CAMPO_CORREO)).toHaveAttribute("aria-invalid", "true");
+  });
+});
+
+describe("m3 — un 401 en una accion de fila ofrece iniciar sesion", () => {
+  it("desde el dialogo destructivo, como ya lo hace el camino de carga", async () => {
+    // Dentro del dialogo el mensaje era "Your session ended. Sign in again." SIN
+    // ningun control para hacerlo: el unico boton era el de cerrar.
+    unlinkCompanyMember.mockRejectedValue(Object.assign(
+      new Error("Given token not valid for any token type"),
+      { status: 401 },
+    ));
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await tablaCon(1);
+    fireEvent.click(screen.getByRole("button", {
+      name: /^remove juan perez from your team$/i,
+    }));
+    const dialogo = await screen.findByRole("dialog");
+    fireEvent.click(screen.getByRole("button", { name: /^remove from team$/i }));
+    await waitFor(() => expect(dialogo.textContent).toMatch(/session ended/i));
+    fireEvent.click(within(dialogo).getByRole("button", { name: /^sign in$/i }));
+    expect(replace).toHaveBeenCalledWith("/login?next=/settings/admin-company");
+  });
+
+  it("y un error que NO es de sesion no ofrece iniciar sesion", async () => {
+    // Sin este negativo, el arreglo podria ser un boton que sale siempre.
+    unlinkCompanyMember.mockRejectedValue(Object.assign(
+      new Error("la cuenta tiene datos asociados"),
+      { status: 409 },
+    ));
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await tablaCon(1);
+    fireEvent.click(screen.getByRole("button", {
+      name: /^remove juan perez from your team$/i,
+    }));
+    const dialogo = await screen.findByRole("dialog");
+    fireEvent.click(screen.getByRole("button", { name: /^remove from team$/i }));
+    await waitFor(() => expect(dialogo.textContent).toMatch(/needs manual review/i));
+    expect(within(dialogo).queryByRole("button", { name: /^sign in$/i })).toBeNull();
+  });
+});
+
+describe("las dos garantias del dialogo que ninguna prueba sostenia", () => {
+  async function conUnMiembro() {
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await tablaCon(1);
+  }
+
+  it("M22: Escape NO cierra el dialogo mientras la escritura esta en vuelo", async () => {
+    // Cerrarlo ahi dejaria a la persona sin saber en que quedo lo que ya se
+    // mando. El guard es `!ocupadoRef.current`, y hasta ahora solo lo afirmaba
+    // un comentario.
+    const { promesa, resolver } = diferida();
+    unlinkCompanyMember.mockReturnValue(promesa);
+    await conUnMiembro();
+    fireEvent.click(screen.getByRole("button", {
+      name: /^remove juan perez from your team$/i,
+    }));
+    await screen.findByRole("dialog");
+    fireEvent.click(screen.getByRole("button", { name: /^remove from team$/i }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /working/i }))
+      .toBeInTheDocument());
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /working/i })).toBeInTheDocument();
+    // Y cuando la escritura termina, el dialogo se va solo.
+    resolver({ member: miembro({ comp_id: null }) });
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("M52: cerrar el dialogo devuelve el foco a quien lo abrio", async () => {
+    // La garantia de accesibilidad que mas facil se rompe sin que nadie lo
+    // note: sin ella el foco cae al principio del documento y quien usa teclado
+    // tiene que volver a tabular toda la tabla.
+    await conUnMiembro();
+    const disparador = screen.getByRole("button", {
+      name: /^remove juan perez from your team$/i,
+    });
+    // Un clic de verdad enfoca el boton; `fireEvent.click` no lo hace.
+    disparador.focus();
+    fireEvent.click(disparador);
+    await screen.findByRole("dialog");
+    expect(document.activeElement).not.toBe(disparador);
+    fireEvent.click(screen.getByRole("button", { name: /^keep as is$/i }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(document.activeElement).toBe(disparador);
+    expect(unlinkCompanyMember).not.toHaveBeenCalled();
   });
 });
 

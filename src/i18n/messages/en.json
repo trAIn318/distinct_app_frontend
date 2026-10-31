@@ -615,12 +615,12 @@
       "invalidValue": "One of those values is not valid. Check it and try again.",
       "emptyValue": "That cannot be left empty.",
       "noChanges": "There was nothing new to save.",
-      "fileTooBig": "That file is too large. The limit is 1024 KB.",
+      "fileTooBig": "That file is too large. The limit is {maxKb} KB.",
       "fileEmpty": "That file is empty.",
       "fileNoRows": "That file has column headings but nobody in it.",
       "fileNoEmailColumn": "That file has no 'correo' column. Download the template and keep its column headings.",
       "fileUnreadable": "We could not read that file. Save it again as a .csv and try once more.",
-      "fileTooManyRows": "That file has more than 50 rows. Split it into smaller files and upload them one at a time."
+      "fileTooManyRows": "That file has more than {maxRows} rows. Split it into smaller files and upload them one at a time."
     },
     "import": {
       "pageTitle": "Upload a file",
@@ -631,7 +631,7 @@
       "columnsBody": "One row per person. The first row holds the column headings, and they have to be written exactly like this:",
       "columnsOnlyEmail": "Only the email column is required — the other two can be left empty. The template already carries these headings, so filling it in is the safest route.",
       "separators": "Commas, semicolons and tabs all work, and a file saved by Excel works too.",
-      "limits": "Up to {maxRows} people per file, and 1 MB in size.",
+      "limits": "Up to {maxRows} people per file, and {maxKb} KB in size.",
       "rowsNote": "Row numbers count the people in your file. The heading row and blank lines are not counted.",
       "downloadTemplate": "Download the template",
       "templateHint": "The template has the right column headings and no example rows, so nothing can be imported by accident.",
@@ -655,7 +655,7 @@
       "resultSummaryLabel": "What happened, by outcome",
       "resultTableCaption": "The outcome for every row of your file",
       "colResult": "Result",
-      "notYetMembers": "Nobody is on your team yet. Each person appears there once they open their invitation and set their own password.",
+      "notYetMembers": "None of these people are on your team yet. Each person appears there once they open their invitation and set their own password.",
       "emailFailedTitle": "We could not email these people",
       "emailFailedBody": "They are invited and their links work. Tell them another way, or send the invitation again from your team page.",
       "emailSent": "Email sent",

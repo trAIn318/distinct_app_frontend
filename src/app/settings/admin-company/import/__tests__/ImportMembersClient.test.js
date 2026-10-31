@@ -20,6 +20,9 @@ vi.mock("../../../../../lib/api", () => ({
 }));
 
 import ImportMembersClient from "../ImportMembersClient";
+import { IMPORT_LIMITS } from "../../../../../lib/companyAdmin";
+import en from "../../../../../i18n/messages/en.json";
+import es from "../../../../../i18n/messages/es.json";
 
 // Sin I18nProvider, `useT` cae al ingles de en.json: TODA asercion de texto va
 // contra el ingles.
@@ -283,10 +286,27 @@ describe("lo que se rechaza en la pantalla, sin red", () => {
     render(<ImportMembersClient />);
     await waitFor(() => expect(campoArchivo()).toBeInTheDocument());
     elegir(csv("a".repeat(1024 * 1024 + 1)));
-    expect(screen.getByText(/too large/i)).toBeInTheDocument();
-    expect(screen.getByText(/1024 KB/)).toBeInTheDocument();
+    // El tope va DENTRO del rechazo: ahora la linea que anuncia los topes
+    // tambien lo dice -los dos salen de IMPORT_LIMITS-, asi que buscar "1024
+    // KB" en toda la pantalla encontraria dos elementos y no fijaria nada.
+    expect(screen.getByText(/too large/i).textContent).toMatch(/1024 KB/);
     fireEvent.submit(campoArchivo().closest("form"));
     await waitFor(() => expect(screen.getByText(/too large/i)).toBeInTheDocument());
+    expect(previewMembersImport).not.toHaveBeenCalled();
+  });
+
+  it("M40: un .txt que lleva 'csv' en el NOMBRE tambien se rechaza", async () => {
+    // El guard es `/\.csv$/i`: la extension, no la subcadena. Las otras pruebas
+    // usan "equipo.zip" y "equipo.txt", y ninguno de los dos contiene "csv",
+    // asi que ninguna distinguia `/\.csv$/i` de `/csv/i`. Este nombre si.
+    render(<ImportMembersClient />);
+    await waitFor(() => expect(campoArchivo()).toBeInTheDocument());
+    elegir(new File(["correo\na@x.com\n"], "equipo.csv.txt", { type: "text/plain" }));
+    expect(screen.getByText(/choose a \.csv file/i)).toBeInTheDocument();
+    // Un `submit` ignora el `disabled`, asi que se prueba el camino que de
+    // verdad podria llegar al backend.
+    fireEvent.submit(formularioDelArchivo());
+    await waitFor(() => expect(screen.getByText(/choose a \.csv file/i)).toBeInTheDocument());
     expect(previewMembersImport).not.toHaveBeenCalled();
   });
 
@@ -348,6 +368,36 @@ describe("la previsualizacion", () => {
       const fila = within(lista).getByText(etiqueta).closest("li");
       expect(fila.textContent).toContain(conteo);
     }
+  });
+
+  it("M58: pinta tambien los CEROS de las categorias que no tocan a nadie", async () => {
+    // Saber que ninguna fila va a quedar fuera es parte de lo que el jefe viene
+    // a comprobar: una categoria en cero tiene que decir "0", no desaparecer.
+    previewMembersImport.mockResolvedValue(previa({
+      total: 2,
+      counts: { invite: 2 },
+      rows: [
+        { row: 1, email: "uno@x.com", result: "invite" },
+        { row: 2, email: "dos@x.com", result: "invite" },
+      ],
+    }));
+    render(<ImportMembersClient />);
+    await waitFor(() => expect(campoArchivo()).toBeInTheDocument());
+    await hastaLaPrevia();
+
+    const lista = resumen(/what would happen, by outcome/i);
+    // Las CINCO siguen pintadas, y las cuatro vacias dicen 0.
+    expect(within(lista).getAllByRole("listitem")).toHaveLength(5);
+    for (const etiqueta of [
+      /^Will be invited to join$/, /^Already on your team$/,
+      /^Cannot be added$/, /^Invalid row/,
+    ]) {
+      const fila = within(lista).getByText(etiqueta).closest("li");
+      expect(fila.textContent, String(etiqueta)).toMatch(/0/);
+    }
+    // Positivo, para que lo de arriba no se cumpla con la lista en blanco.
+    expect(within(lista).getByText(/^Will be invited$/).closest("li").textContent)
+      .toContain("2");
   });
 
   it("NO ofrece `error` como resultado posible de la previsualizacion", async () => {
@@ -578,7 +628,12 @@ describe("confirmar", () => {
     await waitFor(() => expect(campoArchivo()).toBeInTheDocument());
     await hastaLaPrevia();
     fireEvent.click(screen.getByRole("button", BOTON_CONFIRMAR));
-    await waitFor(() => expect(screen.getByText(/nobody is on your team yet/i)).toBeInTheDocument());
+    // Habla de ESTAS personas, las del archivo. La redaccion anterior era la
+    // misma frase que `panel.emptyTitle` ("No one on your team yet"), asi que un
+    // hotel con 30 personas que importara 5 leia que no tiene a nadie.
+    await waitFor(() => expect(
+      screen.getByText(/none of these people are on your team yet/i),
+    ).toBeInTheDocument());
     expect(screen.queryByText(/joined your team/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/added to your team/i)).not.toBeInTheDocument();
   });
@@ -625,5 +680,179 @@ describe("confirmar", () => {
     await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
     expect(screen.getByRole("alert").textContent).toMatch(/waking up/i);
     expect(screen.getByRole("button", BOTON_CONFIRMAR)).toBeInTheDocument();
+  });
+});
+
+// ── C1: el cuerpo que la pantalla no entendio ───────────────────────────────
+
+describe("C1 — un 200 cuyo cuerpo no tiene la forma esperada", () => {
+  // `_cuerpo()` en api.js devuelve `{}` ante CUALQUIER cuerpo que no sea JSON, y
+  // eso es exactamente lo que devuelve el proxy de Render mientras el servicio
+  // despierta: un 200 con una pagina HTML dentro. `{}` es verdadero, asi que sin
+  // puerta la pantalla saltaba al paso 2, decia "0 rows read from your file",
+  // pintaba las cinco categorias en 0 y dejaba habilitado "Import these people",
+  // que SI sube el archivo de verdad.
+
+  const PREVIA_DE_DOS = previa({
+    total: 2,
+    counts: { invite: 2 },
+    rows: [
+      { row: 1, email: "uno@x.com", result: "invite" },
+      { row: 2, email: "dos@x.com", result: "invite" },
+    ],
+  });
+
+  const SIN_FORMA = [
+    ["{}", {}],
+    ["null", null],
+    ["un cuerpo sin rows", { total: 2, counts: conteos({ invite: 2 }) }],
+    ["un total que no es numero", { total: "2", counts: conteos(), rows: [] }],
+  ];
+
+  for (const [nombre, cuerpo] of SIN_FORMA) {
+    it(`la previa con ${nombre} es un fallo reintentable, no el paso 2`, async () => {
+      previewMembersImport.mockResolvedValue(cuerpo);
+      render(<ImportMembersClient />);
+      await waitFor(() => expect(campoArchivo()).toBeInTheDocument());
+      elegir(csv());
+      pedirPrevia();
+      await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+      expect(screen.getByRole("alert").textContent).toMatch(/something went wrong/i);
+      // Nada del paso 2: ni el boton que importa de verdad, ni el "0 filas"
+      // que afirmaria haber leido el archivo.
+      expect(screen.queryByRole("button", BOTON_CONFIRMAR)).not.toBeInTheDocument();
+      expect(screen.queryByText(/rows read from your file/i)).not.toBeInTheDocument();
+      expect(commitMembersImport).not.toHaveBeenCalled();
+      // Y el paso 1 sigue ahi para volver a intentarlo.
+      expect(screen.getByRole("button", BOTON_PREVIA)).toBeInTheDocument();
+    });
+  }
+
+  for (const [nombre, cuerpo] of SIN_FORMA) {
+    it(`el resultado con ${nombre} no afirma que no se emitio ninguna invitacion`, async () => {
+      // Esta es la puerta que miente DESPUES de haber escrito de verdad: el
+      // backend pudo emitir 50 invitaciones y la pantalla decia "0 of 0 rows
+      // became an invitation".
+      previewMembersImport.mockResolvedValue(PREVIA_DE_DOS);
+      commitMembersImport.mockResolvedValue(cuerpo);
+      render(<ImportMembersClient />);
+      await waitFor(() => expect(campoArchivo()).toBeInTheDocument());
+      await hastaLaPrevia();
+      fireEvent.click(screen.getByRole("button", BOTON_CONFIRMAR));
+      await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+      expect(screen.getByRole("alert").textContent).toMatch(/something went wrong/i);
+      expect(screen.queryByText(/became an invitation/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/^what happened$/i)).not.toBeInTheDocument();
+    });
+  }
+
+  it("y un cuerpo CON la forma si entra al paso 2", async () => {
+    // El positivo de la puerta: sin el, las ocho aserciones de arriba se
+    // cumplirian con una puerta que rechaza todo.
+    previewMembersImport.mockResolvedValue(PREVIA_DE_DOS);
+    render(<ImportMembersClient />);
+    await waitFor(() => expect(campoArchivo()).toBeInTheDocument());
+    await hastaLaPrevia();
+    expect(screen.getByText(/2 rows read from your file/i)).toBeInTheDocument();
+  });
+
+  it("una previa con cero filas DE VERDAD si entra al paso 2", async () => {
+    // Un csv con encabezados y sin nadie es un cuerpo legitimo con rows: [] y
+    // total 0: la puerta no puede confundirlo con el cuerpo que no se entendio.
+    previewMembersImport.mockResolvedValue(previa({ total: 0, rows: [] }));
+    render(<ImportMembersClient />);
+    await waitFor(() => expect(campoArchivo()).toBeInTheDocument());
+    await hastaLaPrevia();
+    expect(screen.getByText(/0 rows read from your file/i)).toBeInTheDocument();
+  });
+});
+
+describe("empezar de nuevo", () => {
+  it("M55: limpia TAMBIEN el archivo del campo", async () => {
+    // Dejarlo ahi con el estado ya borrado mostraria un nombre de archivo
+    // elegido y un boton que no puede hacer nada. Se mide lo que se ESCRIBE en
+    // el campo: jsdom no refleja en `value` el archivo que `fireEvent` asigna,
+    // asi que leer `value` no distinguiria nada.
+    previewMembersImport.mockResolvedValue(previa({
+      total: 1, counts: { invite: 1 },
+      rows: [{ row: 1, email: "uno@x.com", result: "invite" }],
+    }));
+    render(<ImportMembersClient />);
+    await waitFor(() => expect(campoArchivo()).toBeInTheDocument());
+    await hastaLaPrevia();
+
+    const campo = campoArchivo();
+    const escrituras = [];
+    const original = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype, "value",
+    );
+    Object.defineProperty(campo, "value", {
+      configurable: true,
+      get: () => original.get.call(campo),
+      set: (v) => { escrituras.push(v); },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /start over with another file/i }));
+    await waitFor(() => expect(screen.getByRole("button", BOTON_PREVIA)).toBeInTheDocument());
+    expect(escrituras).toContain("");
+    // Y el foco vuelve al campo, que es lo unico que queda por hacer.
+    expect(document.activeElement).toBe(campo);
+  });
+});
+
+describe("la copia de los topes", () => {
+  // m5: `errors.fileTooBig`, `errors.fileTooManyRows` e `import.limits` decian
+  // los topes A MANO ("1024 KB", "50 rows", "1 MB") en los dos idiomas,
+  // mientras las firmas de `companyAdmin.js` los derivan de `IMPORT_LIMITS`.
+  // Un tope que se moviera dejaba la copia mintiendo en los dos idiomas.
+  const CLAVES = ["errors.fileTooBig", "errors.fileTooManyRows", "import.limits"];
+
+  function cadena(mensajes, ruta) {
+    return ruta.split(".").reduce((o, k) => o[k], mensajes.companyAdmin);
+  }
+
+  it("ni un tope escrito a mano, en ninguno de los dos idiomas", () => {
+    for (const [idioma, mensajes] of [["en", en], ["es", es]]) {
+      for (const ruta of CLAVES) {
+        const texto = cadena(mensajes, ruta);
+        expect(texto, `${idioma} ${ruta}`).toMatch(/\{max(Kb|Rows)\}/);
+        // Ningun digito: "1024 KB", "50 rows" y "1 MB" lo llevan.
+        expect(texto, `${idioma} ${ruta}`).not.toMatch(/\d/);
+      }
+    }
+  });
+
+  it("y en pantalla los topes salen interpolados con el valor de IMPORT_LIMITS", async () => {
+    const kb = String(IMPORT_LIMITS.maxBytes / 1024);
+    previewMembersImport.mockRejectedValue({
+      status: 422,
+      errors: [`El archivo supera el máximo de ${IMPORT_LIMITS.maxRows} filas.`],
+    });
+    render(<ImportMembersClient />);
+    await waitFor(() => expect(campoArchivo()).toBeInTheDocument());
+    // El tope de tamano, en la linea que lo anuncia y en el rechazo local.
+    expect(screen.getByText(new RegExp(`${kb} KB`))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`${IMPORT_LIMITS.maxRows} people per file`)))
+      .toBeInTheDocument();
+    elegir(csv("a".repeat(IMPORT_LIMITS.maxBytes + 1)));
+    expect(screen.getByText(new RegExp(`limit is ${kb} KB`))).toBeInTheDocument();
+    // Y el tope de filas, que solo el backend sabe, en su mensaje traducido.
+    elegir(csv());
+    pedirPrevia();
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    expect(screen.getByRole("alert").textContent)
+      .toMatch(new RegExp(`more than ${IMPORT_LIMITS.maxRows} rows`));
+  });
+
+  it("I3: 'todavia no estan dentro' no es la frase de la empresa vacia", () => {
+    // `import.notYetMembers` decia literalmente lo mismo que `panel.emptyTitle`,
+    // asi que un hotel con 30 personas que importa 5 leia que no tiene a nadie.
+    for (const [idioma, mensajes] of [["en", en], ["es", es]]) {
+      const c = mensajes.companyAdmin;
+      expect(c.import.notYetMembers.toLowerCase(), idioma)
+        .not.toContain(c.panel.emptyTitle.toLowerCase());
+      // Y sigue diciendo de QUIEN habla: de las personas de este archivo.
+      expect(c.import.notYetMembers, idioma).toMatch(/these|estas/i);
+    }
   });
 });

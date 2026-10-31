@@ -228,6 +228,21 @@ export function filterRoster(rows, q) {
 
 const ERROR_KEY_PREFIX = "errors.";
 
+/**
+ * Los topes que la COPIA de los errores de archivo dice en su texto.
+ *
+ * `errors.fileTooBig` y `errors.fileTooManyRows` nombran el tope, y escribirlo a
+ * mano en los dos idiomas dejaba la copia mintiendo en cuanto el tope se moviera
+ * —las firmas de `POR_TEXTO` sí lo derivan de `IMPORT_LIMITS`, así que las dos
+ * mitades podían separarse en silencio—. Viajan en cada traducción de error:
+ * `makeT` solo sustituye los marcadores que la cadena trae, así que para las
+ * demás claves es inocuo.
+ */
+const VARS_TOPES = Object.freeze({
+  maxKb: IMPORT_LIMITS.maxBytes / 1024,
+  maxRows: IMPORT_LIMITS.maxRows,
+});
+
 /** Códigos reconocidos. El valor es el sufijo de la clave i18n. */
 const ERROR_CODES = Object.freeze({
   already: "already",
@@ -428,15 +443,15 @@ function codigoPorEstado(error) {
 export function errorMessageFor(error, t, { safe = false } = {}) {
   const tr = typeof t === "function" ? t : (clave) => clave;
   const codigo = codigoDe(error);
-  if (codigo) return tr(`${ERROR_KEY_PREFIX}${codigo}`);
+  if (codigo) return tr(`${ERROR_KEY_PREFIX}${codigo}`, VARS_TOPES);
   // `safe` para pantallas PUBLICAS: nunca se pinta el texto crudo del backend,
   // porque bastaria un mensaje futuro que mencione una direccion para romper la
   // garantia de privacidad del backend (no revelar que un correo fue invitado).
   const crudo = safe ? "" : texto(textoDeError(error));
   if (crudo) return crudo;
   const porEstado = codigoPorEstado(error);
-  if (porEstado) return tr(`${ERROR_KEY_PREFIX}${porEstado}`);
-  return tr(`${ERROR_KEY_PREFIX}${ERROR_CODES.generic}`);
+  if (porEstado) return tr(`${ERROR_KEY_PREFIX}${porEstado}`, VARS_TOPES);
+  return tr(`${ERROR_KEY_PREFIX}${ERROR_CODES.generic}`, VARS_TOPES);
 }
 
 // ── Carga por archivo ──────────────────────────────────────────────────────

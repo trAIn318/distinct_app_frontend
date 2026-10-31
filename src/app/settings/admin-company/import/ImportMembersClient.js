@@ -68,6 +68,32 @@ const NOMBRE_PLANTILLA = "plantilla_equipo.csv";
 
 const MAX_KB = IMPORT_LIMITS.maxBytes / 1024;
 
+/** La respuesta de la carga, SOLO si tiene la forma que esta pantalla sabe
+ *  leer: el arreglo de filas y un total que es un número.
+ *
+ *  `_cuerpo()` en `api.js` devuelve `{}` ante cualquier cuerpo que no sea JSON
+ *  —un 200 del proxy de Render con una página HTML dentro llega así, y el
+ *  servicio free tarda hasta un minuto en despertar—. `{}` es verdadero, así que
+ *  sin esta puerta la pantalla saltaba al paso 2, afirmaba "0 rows read from
+ *  your file", pintaba las cinco categorías en 0 y dejaba habilitado el botón
+ *  que SÍ sube el archivo de verdad. Y el mismo 200 malformado al confirmar
+ *  hacía decir "0 of 0 rows became an invitation" después de que el backend
+ *  pudo emitir 50.
+ *
+ *  Las DOS puertas usan esta función: la del resultado es la que miente después
+ *  de haber escrito. `total` se exige numérico de verdad —y no `Number(x)`—
+ *  porque el backend lo manda siempre como número (`len(...)`), así que
+ *  cualquier otra cosa es un cuerpo que no se entendió.
+ *
+ *  Un archivo con encabezados y sin nadie es un cuerpo legítimo: `rows: []` con
+ *  `total: 0` pasa la puerta. */
+function tieneForma(res) {
+  return Boolean(res)
+    && Array.isArray(res.rows)
+    && typeof res.total === "number"
+    && Number.isFinite(res.total);
+}
+
 /** Las CINCO categorías de la previsualización, en este orden. `error` NO está:
  *  es la sexta y solo puede salir al confirmar (una fila válida cuya escritura
  *  falló). `counts` trae las seis siempre —`_zero_counts()`—, así que pintar las
@@ -183,7 +209,11 @@ export default function ImportMembersClient() {
     correr("preview", async () => {
       setResultado(null);
       const res = await previewMembersImport(archivo);
-      setPrevia(res || null);
+      // Sin `detail` ni `status`: `errorMessageFor` da el mensaje genérico, que
+      // es exactamente lo que se sabe de un cuerpo que no se entiende. Y el
+      // paso 1 se queda en pantalla, así que volver a intentarlo es un clic.
+      if (!tieneForma(res)) throw new Error("");
+      setPrevia(res);
     }, setErrorPrevia);
   }, [archivo, rechazo, correr]);
 
@@ -192,7 +222,12 @@ export default function ImportMembersClient() {
     if (!archivo || !previa) return;
     correr("commit", async () => {
       const res = await commitMembersImport(archivo);
-      setResultado(res || null);
+      // La MISMA puerta, y aquí es la que importa: pintar un resultado que no
+      // se entendió afirmaría "0 of 0 rows became an invitation" sobre una
+      // escritura que el backend pudo hacer entera. Si el cuerpo no se
+      // entiende, no se sabe qué pasó, y eso es lo que se dice.
+      if (!tieneForma(res)) throw new Error("");
+      setResultado(res);
       setPrevia(null);
     }, setErrorCommit);
   }, [archivo, previa, correr]);
@@ -243,8 +278,12 @@ export default function ImportMembersClient() {
           <p className={styles.header}><code>{ENCABEZADO}</code></p>
           <p className={styles.muted}>{t("import.columnsOnlyEmail")}</p>
           <p className={styles.muted}>{t("import.separators")}</p>
+          {/* Los DOS topes salen de `IMPORT_LIMITS`, el mismo sitio del que
+              salen el rechazo local y las firmas de los 422 del backend: un
+              tope escrito a mano en la copia deja de ser verdad en cuanto el
+              backend mueva el suyo. */}
           <p className={styles.muted}>
-            {t("import.limits", { maxRows: IMPORT_LIMITS.maxRows })}
+            {t("import.limits", { maxRows: IMPORT_LIMITS.maxRows, maxKb: MAX_KB })}
           </p>
 
           <div className={styles.actions}>

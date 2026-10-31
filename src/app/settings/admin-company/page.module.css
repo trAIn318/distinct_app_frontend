@@ -439,7 +439,10 @@
 .dialogBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(10, 10, 10, 0.72);
+  /* El token, no el literal (claude.md §5.3): `--nav-bg` es exactamente este
+     valor, el mismo velo que ya usa la barra de navegación sobre el contenido,
+     y además acompaña al tema claro, que un literal de obsidiana no hace. */
+  background: var(--nav-bg);
   z-index: 290;
   display: flex;
   align-items: center;

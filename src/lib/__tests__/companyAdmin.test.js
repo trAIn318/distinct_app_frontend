@@ -356,6 +356,10 @@ describe("fileRejectionKey", () => {
     expect(fileRejectionKey(fakeFile("equipo.xlsx", 100))).toBe("import.reject.notCsv");
     expect(fileRejectionKey(fakeFile("equipo.zip", 100))).toBe("import.reject.notCsv");
     expect(fileRejectionKey(fakeFile("equipo", 100))).toBe("import.reject.notCsv");
+    // M40: la EXTENSION, no la subcadena. Los tres nombres de arriba no
+    // contienen "csv", asi que ninguno distingue `/\.csv$/i` de `/csv/i`.
+    expect(fileRejectionKey(fakeFile("equipo.csv.txt", 100))).toBe("import.reject.notCsv");
+    expect(fileRejectionKey(fakeFile("csv_del_equipo.xlsx", 100))).toBe("import.reject.notCsv");
   });
 
   it("rechaza por encima de 1 MB", () => {
