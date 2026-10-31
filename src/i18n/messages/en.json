@@ -191,6 +191,7 @@
     "waking": "Connecting to the server… the first attempt can take a few seconds.",
     "errFillBoth": "Please enter your email/username and password.",
     "errInvalid": "Invalid credentials.",
+    "errEmailNotSent": "We couldn't send your verification code. Please try again in a few minutes.",
     "errUnexpected": "We couldn't sign you in. Please try again.",
     "errCode": "Enter the 6-digit code from your email.",
     "errOtp": "Invalid or expired code."
@@ -262,6 +263,7 @@
     "errPolicy": "You must accept the Data Processing Policy to continue.",
     "errCode": "Enter the 6-digit code from your email.",
     "errRegister": "Registration failed.",
+    "errEmailNotSent": "We couldn't send your verification code. Please try again in a few minutes.",
     "errVerify": "Could not verify your code.",
     "errResend": "Could not resend the code."
   },

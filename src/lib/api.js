@@ -95,6 +95,19 @@ async function fetchResilient(url, options, { retries = 3, baseDelayMs = 2000 } 
 }
 
 /**
+ * Error con el estado HTTP pegado, para que la pantalla pueda distinguir casos
+ * sin leer la prosa del backend. Sin esto, un 502 de "no pudimos enviar el
+ * código" llegaba indistinguible de unas credenciales malas y la pantalla
+ * acababa pintando la frase en inglés — la misma fuga que ya se cerró en el
+ * panel de Admin Company con firmas de texto.
+ */
+function conEstado(mensaje, status) {
+  const error = new Error(mensaje);
+  error.status = status;
+  return error;
+}
+
+/**
  * POST /api/auth/login/
  * Acepta email O username en `usr_name`.
  * Devuelve { access, refresh, user }
@@ -113,8 +126,7 @@ export async function loginApi(identifier, password) {
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const message = data.detail || "Invalid credentials.";
-    throw new Error(message);
+    throw conEstado(data.detail || "Invalid credentials.", res.status);
   }
   return data;
 }
@@ -158,13 +170,14 @@ export async function registerApi(payload) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     // El backend devuelve { detail } o { field: [errors] }
-    if (data.detail) throw new Error(data.detail);
+    if (data.detail) throw conEstado(data.detail, res.status);
     const firstField = Object.keys(data)[0];
     if (firstField) {
       const value = data[firstField];
-      throw new Error(Array.isArray(value) ? value[0] : String(value));
+      throw conEstado(
+        Array.isArray(value) ? value[0] : String(value), res.status);
     }
-    throw new Error("Registration failed.");
+    throw conEstado("Registration failed.", res.status);
   }
   return data;
 }

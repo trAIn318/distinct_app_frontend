@@ -76,7 +76,14 @@ export default function RegisterForm({ policy }) {
       setStep("otp");
       setInfo(t("otpInfo"));
     } catch (err) {
-      setError(err.message || t("errRegister"));
+      // 502 = el backend no pudo enviar el código de activación. La cuenta sí
+      // quedó creada, así que reintentar el registro vuelve a emitirlo; lo que
+      // NO se hace es pasar al paso del código, que no va a llegar.
+      setError(
+        err?.status === 502
+          ? t("errEmailNotSent")
+          : err.message || t("errRegister")
+      );
     } finally {
       setLoading(false);
     }
