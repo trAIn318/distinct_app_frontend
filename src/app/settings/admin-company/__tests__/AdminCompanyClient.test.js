@@ -25,6 +25,7 @@ vi.mock("../../../../lib/api", () => ({
   cancelInvitation: vi.fn(),
   updateCompanyMember: vi.fn(),
   deactivateCompanyMember: vi.fn(),
+  activateCompanyMember: vi.fn(),
   unlinkCompanyMember: vi.fn(),
 }));
 

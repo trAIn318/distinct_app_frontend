@@ -23,8 +23,9 @@
  * minuto en despertar, así que el fallo pasa de verdad. Mostrarlo en una página
  * fuera de rango lo dejaría sin buscador ni paginador: sin camino de vuelta.
  *
- * LAS SEIS ACCIONES sobre una persona viven aquí (invitar, reenviar, cancelar,
- * editar, desactivar, desvincular), y cada una recarga el listado al terminar.
+ * LAS SIETE ACCIONES sobre una persona viven aquí (invitar, reenviar, cancelar,
+ * editar, desactivar, devolver el acceso, desvincular), y cada una recarga el
+ * listado al terminar.
  * Van en la celda marcada con `data-actions-for`, presente SOLO en las filas
  * donde `canAct` es verdadero: el backend rechaza toda escritura sobre los
  * pares administradores, y mostrar botones deshabilitados obligaría a explicar
@@ -45,6 +46,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
+  activateCompanyMember,
   addCompanyMember,
   cancelInvitation,
   deactivateCompanyMember,
@@ -367,6 +369,23 @@ export default function AdminCompanyClient() {
       setAviso(null);
       await cancelInvitation(id);
       setAviso({ key: "panel.invitationCancelled" });
+      recargar();
+    }, setErrorAccion);
+  }, [correr, recargar]);
+
+  /** Devuelve el acceso a quien se desactivo. SIN dialogo, a diferencia de
+   *  quitarlo: no destruye nada y es el camino de vuelta de una accion que ya
+   *  se confirmo una vez. Pedir una segunda confirmacion para deshacer haria
+   *  mas costoso el arreglo que el error.
+   *
+   *  Termina en `recargar()` -no en `empezarCarga()`- como las demas acciones:
+   *  `empezarCarga` vuelve a la pantalla de carga y esconderia el aviso de lo
+   *  que acaba de pasar. */
+  const activar = useCallback((id, nombre) => {
+    correr("row", async () => {
+      setAviso(null);
+      await activateCompanyMember(id);
+      setAviso({ key: "panel.activated", vars: { name: nombre } });
       recargar();
     }, setErrorAccion);
   }, [correr, recargar]);
@@ -820,8 +839,22 @@ export default function AdminCompanyClient() {
                               </button>
                               {/* A quien ya está desactivado no se le ofrece
                                   desactivar otra vez: el endpoint es idempotente
-                                  y el botón no haría nada observable. */}
-                              {fila.status !== ROW_STATUS.DEACTIVATED && (
+                                  y el botón no haría nada observable. Esa fila
+                                  es justo la que lleva el camino de vuelta, que
+                                  antes no existía: devolver el acceso exigía
+                                  pedírselo a la plataforma, que lo arreglaba a
+                                  mano en la base. */}
+                              {fila.status === ROW_STATUS.DEACTIVATED ? (
+                                <button
+                                  type="button"
+                                  className={styles.rowAction}
+                                  disabled={Boolean(enCurso)}
+                                  aria-label={t("panel.activateFor", { name: fila.displayName })}
+                                  onClick={() => activar(fila.id, fila.displayName)}
+                                >
+                                  {t("panel.activate")}
+                                </button>
+                              ) : (
                                 <button
                                   type="button"
                                   className={styles.rowAction}
