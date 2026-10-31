@@ -12,6 +12,7 @@ import {
   cancelInvitation,
   updateCompanyMember,
   deactivateCompanyMember,
+  activateCompanyMember,
   unlinkCompanyMember,
   getImportTemplate,
   previewMembersImport,
@@ -146,6 +147,29 @@ describe("endpoints autenticados del panel", () => {
     await cancelInvitation(11);
     expect(ultimaLlamada().url).toContain("/invitations/11/");
     expect(ultimaLlamada().opts.method).toBe("DELETE");
+  });
+
+  it("devolver el acceso golpea /activate/ y NO /deactivate/", async () => {
+    // La ruta se ancla con una expresion regular, NO con una subcadena:
+    // ".../members/7/deactivate/" CONTIENE "activate/", asi que un
+    // `toContain("/activate/")` lo daria por bueno aunque la peticion fuera a
+    // quitar el acceso. Es el mismo error de metodo que ya costo dos defectos
+    // en esta sesion: medir una subcadena en vez del hecho.
+    fetchMock.mockResolvedValue(respuesta({ member: { id: 7, active: true } }));
+    await activateCompanyMember(7);
+    const { url, opts } = ultimaLlamada();
+    expect(url).toMatch(/\/api\/company-admin\/members\/7\/activate\/$/);
+    expect(url).not.toMatch(/deactivate/);
+    expect(opts.method).toBe("POST");
+    expect(opts.headers.Authorization).toBe("Bearer tok-123");
+  });
+
+  it("y un error del backend llega con su estado, para poder traducirlo", async () => {
+    // Carry de la Tarea 3: el Error tiene que llevar `status`, porque el
+    // backend no manda ningun campo `code` y el orden de `errorMessageFor` lo
+    // usa. Sin esto un 404 se pintaria en el espanol del backend.
+    fetchMock.mockResolvedValue(respuesta({ detail: "Not found." }, { ok: false, status: 404 }));
+    await expect(activateCompanyMember(7)).rejects.toMatchObject({ status: 404 });
   });
 });
 

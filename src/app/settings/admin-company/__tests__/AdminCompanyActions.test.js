@@ -18,6 +18,7 @@ const resendInvitation = vi.fn();
 const cancelInvitation = vi.fn();
 const updateCompanyMember = vi.fn();
 const deactivateCompanyMember = vi.fn();
+const activateCompanyMember = vi.fn();
 const unlinkCompanyMember = vi.fn();
 vi.mock("../../../../lib/api", () => ({
   getCompanyMembers: (...a) => getCompanyMembers(...a),
@@ -26,10 +27,13 @@ vi.mock("../../../../lib/api", () => ({
   cancelInvitation: (...a) => cancelInvitation(...a),
   updateCompanyMember: (...a) => updateCompanyMember(...a),
   deactivateCompanyMember: (...a) => deactivateCompanyMember(...a),
+  activateCompanyMember: (...a) => activateCompanyMember(...a),
   unlinkCompanyMember: (...a) => unlinkCompanyMember(...a),
 }));
 
 import AdminCompanyClient from "../AdminCompanyClient";
+import en from "../../../../i18n/messages/en.json";
+import es from "../../../../i18n/messages/es.json";
 
 // Sin I18nProvider, `useT` cae al ingles de en.json: TODA asercion de texto va
 // contra el ingles.
@@ -97,7 +101,8 @@ beforeEach(() => {
   replace.mockClear();
   for (const m of [
     isAuthenticated, getCompanyMembers, addCompanyMember, resendInvitation,
-    cancelInvitation, updateCompanyMember, deactivateCompanyMember, unlinkCompanyMember,
+    cancelInvitation, updateCompanyMember, deactivateCompanyMember, activateCompanyMember,
+    unlinkCompanyMember,
   ]) m.mockReset();
   isAuthenticated.mockReturnValue(true);
   addCompanyMember.mockResolvedValue({ invitation: invitacion({ id: 55 }), email_sent: true });
@@ -105,6 +110,7 @@ beforeEach(() => {
   cancelInvitation.mockResolvedValue({ detail: "Invitación cancelada." });
   updateCompanyMember.mockResolvedValue({ member: miembro() });
   deactivateCompanyMember.mockResolvedValue({ member: miembro({ active: false }) });
+  activateCompanyMember.mockResolvedValue({ member: miembro({ active: true }) });
   unlinkCompanyMember.mockResolvedValue({ member: miembro({ comp_id: null }) });
 });
 afterEach(() => {
@@ -861,5 +867,238 @@ describe("el estado vacio ya no tiene un boton inerte", () => {
     });
     fireEvent.click(screen.getByRole("button", BOTON_INVITAR));
     await waitFor(() => expect(addCompanyMember).toHaveBeenCalledWith("primera@hotel.com"));
+  });
+});
+
+// ── Devolver el acceso ──────────────────────────────────────────────────────
+
+describe("volver a dar el acceso a quien se desactivo", () => {
+  /** DOS personas inactivas, a proposito: con una sola, una mutacion que
+   *  apunte siempre a la primera fila del roster sobrevive, y en esta rama eso
+   *  ya paso una vez. Se actua sobre la SEGUNDA. */
+  function dosInactivas() {
+    return respuesta({
+      members: [
+        miembro({
+          id: 11, name: "auno", email: "ana@hotel.com",
+          firstname: "Ana", lastname: "Uno", active: false,
+        }),
+        miembro({
+          id: 22, name: "bdos", email: "beto@hotel.com",
+          firstname: "Beto", lastname: "Dos", active: false,
+        }),
+      ],
+      total: 2,
+    });
+  }
+
+  const BOTON_BETO = { name: /^turn access back on for beto dos$/i };
+
+  it("el boton sale SOLO en la fila de quien esta inactivo", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({
+      members: [
+        miembro({ id: 1, firstname: "Juan", lastname: "Perez", active: true }),
+        miembro({
+          id: 22, name: "bdos", email: "beto@hotel.com",
+          firstname: "Beto", lastname: "Dos", active: false,
+        }),
+      ],
+      invitations: [invitacion({ id: 7, email: "nuevo@hotel.com" })],
+      total: 2,
+    }));
+    render(<AdminCompanyClient />);
+    await tablaCon(3);
+    // Esta: la fila de quien no puede entrar es la unica que ofrece devolverlo.
+    expect(screen.getByRole("button", BOTON_BETO)).toBeInTheDocument();
+    // Y en ninguna otra fila: ni en la de quien SI puede entrar, ni en la de
+    // una invitacion pendiente, que no es una persona desactivada.
+    expect(screen.getAllByRole("button", { name: /turn access back on for/i }))
+      .toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /^turn access back on for juan perez$/i }))
+      .not.toBeInTheDocument();
+    // Lo simetrico, que es lo que distingue las dos filas: a quien esta activo
+    // se le ofrece quitarle el acceso, y a quien ya no lo tiene no.
+    expect(screen.getByRole("button", { name: /^turn off access for juan perez$/i }))
+      .toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^turn off access for beto dos$/i }))
+      .not.toBeInTheDocument();
+  });
+
+  it("actua sobre la persona de SU fila, no sobre la primera", async () => {
+    getCompanyMembers.mockResolvedValue(dosInactivas());
+    render(<AdminCompanyClient />);
+    await tablaCon(2);
+    fireEvent.click(screen.getByRole("button", BOTON_BETO));
+    await waitFor(() => expect(activateCompanyMember).toHaveBeenCalledWith(22));
+    expect(activateCompanyMember).toHaveBeenCalledTimes(1);
+    // Y lo dice con el nombre de esa persona, no con el de la otra.
+    await waitFor(() => expect(screen.getByText(/beto dos can sign in again/i))
+      .toBeInTheDocument());
+    expect(screen.queryByText(/ana uno can sign in again/i)).not.toBeInTheDocument();
+  });
+
+  it("recarga el listado al terminar, conservando la busqueda", async () => {
+    // `recargar()` y NO `empezarCarga()`: este ultimo vuelve a la pantalla de
+    // carga, que esconderia el aviso de lo que acaba de pasar.
+    getCompanyMembers.mockResolvedValue(dosInactivas());
+    render(<AdminCompanyClient />);
+    await tablaCon(2);
+    fireEvent.change(screen.getByLabelText(/search by name or email/i), {
+      target: { value: "dos" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => expect(getCompanyMembers).toHaveBeenLastCalledWith(
+      expect.objectContaining({ q: "dos", offset: 0 })));
+    const antes = getCompanyMembers.mock.calls.length;
+    // La recarga se deja EN VUELO a proposito: con `empezarCarga()` la pantalla
+    // se iria a "cargando" -un solo <p>, sin tabla- y el aviso de lo que acaba
+    // de pasar desapareceria debajo. Midiendo despues de que la recarga
+    // resuelve, las dos variantes se ven iguales y la prueba no distingue.
+    const recarga = diferida();
+    getCompanyMembers.mockReturnValueOnce(recarga.promesa);
+    fireEvent.click(screen.getByRole("button", BOTON_BETO));
+    await waitFor(() => expect(getCompanyMembers.mock.calls.length).toBe(antes + 1));
+    expect(getCompanyMembers).toHaveBeenLastCalledWith(
+      expect.objectContaining({ q: "dos", offset: 0, limit: 25 }));
+    // Con la recarga todavia en vuelo: la tabla sigue a la vista, con el aviso
+    // encima, y NO hay pantalla de carga.
+    await waitFor(() => expect(screen.getByText(/beto dos can sign in again/i))
+      .toBeInTheDocument());
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.queryByText(/^loading/i)).not.toBeInTheDocument();
+    recarga.resolver(dosInactivas());
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+  });
+
+  it("y conserva la PAGINA en la que estaba", async () => {
+    const pagina2 = respuesta({
+      members: [miembro({
+        id: 22, name: "bdos", email: "beto@hotel.com",
+        firstname: "Beto", lastname: "Dos", active: false,
+      })],
+      total: 30,
+    });
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), total: 30 }))
+      .mockResolvedValue(pagina2);
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /next/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() => expect(screen.getByRole("button", BOTON_BETO)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", BOTON_BETO));
+    await waitFor(() => expect(activateCompanyMember).toHaveBeenCalledWith(22));
+    await waitFor(() => expect(getCompanyMembers).toHaveBeenLastCalledWith(
+      expect.objectContaining({ offset: 25 })));
+  });
+
+  it("doble clic devuelve el acceso UNA sola vez", async () => {
+    const { promesa, resolver } = diferida();
+    activateCompanyMember.mockReturnValue(promesa);
+    getCompanyMembers.mockResolvedValue(dosInactivas());
+    render(<AdminCompanyClient />);
+    await tablaCon(2);
+    const boton = screen.getByRole("button", BOTON_BETO);
+    fireEvent.click(boton);
+    fireEvent.click(boton);
+    expect(activateCompanyMember).toHaveBeenCalledTimes(1);
+    // Los DOS mecanismos, cada uno con su asercion: el boton deshabilitado
+    // mientras hay algo en vuelo, y el guard de reentrada del manejador. Con
+    // una sola asercion no se puede saber cual de los dos sigue vivo.
+    await waitFor(() => expect(boton).toBeDisabled());
+    resolver({ member: miembro({ id: 22, active: true }) });
+    await waitFor(() => expect(screen.getByText(/beto dos can sign in again/i))
+      .toBeInTheDocument());
+    expect(activateCompanyMember).toHaveBeenCalledTimes(1);
+  });
+
+  it("un fallo de red se muestra traducido, no con la prosa del navegador", async () => {
+    // El escenario real: Render (plan free) tarda hasta un minuto en despertar.
+    // `Failed to fetch` es prosa del navegador y se pintaria literal.
+    activateCompanyMember.mockRejectedValue(new TypeError("Failed to fetch"));
+    getCompanyMembers.mockResolvedValue(dosInactivas());
+    render(<AdminCompanyClient />);
+    await tablaCon(2);
+    fireEvent.click(screen.getByRole("button", BOTON_BETO));
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    expect(screen.getByRole("alert").textContent).toMatch(/could not reach the server/i);
+    expect(document.body.textContent).not.toMatch(/failed to fetch/i);
+    // Y no afirma un exito que no ocurrio.
+    expect(screen.queryByText(/can sign in again/i)).not.toBeInTheDocument();
+  });
+
+  it("y un 404 sin cuerpo legible se traduce por su ESTADO", async () => {
+    // El otro fallo que pasa de verdad: el proxy de Render responde algo que no
+    // es JSON, `_cuerpo()` lo convierte en {} y `_errorDe` deja el mensaje
+    // vacio. Sin leer el estado, la pantalla no tendria nada que decir.
+    activateCompanyMember.mockRejectedValue(Object.assign(new Error(""), { status: 404 }));
+    getCompanyMembers.mockResolvedValue(dosInactivas());
+    render(<AdminCompanyClient />);
+    await tablaCon(2);
+    fireEvent.click(screen.getByRole("button", BOTON_BETO));
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    expect(screen.getByRole("alert").textContent).toMatch(/no longer available/i);
+    expect(screen.queryByText(/can sign in again/i)).not.toBeInTheDocument();
+  });
+
+  it("la fila de un par administrador desactivado sigue sin acciones", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({
+      members: [
+        miembro({
+          id: 22, name: "bdos", email: "beto@hotel.com",
+          firstname: "Beto", lastname: "Dos", active: false,
+        }),
+        miembro({
+          id: 2, rol_id: 4, email: "jefa@hotel.com",
+          firstname: "Ana", lastname: "Jefa", active: false,
+        }),
+      ],
+      total: 2,
+    }));
+    render(<AdminCompanyClient />);
+    await tablaCon(2);
+    const [filaDeAna, filaDeBeto] = filas();   // ordenadas por nombre
+    expect(filaDeAna.textContent).toContain("Ana Jefa");
+    expect(filaDeAna.querySelectorAll("button")).toHaveLength(0);
+    expect(filaDeAna.querySelector("[data-actions-for]")).toBeNull();
+    // Y la de la persona del personal SI lo lleva: sin esto la prueba pasaria
+    // con la tabla entera sin botones.
+    expect(within(filaDeBeto).getByRole("button", BOTON_BETO)).toBeInTheDocument();
+  });
+
+  it("la copia de desactivar ya no manda a pedirselo a la plataforma", async () => {
+    // LA TRAMPA DE ESTA TAREA: la frase era verdad mientras el jefe no podia
+    // revertirlo. Desde que el boton existe, mandarlo a la plataforma es una
+    // mentira en pantalla: la accion esta en esta misma lista.
+    getCompanyMembers.mockResolvedValue(respuesta({
+      members: [miembro({ id: 1, firstname: "Juan", lastname: "Perez" })], total: 1,
+    }));
+    render(<AdminCompanyClient />);
+    await tablaCon(1);
+    fireEvent.click(screen.getByRole("button", { name: /^turn off access for juan perez$/i }));
+    const dialogo = await screen.findByRole("dialog");
+    expect(dialogo.textContent).not.toMatch(/platform administrator/i);
+    expect(dialogo.textContent).toMatch(/can be undone/i);
+    // Lo que ahora SI es verdad: lo puede devolver el, cuando quiera.
+    expect(dialogo.textContent).toMatch(/you can turn their access back on/i);
+  });
+
+  it("y tampoco en espanol: la frase falsa no sobrevive en ningun idioma", () => {
+    // Las pruebas corren sin I18nProvider, asi que la pantalla solo puede
+    // afirmar el ingles. El espanol se mide contra el archivo.
+    for (const [idioma, mensajes] of [["en", en], ["es", es]]) {
+      const cuerpo = mensajes.companyAdmin.panel.deactivateBody;
+      expect(cuerpo, idioma).not.toMatch(/platform administrator|administrador de la plataforma/i);
+      expect(cuerpo, idioma).toMatch(/\{name\}/);
+    }
+    // Y la clave del espanol dice lo que va a ser verdad, no una traduccion
+    // generica: el jefe puede devolver el acceso cuando quiera.
+    expect(es.companyAdmin.panel.deactivateBody).toMatch(/devolverle el acceso cuando quieras/i);
+    expect(en.companyAdmin.panel.deactivateBody).toMatch(/you can turn their access back on/i);
+    // Las tres claves nuevas existen en los dos idiomas y ninguna esta vacia.
+    for (const clave of ["activate", "activateFor", "activated"]) {
+      for (const [idioma, mensajes] of [["en", en], ["es", es]]) {
+        expect(mensajes.companyAdmin.panel[clave], `${idioma} ${clave}`).toBeTruthy();
+      }
+    }
   });
 });

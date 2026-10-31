@@ -730,6 +730,19 @@ export async function deactivateCompanyMember(id) {
   });
 }
 
+/**
+ * POST /api/company-admin/members/<id>/activate/
+ *
+ * El reverso de `deactivateCompanyMember`: devuelve el acceso a quien el propio
+ * administrador se lo quitó. OJO con la ruta: `deactivate/` CONTIENE
+ * `activate/`, así que una verificación por subcadena no distingue las dos.
+ */
+export async function activateCompanyMember(id) {
+  return _apiAuth(`/company-admin/members/${id}/activate/`, {
+    method: "POST", respaldo: "Could not turn this person's access back on.",
+  });
+}
+
 /** POST /api/company-admin/members/<id>/unlink/ */
 export async function unlinkCompanyMember(id) {
   return _apiAuth(`/company-admin/members/${id}/unlink/`, {
