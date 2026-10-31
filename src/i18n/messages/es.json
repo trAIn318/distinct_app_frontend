@@ -191,6 +191,7 @@
     "waking": "Conectando con el servidor… el primer intento puede tardar unos segundos.",
     "errFillBoth": "Ingresa tu correo/usuario y contraseña.",
     "errInvalid": "Credenciales inválidas.",
+    "errEmailNotSent": "No pudimos enviarte el código de verificación. Vuelve a intentarlo en unos minutos.",
     "errUnexpected": "No pudimos iniciar tu sesión. Inténtalo de nuevo.",
     "errCode": "Ingresa el código de 6 dígitos de tu correo.",
     "errOtp": "Código inválido o expirado."
@@ -262,6 +263,7 @@
     "errPolicy": "Debes aceptar la Política de Tratamiento de Datos para continuar.",
     "errCode": "Ingresa el código de 6 dígitos de tu correo.",
     "errRegister": "No se pudo completar el registro.",
+    "errEmailNotSent": "No pudimos enviarte el código de verificación. Vuelve a intentarlo en unos minutos.",
     "errVerify": "No pudimos verificar tu código.",
     "errResend": "No se pudo reenviar el código."
   },

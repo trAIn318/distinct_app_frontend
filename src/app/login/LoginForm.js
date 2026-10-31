@@ -90,7 +90,15 @@ export default function LoginForm() {
       // Respuesta inesperada (200 sin token ni estado conocido).
       setError(t("errUnexpected"));
     } catch (err) {
-      setError(err.message || t("errInvalid"));
+      // 502 = el backend no pudo enviar el código de verificación. Es un caso
+      // propio y traducido: la persona no se equivocó en nada, y el campo del
+      // código NO debe aparecer, porque esperaría para siempre algo que nunca
+      // salió. Así estuvo diez días en producción.
+      setError(
+        err?.status === 502
+          ? t("errEmailNotSent")
+          : err.message || t("errInvalid")
+      );
     } finally {
       clearTimeout(wakingTimer);
       setWaking(false);
