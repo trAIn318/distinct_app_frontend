@@ -768,3 +768,42 @@ describe("los SEIS errores de archivo completo de la carga por archivo", () => {
       .toBe("T:errors.tooLong");
   });
 });
+
+describe("la prosa del FRAMEWORK tampoco se pinta cruda", () => {
+  // Medido: las cuatro caian en texto crudo. No son mensajes que el backend
+  // escriba: los pone DRF, en ingles, y se pintaban literales en una interfaz
+  // que puede estar en espanol. El 404 es el de las CUATRO escrituras del panel
+  // (editar, desactivar, reactivar, desvincular) cuando la persona ya no esta.
+  // Se cierra con firma de texto, NO moviendo el orden de errorMessageFor, que
+  // es dictamen tomado en la Tarea 3.
+  it("el 404 pelado de DRF", () => {
+    expect(errorMessageFor({ status: 404, detail: "Not found." }, t)).toBe("T:errors.notFound");
+  });
+
+  it("el 403 de DRF", () => {
+    expect(errorMessageFor(
+      { status: 403, detail: "You do not have permission to perform this action." }, t
+    )).toBe("T:errors.forbidden");
+  });
+
+  it("el 401 de DRF, que pide iniciar sesion de nuevo", () => {
+    expect(errorMessageFor(
+      { status: 401, detail: "Authentication credentials were not provided." }, t
+    )).toBe("T:errors.signedOut");
+  });
+
+  it("el 405 de DRF, que es un defecto nuestro y no algo que el jefe pueda arreglar", () => {
+    expect(errorMessageFor({ status: 405, detail: 'Method "GET" not allowed.' }, t))
+      .toBe("T:errors.generic");
+  });
+
+  it("y la firma nueva NO se come la del mensaje propio del backend", () => {
+    // "not found or no longer valid" es del backend y ya tenia su firma; las dos
+    // apuntan a la misma clave, pero si una firma mas corta se colara primero
+    // dejaria de ser una garantia y seria una coincidencia.
+    expect(errorMessageFor({ detail: "That invitation was not found or no longer valid." }, t))
+      .toBe("T:errors.notFound");
+    expect(errorMessageFor({ status: 409, detail: "Esta persona ya es miembro o ya tiene una invitación vigente." }, t))
+      .toBe("T:errors.already");
+  });
+});
