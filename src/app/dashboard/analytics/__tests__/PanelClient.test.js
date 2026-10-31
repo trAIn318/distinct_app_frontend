@@ -106,3 +106,101 @@ describe("PanelClient", () => {
     await waitFor(() => expect(screen.getByText(/no hay ventas|no sales/i)).toBeInTheDocument());
   });
 });
+
+// ── Tabla por sede ────────────────────────────────────────────────────────
+// Una compañía como Mucura tiene varias sedes. Hasta aquí lo único por sede era
+// una gráfica de barras detrás de una preferencia, así que el jefe no podía
+// LEER cuánto puso cada una ni compararla con el total de la compañía.
+const TRES_SEDES = {
+  range: { start: "2026-05-06", end: "2026-05-07" },
+  currencies: [{
+    currency: "USD",
+    kpis: { net_sales: "10000.00", order_count: 500, guest_count: 760, avg_ticket: "20.00" },
+    delta_pct: { net_sales: null, order_count: null, guest_count: null, avg_ticket: null },
+    daily: [{ date: "2026-05-06", net_sales: "10000.00", order_count: 500, guest_count: 760 }],
+    by_property: [
+      { property_id: 7, property_name: "Mucura Centro", net_sales: "6000.00", order_count: 300, guest_count: 500 },
+      { property_id: 8, property_name: "Mucura Playa", net_sales: "3000.00", order_count: 200, guest_count: 250 },
+      { property_id: 9, property_name: "Mucura Norte", net_sales: "1000.00", order_count: 0, guest_count: 10 },
+    ],
+  }],
+};
+
+function montar(reporte) {
+  isAuthenticated.mockReturnValue(true);
+  getProperties.mockResolvedValue([{ id: 7, name: "Mucura Centro", active: true, comp_id: 5, company_name: "Mucura" }]);
+  getSalesReport.mockResolvedValue(reporte);
+  render(<PanelClient />);
+}
+function tablaSede() {
+  return document.querySelector('[data-testid="bysede-USD"]');
+}
+
+describe("PanelClient — tabla por sede", () => {
+  it("con varias sedes lista cada una con su ticket promedio y su participacion", async () => {
+    montar(TRES_SEDES);
+    await waitFor(() => expect(tablaSede()).toBeTruthy());
+    const t = tablaSede();
+    const fila = Array.from(t.querySelectorAll("tbody tr"))
+      .find((tr) => tr.textContent.includes("Mucura Playa"));
+    expect(fila.textContent).toContain("3000.00");
+    expect(fila.textContent).toContain("15.00");   // ticket promedio: 3000/200
+    expect(fila.textContent).toContain("30.0%");   // participacion del total
+  });
+
+  it("la fila de TOTAL coincide con el KPI de arriba, no con la suma redondeada", async () => {
+    montar(TRES_SEDES);
+    await waitFor(() => expect(tablaSede()).toBeTruthy());
+    const total = tablaSede().querySelector('tbody tr[data-total="1"]');
+    expect(total).toBeTruthy();
+    expect(total.textContent).toContain("10000.00");
+    expect(total.textContent).toContain("500");
+    expect(total.textContent).toContain("20.00");
+  });
+
+  it("una sede con cero ordenes no pinta Infinity ni NaN", async () => {
+    montar(TRES_SEDES);
+    await waitFor(() => expect(tablaSede()).toBeTruthy());
+    const fila = Array.from(tablaSede().querySelectorAll("tbody tr"))
+      .find((tr) => tr.textContent.includes("Mucura Norte"));
+    expect(fila.textContent).toContain("0.00");
+    expect(document.body.textContent).not.toMatch(/Infinity|NaN/);
+  });
+
+  it("NO depende de la preferencia de graficas: esa esconde graficas, no datos", async () => {
+    // La gráfica por propiedad vive detrás de `chartPrefs.byProperty`. Si la
+    // tabla compartiera ese interruptor, apagar una gráfica escondería los
+    // números de las sedes.
+    window.localStorage.setItem("analytics.chartPrefs", JSON.stringify({ byProperty: false }));
+    montar(TRES_SEDES);
+    await waitFor(() => expect(tablaSede()).toBeTruthy());
+  });
+
+  it("con UNA sola sede no se pinta, porque repetiria los KPIs", async () => {
+    montar(REPORT);   // una sola propiedad
+    await waitFor(() => expect(screen.getByText("500.00")).toBeInTheDocument());
+    expect(tablaSede()).toBeNull();
+  });
+
+  it("ofrece su propia descarga, distinta de la del detalle diario", async () => {
+    montar(TRES_SEDES);
+    await waitFor(() => expect(tablaSede()).toBeTruthy());
+    expect(screen.getByRole("button", { name: /download by location/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^download csv$/i })).toBeInTheDocument();
+  });
+
+  it("el nombre de cada sede es encabezado de su fila, para un lector de pantalla", async () => {
+    montar(TRES_SEDES);
+    await waitFor(() => expect(tablaSede()).toBeTruthy());
+    const encabezados = Array.from(tablaSede().querySelectorAll('tbody th[scope="row"]'))
+      .map((n) => n.textContent);
+    expect(encabezados).toEqual(["Mucura Centro", "Mucura Playa", "Mucura Norte", "TOTAL"]);
+  });
+
+  it("no pinta ninguna ruta i18n cruda ni una variable sin sustituir", async () => {
+    montar(TRES_SEDES);
+    await waitFor(() => expect(tablaSede()).toBeTruthy());
+    expect(tablaSede().textContent).not.toMatch(/analytics\./);
+    expect(tablaSede().textContent).not.toMatch(/\{\w+\}/);
+  });
+});

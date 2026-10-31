@@ -487,7 +487,12 @@
     "wdSat": "Sáb",
     "detailTitle": "Detalle diario",
     "downloadCsv": "Descargar CSV",
-    "emptyPeriod": "No hay ventas en este periodo"
+    "emptyPeriod": "No hay ventas en este periodo",
+    "byLocationTitle": "Ventas por sede",
+    "locationCol": "Sede",
+    "shareCol": "Participación del total",
+    "totalLabel": "TOTAL",
+    "downloadLocationCsv": "Descargar por sede"
   },
   "companyAdmin": {
     "accept": {
