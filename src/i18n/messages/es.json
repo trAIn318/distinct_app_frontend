@@ -121,11 +121,13 @@
     "namePlaceholder": "Tu Nombre",
     "email": "Correo",
     "emailPlaceholder": "tu.correo@ejemplo.com",
-    "notRobot": "No soy un robot",
+    "message": "Mensaje",
+    "messagePlaceholder": "Cuéntanos qué necesitas",
+    "sending": "Enviando...",
+    "errSend": "No pudimos enviar tu mensaje. Vuelve a intentarlo en unos minutos o escríbenos por WhatsApp.",
     "send": "Enviar",
     "emailRequired": "El correo es obligatorio.",
     "emailInvalid": "Ingresa una dirección de correo válida.",
-    "recaptchaRequired": "Por favor verifica que eres humano.",
     "success": "¡Gracias! Tu mensaje ha sido enviado. (Simulado)"
   },
   "partners": {

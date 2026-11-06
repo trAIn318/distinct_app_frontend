@@ -121,11 +121,13 @@
     "namePlaceholder": "Your Name",
     "email": "Email",
     "emailPlaceholder": "your.email@example.com",
-    "notRobot": "I am not a robot",
+    "message": "Message",
+    "messagePlaceholder": "Tell us what you need",
+    "sending": "Sending...",
+    "errSend": "We couldn't send your message. Please try again in a few minutes, or reach us on WhatsApp.",
     "send": "Send",
     "emailRequired": "Email is required.",
     "emailInvalid": "Please enter a valid email address.",
-    "recaptchaRequired": "Please verify that you are human.",
     "success": "Thank you! Your message has been sent. (Simulated)"
   },
   "partners": {
