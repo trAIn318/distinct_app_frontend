@@ -799,3 +799,30 @@ export async function previewMembersImport(file) {
 export async function commitMembersImport(file) {
   return _apiUpload("/company-admin/import/", file, "Could not import the file.");
 }
+
+/**
+ * POST /api/contact/ — el formulario de contacto del sitio público.
+ *
+ * Vive en el backend y no en una ruta de Vercel a propósito: ahí está el envío
+ * de correo verificado, el límite por IP y la auditoría, y no hay que copiar la
+ * llave de Resend a un segundo sitio. Usa `fetchResilient` porque Render free
+ * duerme y el primer envío puede tocar un arranque en frío.
+ */
+export async function sendContactApi(payload) {
+  let res;
+  try {
+    res = await fetchResilient(`${API_URL}/api/contact/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+  } catch {
+    throw conEstado("No pudimos contactar el servidor.", 0);
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw conEstado(data.detail || "Contact failed.", res.status);
+  }
+  return data;
+}

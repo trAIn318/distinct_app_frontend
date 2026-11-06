@@ -2,13 +2,24 @@
 
 import { useState } from "react";
 import { useT } from "../i18n/client";
+import { sendContactApi } from "../lib/api";
 import styles from "./ContactForm.module.css";
 
 export default function ContactForm() {
   const t = useT("contact");
-  const [formData, setFormData] = useState({ name: "", email: "" });
-  const [isVerified, setIsVerified] = useState(false);
+  // `website` es el campo trampa: invisible y fuera del recorrido con Tab, asi
+  // que una persona nunca lo llena y un bot que rellena todo, si. Reemplaza a
+  // la casilla de "no soy un robot" que habia antes, que no detenia a nadie.
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+    website: "",
+  });
   const [errors, setErrors] = useState({});
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,31 +29,36 @@ export default function ContactForm() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (sending) return;          // dos clics mandan una sola vez
 
-    // Inline validation
+    setSendError(null);
+    setSent(false);
+
     const newErrors = {};
     if (!formData.email) {
       newErrors.email = t("emailRequired");
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = t("emailInvalid");
     }
-
-    if (!isVerified) {
-      newErrors.recaptcha = t("recaptchaRequired");
-    }
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    // Form endpoint omitted pending client decision (PRD §8.3)
-    console.log("Form submission simulated:", formData);
-    alert(t("success"));
-    setFormData({ name: "", email: "" });
-    setIsVerified(false);
+    setSending(true);
+    try {
+      await sendContactApi(formData);
+      // Solo se declara enviado cuando el backend lo confirma. Antes esta
+      // pantalla mostraba "exito" sin haber mandado nada a ninguna parte.
+      setSent(true);
+      setFormData({ name: "", email: "", message: "", website: "" });
+    } catch {
+      setSendError(t("errSend"));
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -119,45 +135,52 @@ export default function ContactForm() {
                 )}
               </div>
 
-              {/* Mock reCAPTCHA */}
               <div className={styles.formGroup}>
-                <label className={styles.recaptchaMock}>
-                  <input
-                    type="checkbox"
-                    checked={isVerified}
-                    onChange={(e) => {
-                      setIsVerified(e.target.checked);
-                      if (errors.recaptcha) setErrors({ ...errors, recaptcha: null });
-                    }}
-                    className={styles.checkbox}
-                  />
-                  <span className={styles.recaptchaText}>{t("notRobot")}</span>
-                </label>
-                {errors.recaptcha && (
-                  <span className={styles.errorText} role="alert">
-                    {errors.recaptcha}
-                  </span>
-                )}
+                <label htmlFor="message" className={styles.label}>{t("message")}</label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows={4}
+                  value={formData.message}
+                  onChange={handleChange}
+                  className={styles.input}
+                  placeholder={t("messagePlaceholder")}
+                />
               </div>
 
-              <p className={styles.legalText}>
-                Protected by Google reCAPTCHA. Privacy Policy:{" "}
-                <a href="https://policies.google.com/privacy" className={styles.legalLink} target="_blank" rel="noopener noreferrer">
-                  https://policies.google.com/privacy
-                </a>{" "}
-                | Terms:{" "}
-                <a href="https://policies.google.com/terms" className={styles.legalLink} target="_blank" rel="noopener noreferrer">
-                  https://policies.google.com/terms
-                </a>
-              </p>
+              {/* Campo trampa. Oculto para lectores de pantalla y fuera del
+                  recorrido con Tab: si llega lleno, lo lleno un bot. */}
+              <div className={styles.honeypot} aria-hidden="true">
+                <label htmlFor="website">Website</label>
+                <input
+                  type="text"
+                  id="website"
+                  name="website"
+                  value={formData.website}
+                  onChange={handleChange}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
 
               <button
                 type="submit"
                 className={`btn-primary ${styles.submitBtn}`}
-                disabled={!isVerified}
+                disabled={sending}
               >
-                {t("send")}
+                {sending ? t("sending") : t("send")}
               </button>
+
+              {sent && (
+                <p className={styles.notice} role="status">
+                  {t("success")}
+                </p>
+              )}
+              {sendError && (
+                <p className={`${styles.notice} ${styles.noticeError}`} role="alert">
+                  {sendError}
+                </p>
+              )}
             </form>
           </div>
         </div>
