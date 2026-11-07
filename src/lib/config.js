@@ -13,6 +13,16 @@
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://distinct-app-backend.onrender.com";
 
+// ── Sitio público ──────────────────────────────────────────────────────────
+
+// Dominio canónico. Lo usan las etiquetas canónicas, Open Graph, el sitemap y
+// los datos estructurados JSON-LD, que EXIGEN URLs absolutas: una ruta
+// relativa ahí se ignora en silencio y el resultado enriquecido no aparece.
+// Sin barra final — las rutas se concatenan empezando por "/".
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://distincthospitalitysolutions.com"
+).replace(/\/+$/, "");
+
 // ── Moodle ─────────────────────────────────────────────────────────────────
 
 export const MOODLE_URL =

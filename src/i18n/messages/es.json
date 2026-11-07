@@ -2,6 +2,7 @@
   "nav": {
     "home": "Inicio",
     "courses": "Cursos",
+    "insights": "Insights",
     "about": "Nosotros",
     "meetAria": "Conoce a ARIA",
     "accessMoodle": "Ir a Entrenar",
@@ -688,5 +689,35 @@
         "tooBig": "Ese archivo es muy grande. El límite es {maxKb} KB."
       }
     }
+  },
+  "insights": {
+    "label": "Distinct Insights",
+    "hubTitle": "White Papers e Investigación para Líderes de Hospitalidad",
+    "hubIntro": "Distinct Hospitality Solutions es una plataforma de inteligencia de fuerza laboral con sede en Miami, creada exclusivamente para hospitalidad. Esta biblioteca reúne nuestra investigación y nuestra postura sobre las preguntas que enfrentan hoy los operadores: dónde pertenece la tecnología, cómo se forma a los equipos y qué distingue a una propiedad que retiene a su gente de una que no.",
+    "featured": "Destacado",
+    "readPaper": "Leer el paper",
+    "empty": "Todavía no hay papers publicados.",
+    "backToHub": "Todos los papers",
+    "breadcrumbHome": "Inicio",
+    "breadcrumbHub": "Insights",
+    "published": "Publicado",
+    "updated": "Actualizado",
+    "summaryHeading": "Resumen ejecutivo",
+    "keyIdeasHeading": "Ideas clave",
+    "faqHeading": "Preguntas frecuentes",
+    "downloadHeading": "Obtén el white paper completo",
+    "downloadSupport": "Lee el argumento completo y compártelo con tu equipo directivo.",
+    "downloadButton": "Descargar el PDF",
+    "authorHeading": "Sobre la autora",
+    "relatedHeading": "Papers relacionados",
+    "categoryLabel": "Categoría",
+    "categoryIntro": "Papers clasificados en este tema."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "body": "La página que buscabas no existe, o cambió de dirección.",
+    "home": "Volver al inicio",
+    "insights": "Leer nuestros white papers",
+    "code": "404"
   }
 }

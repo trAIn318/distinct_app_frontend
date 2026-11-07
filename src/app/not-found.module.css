@@ -1,0 +1,63 @@
+/* 404 del sitio. Valores solo desde tokens.css (claude.md §5.1). */
+
+.page {
+  background: var(--color-ivory);
+  color: var(--color-text-primary);
+  padding-top: var(--space-12);
+  padding-bottom: var(--space-12);
+  /* Deja la pantalla ocupada sin empujar el pie fuera de vista. */
+  min-height: 61.8vh;
+  display: flex;
+  align-items: center;
+}
+
+.code {
+  display: block;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  color: var(--color-gold-muted);
+  margin-bottom: var(--space-5);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--text-2xl);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.body {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.618;
+  color: var(--color-text-secondary);
+  margin: var(--space-5) 0 0;
+  max-width: 61.8ch;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+}
+
+.secondary {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .title {
+    font-size: var(--text-3xl);
+  }
+}
