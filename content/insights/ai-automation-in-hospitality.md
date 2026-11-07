@@ -11,7 +11,7 @@ secondaryKeywords:
   - "guest experience and automation"
 metaTitle: "AI Automation in Hospitality: Where and Why | Distinct"
 metaDescription: "Hospitality leaders are rushing to automate. Distinct's CEO explains why the real question is where AI belongs in hospitality and where people must stay."
-author: "Fresa V Straw"
+author: "Fresa Veronica Straw"
 authorRole: "Founder and CEO, Distinct Hospitality Solutions"
 authorBio: "Founder and CEO of Distinct Hospitality Solutions, a Miami-based workforce intelligence platform built exclusively for hospitality."
 authorImage: "/img/Veronica.webp"
