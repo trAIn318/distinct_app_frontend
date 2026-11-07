@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useT } from "../i18n/client";
 import { sendContactApi } from "../lib/api";
+import { BOOKING_URL } from "../lib/config";
 import styles from "./ContactForm.module.css";
 
 export default function ContactForm() {
@@ -85,15 +86,22 @@ export default function ContactForm() {
                 WhatsApp →" parecía apuntarle, así que se leía como si el botón
                 fuera de WhatsApp. Es un enlace de texto, no un botón, y no usa
                 el dorado: claude.md permite un solo elemento dorado por
-                pantalla y el de WhatsApp ya lo gasta. */}
-            <a
-              href="https://meet.hubspot.com/veronica-straw"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.meetingLink}
-            >
-              {t("meeting")}
-            </a>
+                pantalla y el de WhatsApp ya lo gasta.
+
+                Solo aparece si hay un calendario configurado. La dirección que
+                estuvo aquí fija apuntaba a un dominio inexistente, así que
+                ofrecía un canal que no llevaba a ninguna parte. Ver BOOKING_URL
+                en lib/config.js. */}
+            {BOOKING_URL && (
+              <a
+                href={BOOKING_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.meetingLink}
+              >
+                {t("meeting")}
+              </a>
+            )}
           </div>
 
           {/* Form */}

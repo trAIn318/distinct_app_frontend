@@ -711,7 +711,9 @@
     "authorHeading": "Sobre la autora",
     "relatedHeading": "Papers relacionados",
     "categoryLabel": "Categoría",
-    "categoryIntro": "Papers clasificados en este tema."
+    "categoryIntro": "Papers clasificados en este tema.",
+    "bookDemo": "Agendar una demo",
+    "bookDemoSupport": "Mira cómo funciona Distinct en tu propiedad."
   },
   "notFound": {
     "title": "Página no encontrada",

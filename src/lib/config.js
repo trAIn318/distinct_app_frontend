@@ -23,6 +23,23 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://distincthospitalitysolutions.com"
 ).replace(/\/+$/, "");
 
+// ── Agendar una reunión (calendario de HubSpot) ────────────────────────────
+
+// Única fuente de la dirección del calendario. La usan el formulario de
+// contacto y el centro de white papers; donde no esté definida, el canal
+// simplemente no se ofrece.
+//
+// Va VACÍA por omisión, a diferencia del resto de este archivo. Aquí sí es lo
+// correcto: el valor que estuvo fijo en el código hasta ahora era
+// `meet.hubspot.com/veronica-straw`, un dominio que NO EXISTE en el DNS
+// (verificado contra el DNS local y contra 8.8.8.8). Quien le daba clic no
+// recibía nada. Un valor por omisión equivocado es peor que ninguno: con éste
+// el enlace desaparece hasta que haya uno real.
+//
+// La cuenta de HubSpot de Distinct vive en la región na2, así que el enlace
+// bueno probablemente empiece por `meetings-na2.hubspot.com`. Está pedido.
+export const BOOKING_URL = (process.env.NEXT_PUBLIC_BOOKING_URL || "").trim();
+
 // ── Moodle ─────────────────────────────────────────────────────────────────
 
 export const MOODLE_URL =

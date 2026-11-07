@@ -711,7 +711,9 @@
     "authorHeading": "About the author",
     "relatedHeading": "Related papers",
     "categoryLabel": "Category",
-    "categoryIntro": "Papers filed under this topic."
+    "categoryIntro": "Papers filed under this topic.",
+    "bookDemo": "Book a demo",
+    "bookDemoSupport": "See how Distinct works for your property."
   },
   "notFound": {
     "title": "Page not found",

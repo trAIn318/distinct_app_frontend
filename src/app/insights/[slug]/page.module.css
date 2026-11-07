@@ -316,3 +316,12 @@
     flex-direction: column;
   }
 }
+
+/* Llamado a agendar demo. Mismo tratamiento que el bloque de descarga: son
+   dos acciones equivalentes y no deben competir visualmente entre si. */
+.demo {
+  border: 1px solid var(--color-border);
+  padding: var(--space-6);
+  margin: var(--space-10) 0;
+  background: var(--color-surface-light);
+}

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import styles from "./page.module.css";
 import { getT } from "../../../i18n/server";
+import { BOOKING_URL } from "../../../lib/config";
 import { getAllPapers, getPaperBySlug } from "../../../lib/insights";
 import {
   articleSchema,
@@ -152,6 +153,28 @@ export default async function PaperPage({ params }) {
                 <p className={styles.calloutHeading}>{paper.callout.heading}</p>
                 <p className={styles.calloutBody}>{paper.callout.body}</p>
               </aside>
+            )}
+
+            {/* La ficha pide un CTA de demo dentro del artículo. Solo aparece
+                si hay un calendario configurado: el enlace que había en el
+                sitio apuntaba a un dominio inexistente, y ofrecer un botón que
+                no lleva a ninguna parte es peor que no ofrecerlo.
+                Ver BOOKING_URL en lib/config.js. */}
+            {BOOKING_URL && (
+              <section className={styles.demo} aria-labelledby="demo-heading">
+                <h2 id="demo-heading" className={styles.downloadHeading}>
+                  {t("bookDemo")}
+                </h2>
+                <p className={styles.downloadSupport}>{t("bookDemoSupport")}</p>
+                <a
+                  className="btn-primary"
+                  href={BOOKING_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("bookDemo")}
+                </a>
+              </section>
             )}
 
             {paper.pdfFile && (
