@@ -2,6 +2,7 @@
   "nav": {
     "home": "Home",
     "courses": "Courses",
+    "insights": "Insights",
     "about": "About",
     "meetAria": "Meet ARIA",
     "accessMoodle": "Go to Training",
@@ -694,5 +695,37 @@
         "tooBig": "That file is too large. The limit is {maxKb} KB."
       }
     }
+  },
+  "insights": {
+    "label": "Distinct Insights",
+    "hubTitle": "White Papers and Research for Hospitality Leaders",
+    "hubIntro": "Distinct Hospitality Solutions is a Miami-based workforce intelligence platform built exclusively for hospitality. This library collects our research and point of view on the questions operators are facing now: where technology belongs, how teams are trained, and what separates a property that retains people from one that does not.",
+    "featured": "Featured",
+    "readPaper": "Read the paper",
+    "empty": "No papers have been published yet.",
+    "backToHub": "All papers",
+    "breadcrumbHome": "Home",
+    "breadcrumbHub": "Insights",
+    "published": "Published",
+    "updated": "Updated",
+    "summaryHeading": "Executive summary",
+    "keyIdeasHeading": "Key ideas",
+    "faqHeading": "Frequently asked questions",
+    "downloadHeading": "Get the full white paper",
+    "downloadSupport": "Read the complete argument and share it with your leadership team.",
+    "downloadButton": "Download the PDF",
+    "authorHeading": "About the author",
+    "relatedHeading": "Related papers",
+    "categoryLabel": "Category",
+    "categoryIntro": "Papers filed under this topic.",
+    "bookDemo": "Book a demo",
+    "bookDemoSupport": "See how Distinct works for your property."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you were looking for does not exist, or it moved.",
+    "home": "Back to home",
+    "insights": "Read our white papers",
+    "code": "404"
   }
 }

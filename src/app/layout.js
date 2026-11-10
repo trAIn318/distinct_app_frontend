@@ -33,8 +33,15 @@ import Footer from "../components/Footer";
 import CookieBanner from "../components/CookieBanner";
 import { getLocale, getMessages } from "../i18n/server";
 import { I18nProvider } from "../i18n/client";
+import { SITE_URL } from "../lib/config";
 
 export const metadata = {
+  // Base contra la que se resuelven las URLs relativas de metadatos, sobre
+  // todo las imágenes de Open Graph. Sin esto, Next las resuelve contra el
+  // host del despliegue: en local quedan como http://localhost:3000/... y en
+  // Vercel contra la URL del despliegue, no contra el dominio real. Al
+  // compartir en LinkedIn eso deja la tarjeta sin imagen.
+  metadataBase: new URL(SITE_URL),
   title: "Distinct Hospitality Solutions",
   description: "The AI Platform Built for Hospitality",
 };

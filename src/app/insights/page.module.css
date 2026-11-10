@@ -1,0 +1,120 @@
+/* Índice del centro de white papers (/insights).
+   Todo valor viene de tokens.css — sin números sueltos (claude.md §5.1). */
+
+.page {
+  background: var(--color-ivory);
+  color: var(--color-text-primary);
+}
+
+/* ── Cabecera ──────────────────────────────────────────────────────────── */
+
+.header {
+  padding-top: var(--space-12);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.eyebrow {
+  display: block;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold-muted);
+  margin-bottom: var(--space-5);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--text-2xl);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  margin: 0;
+  /* Proporción áurea: el titular ocupa el 61.8% del ancho en pantallas
+     grandes y la columna respira en el 38.2% restante. */
+  max-width: 61.8%;
+}
+
+.intro {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.618;
+  color: var(--color-text-secondary);
+  margin-top: var(--space-5);
+  max-width: 61.8%;
+}
+
+/* ── Listado ───────────────────────────────────────────────────────────── */
+
+.listSection {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-12);
+}
+
+.empty {
+  font-family: var(--font-body);
+  color: var(--color-text-secondary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+/* ── Filtro de categorías ─────────────────────────────────────────────── */
+
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.categoryLink {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--duration-base) var(--ease-luxe);
+}
+
+.categoryLink:hover,
+.categoryLink:focus-visible {
+  color: var(--color-gold-muted);
+}
+
+.categoryCount {
+  color: var(--color-gold-muted);
+}
+
+/* ── Escalado (mobile-first: lo de arriba es la base) ──────────────────── */
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .title {
+    font-size: var(--text-3xl);
+  }
+}
+
+@media (max-width: 767px) {
+  .title,
+  .intro {
+    max-width: 100%;
+  }
+  .header {
+    padding-top: var(--space-8);
+  }
+  .listSection {
+    padding-bottom: var(--space-8);
+  }
+}
+

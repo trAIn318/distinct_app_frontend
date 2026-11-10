@@ -66,6 +66,7 @@ export default function Navigation() {
   const navLinks = [
     { label: t("home"), href: "/" },
     { label: t("courses"), href: "/courses" },
+    { label: t("insights"), href: "/insights" },
     { label: t("about"), href: "/about" },
   ];
 

@@ -1,9 +1,29 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
+
+// La direccion del calendario sale de la configuracion, nunca escrita a mano
+// aqui. Antes estaba fija en el componente Y repetida en esta prueba: el mismo
+// dato en dos lugares que tenian que coincidir, que es justo como se cuela un
+// enlace roto sin que nadie se entere.
+let urlAgenda = "";
+vi.mock("../../lib/config", async (importOriginal) => {
+  const real = await importOriginal();
+  return {
+    ...real,
+    get BOOKING_URL() {
+      return urlAgenda;
+    },
+  };
+});
 
 import ContactForm from "../ContactForm";
 
+const AGENDA_REAL = "https://meetings-na2.hubspot.com/ejemplo";
+
 afterEach(cleanup);
+beforeEach(() => {
+  urlAgenda = AGENDA_REAL;
+});
 
 // Las pruebas corren sin I18nProvider, asi que useT cae al ingles de en.json.
 const AGENDA = /you can also contact us here|tambi[eé]n puedes contactarnos aqu[ií]/i;
@@ -12,11 +32,26 @@ describe("ContactForm — canales de contacto", () => {
   it("ofrece el enlace de agenda, que abre en otra pestana y es seguro", () => {
     render(<ContactForm />);
     const agenda = screen.getByRole("link", { name: AGENDA });
-    expect(agenda).toHaveAttribute("href", "https://meet.hubspot.com/veronica-straw");
+    expect(agenda).toHaveAttribute("href", AGENDA_REAL);
     expect(agenda).toHaveAttribute("target", "_blank");
     // Sin esto, la pagina destino puede manipular la nuestra via window.opener.
     expect(agenda.getAttribute("rel")).toContain("noopener");
     expect(agenda.getAttribute("rel")).toContain("noreferrer");
+  });
+
+  it("sin calendario configurado NO muestra el enlace", () => {
+    // Lo que esto evita: el enlace que hubo hasta ahora apuntaba a
+    // meet.hubspot.com, un dominio que no existe en el DNS. Quien le daba clic
+    // no recibia nada. Mejor no ofrecer el canal que ofrecer uno muerto.
+    urlAgenda = "";
+    render(<ContactForm />);
+    expect(screen.queryByRole("link", { name: AGENDA })).not.toBeInTheDocument();
+  });
+
+  it("sin calendario configurado, WhatsApp sigue estando", () => {
+    urlAgenda = "";
+    render(<ContactForm />);
+    expect(screen.getByRole("link", { name: /whatsapp/i })).toBeInTheDocument();
   });
 
   it("conserva el canal de WhatsApp que ya existia", () => {

@@ -1,0 +1,327 @@
+/* Página de un white paper (/insights/[slug]).
+   Valores solo desde tokens.css (claude.md §5.1). */
+
+.page {
+  background: var(--color-ivory);
+  color: var(--color-text-primary);
+}
+
+/* ── Cabecera ──────────────────────────────────────────────────────────── */
+
+.header {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+.breadcrumb a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover,
+.breadcrumb a:focus-visible {
+  color: var(--color-gold-muted);
+}
+
+.eyebrow {
+  display: block;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold-muted);
+  margin-bottom: var(--space-4);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--text-2xl);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  margin: 0;
+  max-width: 61.8%;
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.618;
+  color: var(--color-text-secondary);
+  margin: var(--space-5) 0 0;
+  max-width: 61.8%;
+}
+
+.byline {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  margin: var(--space-6) 0 0;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin: var(--space-3) 0 0;
+}
+
+/* ── Cuerpo ────────────────────────────────────────────────────────────── */
+
+.body {
+  /* Medida de lectura: entre 60 y 70 caracteres es donde el ojo no se pierde
+     al saltar de renglón. */
+  max-width: 68ch;
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-12);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-xl);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  margin: var(--space-10) 0 var(--space-5);
+}
+
+.body > section:first-child .sectionTitle {
+  margin-top: 0;
+}
+
+.lead {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.618;
+  margin: 0 0 var(--space-5);
+}
+
+.idea {
+  margin-bottom: var(--space-6);
+}
+
+.ideaTitle {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 700;
+  line-height: 1.618;
+  margin: 0 0 var(--space-2);
+}
+
+.ideaBody {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.pullQuote {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--text-lg);
+  line-height: 1.3;
+  color: var(--color-text-primary);
+  /* Sin comillas decorativas ni fondo: el filete dorado es el único acento. */
+  border-left: 1px solid var(--color-gold);
+  padding-left: var(--space-5);
+  margin: var(--space-10) 0;
+}
+
+/* Prosa que viene del Markdown: no se le pueden poner clases, así que se
+   estiliza por etiqueta dentro de este contenedor. */
+.prose p {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  margin: 0 0 var(--space-5);
+}
+
+.prose h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-lg);
+  line-height: 1.1;
+  margin: var(--space-8) 0 var(--space-4);
+}
+
+.prose blockquote {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--text-lg);
+  border-left: 1px solid var(--color-gold);
+  padding-left: var(--space-5);
+  margin: var(--space-8) 0;
+}
+
+.prose a {
+  color: inherit;
+}
+
+/* ── Llamado y descarga ────────────────────────────────────────────────── */
+
+.callout {
+  border-top: 1px solid var(--color-gold);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-6) 0;
+  margin: var(--space-10) 0;
+}
+
+.calloutHeading {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold-muted);
+  margin: 0 0 var(--space-3);
+}
+
+.calloutBody {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.download {
+  border: 1px solid var(--color-border);
+  padding: var(--space-6);
+  margin: var(--space-10) 0;
+  background: var(--color-surface-light);
+}
+
+.downloadHeading {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-lg);
+  line-height: 1.1;
+  margin: 0 0 var(--space-3);
+}
+
+.downloadSupport {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-5);
+}
+
+/* ── Preguntas frecuentes ──────────────────────────────────────────────── */
+
+.faqItem {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-5) 0;
+}
+
+.faqQuestion {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 700;
+  line-height: 1.618;
+  margin: 0 0 var(--space-2);
+}
+
+.faqAnswer {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ── Autora ────────────────────────────────────────────────────────────── */
+
+.author {
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-10);
+}
+
+.authorRow {
+  display: flex;
+  gap: var(--space-5);
+  align-items: flex-start;
+}
+
+.authorImage {
+  /* 1:1 para retratos (claude.md §2.6). Sin redondear. */
+  object-fit: cover;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.authorName {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 500;
+  margin: 0 0 var(--space-2);
+}
+
+.authorBio {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.back {
+  margin-top: var(--space-10);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.back a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── Escalado ──────────────────────────────────────────────────────────── */
+
+@media (min-width: 768px) {
+  .header {
+    padding-top: var(--space-10);
+  }
+  .title {
+    font-size: var(--text-3xl);
+  }
+}
+
+@media (max-width: 767px) {
+  .title,
+  .subtitle {
+    max-width: 100%;
+  }
+  .authorRow {
+    flex-direction: column;
+  }
+}
+
+/* Llamado a agendar demo. Mismo tratamiento que el bloque de descarga: son
+   dos acciones equivalentes y no deben competir visualmente entre si. */
+.demo {
+  border: 1px solid var(--color-border);
+  padding: var(--space-6);
+  margin: var(--space-10) 0;
+  background: var(--color-surface-light);
+}
