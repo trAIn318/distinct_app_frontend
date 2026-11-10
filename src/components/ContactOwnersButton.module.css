@@ -1,0 +1,90 @@
+/* ContactOwnersButton — menu para elegir con que correo escribir. */
+
+.wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.popover {
+  position: absolute;
+  left: 0;
+  z-index: 40;
+  min-width: 15rem;
+  padding: 0.75rem;
+  background: var(--color-surface-dark);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: var(--shadow-card);
+  animation: aparecer var(--duration-fast) var(--ease-luxe);
+}
+
+.popover[data-placement="down"] {
+  top: calc(100% + 0.5rem);
+}
+
+/* Hacia arriba cuando el boton esta cerca del borde inferior (p. ej. el CTA
+   al fondo de una tarjeta de curso en la ultima fila). */
+.popover[data-placement="up"] {
+  bottom: calc(100% + 0.5rem);
+}
+
+/* En pantallas angostas el menu se centra para no salirse del viewport. */
+@media (max-width: 480px) {
+  .popover {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+.heading {
+  margin: 0 0 0.5rem;
+  padding: 0 0.5rem;
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.options {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  display: block;
+  padding: 0.55rem 0.5rem;
+  font-size: var(--text-base);
+  color: var(--color-text-inverse);
+  text-decoration: none;
+  border-radius: 3px;
+  transition: background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+
+.option:hover,
+.option:focus-visible {
+  background: var(--gold-08);
+  color: var(--color-accent);
+  outline: none;
+}
+
+.option:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Respeta a quien pidio menos movimiento en el sistema. */
+@media (prefers-reduced-motion: reduce) {
+  .popover {
+    animation: none;
+  }
+}

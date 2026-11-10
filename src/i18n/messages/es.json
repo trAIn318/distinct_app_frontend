@@ -130,6 +130,12 @@
     "emailInvalid": "Ingresa una dirección de correo válida.",
     "success": "¡Gracias! Tu mensaje ha sido enviado. (Simulado)"
   },
+  "contactOwners": {
+    "chooseTitle": "¿Desde qué correo quieres escribirnos?",
+    "ownApp": "Mi aplicación de correo",
+    "gmail": "Gmail",
+    "outlook": "Outlook"
+  },
   "partners": {
     "eyebrow": "Colaboraciones de Confianza",
     "titlePre": "Nuestros",

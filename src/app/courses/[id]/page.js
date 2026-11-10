@@ -1,13 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourse, getReviews } from "../../../lib/api";
-import {
-  MOODLE_URL,
-  resolveCourseImage,
-  buildOwnersOutlookCompose,
-} from "../../../lib/config";
+import { MOODLE_URL, resolveCourseImage } from "../../../lib/config";
 import TestimonialsCarousel from "../../../components/TestimonialsCarousel";
 import Reveal from "../../../components/Reveal";
+import ContactOwnersButton from "../../../components/ContactOwnersButton";
 import { getT, getLocale } from "../../../i18n/server";
 import { getCourseTitle, getCourseDescription } from "../../../lib/courseText";
 import styles from "./page.module.css";
@@ -64,15 +61,15 @@ export default async function CourseDetailPage({ params }) {
   const imageSrc = resolveCourseImage(course.image_url);
   const videoEmbed = toYouTubeEmbed(course.video_url);
 
-  const interestUrl = buildOwnersOutlookCompose(
-    `Interested in: ${course.title}`,
-    `Hi Veronica, Luznedy, and Hugo,\n\nI'd like to know more about the course "${course.title}" (code: ${course.code}).\n\nThank you,\n`
-  );
+  const interes = {
+    subject: `Interested in: ${course.title}`,
+    body: `Hi Veronica, Luznedy, and Hugo,\n\nI'd like to know more about the course "${course.title}" (code: ${course.code}).\n\nThank you,\n`,
+  };
 
-  const payUrl = buildOwnersOutlookCompose(
-    `Enrollment & Payment — ${course.title}`,
-    `Hi Veronica, Luznedy, and Hugo,\n\nI'd like to enroll and arrange payment for the course "${course.title}" (code: ${course.code}).\n\nPlease let me know the next steps.\n\nThank you,\n`
-  );
+  const pago = {
+    subject: `Enrollment & Payment — ${course.title}`,
+    body: `Hi Veronica, Luznedy, and Hugo,\n\nI'd like to enroll and arrange payment for the course "${course.title}" (code: ${course.code}).\n\nPlease let me know the next steps.\n\nThank you,\n`,
+  };
 
   return (
     <div className={styles.page}>
@@ -100,22 +97,16 @@ export default async function CourseDetailPage({ params }) {
             )}
 
             <div className={styles.actions}>
-              <a
-                href={payUrl}
+              <ContactOwnersButton
+                {...pago}
+                label={t("enrollPay")}
                 className="btn-primary"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t("enrollPay")}
-              </a>
-              <a
-                href={interestUrl}
+              />
+              <ContactOwnersButton
+                {...interes}
+                label={t("interested")}
                 className="btn-ghost"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t("interested")}
-              </a>
+              />
               {/* Botón de acceso a Moodle ocultado temporalmente (puede reactivarse). */}
               {/* <a
                 href={MOODLE_URL}
