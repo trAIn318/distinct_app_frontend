@@ -2,8 +2,8 @@
    Valores solo desde tokens.css (claude.md §5.1). */
 
 .page {
-  background: var(--color-ivory);
-  color: var(--color-text-primary);
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
 }
 
 /* ── Cabecera ──────────────────────────────────────────────────────────── */
@@ -140,7 +140,7 @@
   font-weight: 400;
   font-size: var(--text-lg);
   line-height: 1.3;
-  color: var(--color-text-primary);
+  color: var(--color-text-inverse);
   /* Sin comillas decorativas ni fondo: el filete dorado es el único acento. */
   border-left: 1px solid var(--color-gold);
   padding-left: var(--space-5);
@@ -206,7 +206,7 @@
   border: 1px solid var(--color-border);
   padding: var(--space-6);
   margin: var(--space-10) 0;
-  background: var(--color-surface-light);
+  background: var(--color-surface-dark);
 }
 
 .downloadHeading {
@@ -323,5 +323,5 @@
   border: 1px solid var(--color-border);
   padding: var(--space-6);
   margin: var(--space-10) 0;
-  background: var(--color-surface-light);
+  background: var(--color-surface-dark);
 }

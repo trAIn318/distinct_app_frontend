@@ -1,8 +1,8 @@
 /* 404 del sitio. Valores solo desde tokens.css (claude.md §5.1). */
 
 .page {
-  background: var(--color-ivory);
-  color: var(--color-text-primary);
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
   padding-top: var(--space-12);
   padding-bottom: var(--space-12);
   /* Deja la pantalla ocupada sin empujar el pie fuera de vista. */

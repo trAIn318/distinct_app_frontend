@@ -2,8 +2,8 @@
    Valores solo desde tokens.css (claude.md §5.1). */
 
 .page {
-  background: var(--color-ivory);
-  color: var(--color-text-primary);
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
 }
 
 .header {
