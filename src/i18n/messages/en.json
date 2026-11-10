@@ -130,6 +130,12 @@
     "emailInvalid": "Please enter a valid email address.",
     "success": "Thank you! Your message has been sent. (Simulated)"
   },
+  "contactOwners": {
+    "chooseTitle": "Which email would you like to write from?",
+    "ownApp": "My email app",
+    "gmail": "Gmail",
+    "outlook": "Outlook"
+  },
   "partners": {
     "eyebrow": "Trusted Collaborations",
     "titlePre": "Our",

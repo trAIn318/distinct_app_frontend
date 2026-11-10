@@ -99,14 +99,16 @@ export function resolvePartnerLogo(filename) {
 /**
  * Deeplink al composer de Gmail con los 3 owners pre-rellenados.
  * Útil como alternativa universal — abre Gmail en nueva pestaña.
+ *
+ * OJO: igual que en el de Outlook, aquí NO se usa URLSearchParams: codifica
+ * los espacios como "+" y algunos composers los muestran literales
+ * ("Hi+Veronica"). encodeURIComponent usa %20, que se decodifica como
+ * espacio en cualquier query string.
  */
 export function buildOwnersGmailCompose(subject, body) {
   const to = OWNER_EMAILS.join(",");
-  const params = new URLSearchParams();
-  params.set("view", "cm");
-  params.set("fs", "1");
-  params.set("to", to);
-  if (subject) params.set("su", subject);
-  if (body) params.set("body", body);
-  return `https://mail.google.com/mail/?${params.toString()}`;
+  const parts = ["view=cm", "fs=1", `to=${encodeURIComponent(to)}`];
+  if (subject) parts.push(`su=${encodeURIComponent(subject)}`);
+  if (body) parts.push(`body=${encodeURIComponent(body)}`);
+  return `https://mail.google.com/mail/?${parts.join("&")}`;
 }
