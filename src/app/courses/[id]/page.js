@@ -174,22 +174,16 @@ export default async function CourseDetailPage({ params }) {
           <h2 className={styles.footerHeadline}>{t("ctaTitle")}</h2>
           <p className={styles.footerCopy}>{t("ctaBody")}</p>
           <div className={styles.actions}>
-            <a
-              href={payUrl}
+            <ContactOwnersButton
+              {...pago}
+              label={t("enrollPay")}
               className="btn-primary"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("enrollPay")}
-            </a>
-            <a
-              href={interestUrl}
+            />
+            <ContactOwnersButton
+              {...interes}
+              label={t("interested")}
               className="btn-ghost"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("interested")}
-            </a>
+            />
           </div>
         </Reveal>
       </section>
