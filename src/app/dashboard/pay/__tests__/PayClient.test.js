@@ -237,6 +237,43 @@ describe("panel de empresa (soy: empresa)", () => {
     expect(document.body.textContent).not.toMatch(/nothing was charged|no se cobr/i);
   });
 
+  it("una empresa justo al tope (nada pendiente) puede elegir cuantos cupos extra quiere", async () => {
+    // necesarios = 0 y ya paga 2: el valor inicial es 3 (los ya pagados + 1).
+    autorizarCupos.mockResolvedValue({ cupos_extra: 3, precio_cupos_usd: 12 });
+    await conEstado(viva({
+      miembros: 12, cupos_incluidos: 10, cupos_extra: 2,
+      cupos_extra_necesarios: 0, precio_cupo_extra_usd: 4, puede_autorizar_cupos: true,
+    }));
+    const campo = await screen.findByLabelText(/extra seats you want in total/i);
+    expect(campo.value).toBe("3");
+    // El costo mensual se ve ANTES de cualquier clic de confirmacion.
+    expect(screen.getByText(/3 extra seats at \$4 each: \$12 \/ month/i)).toBeTruthy();
+    expect(autorizarCupos).not.toHaveBeenCalled();
+    fireEvent.change(campo, { target: { value: "5" } });
+    expect(screen.getByText(/5 extra seats at \$4 each: \$20 \/ month/i)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /authorize 5 extra seats/i }));
+    // Se manda el TOTAL (5), nunca la diferencia con lo ya facturado (3).
+    await waitFor(() => expect(autorizarCupos).toHaveBeenCalledWith(5));
+  });
+
+  it("sin cupos extra y al tope, el valor inicial es 1", async () => {
+    await conEstado(viva({
+      miembros: 10, cupos_incluidos: 10, cupos_extra: 0,
+      cupos_extra_necesarios: 0, precio_cupo_extra_usd: 4, puede_autorizar_cupos: true,
+    }));
+    expect((await screen.findByLabelText(/extra seats you want in total/i)).value).toBe("1");
+  });
+
+  it("no deja autorizar menos de lo que el backend dice que hace falta", async () => {
+    await conEstado(conCuposPorAutorizar());
+    const campo = await screen.findByLabelText(/extra seats you want in total/i);
+    fireEvent.change(campo, { target: { value: "2" } });
+    expect(screen.getByRole("button", { name: /authorize/i })).toBeDisabled();
+    fireEvent.change(campo, { target: { value: "" } });
+    expect(screen.getByRole("button", { name: /authorize/i })).toBeDisabled();
+    expect(autorizarCupos).not.toHaveBeenCalled();
+  });
+
   it("no ofrece cupos cuando los miembros caben", async () => {
     await conEstado(viva({ miembros: 7, cupos_incluidos: 10 }));
     await screen.findByRole("button", { name: /manage billing/i });
@@ -311,6 +348,25 @@ describe("carga de mi-estado", () => {
     expect(await screen.findByText(/Essential/)).toBeTruthy();
   });
 
+  it("el fallo de carga NUNCA afirma que no se cobro (un GET fallido no dice nada del cargo)", async () => {
+    getMiEstadoDePago.mockRejectedValueOnce(Object.assign(new Error("x"), { status: 500 }));
+    render(<PayClient />);
+    const alerta = await screen.findByRole("alert");
+    expect(alerta.textContent).not.toMatch(/charged|cobr/i);
+  });
+
+  it("?pago=ok con mi-estado fallando no dice que no se cobro y avisa que el pago esta en Stripe", async () => {
+    // Stripe redirige aqui un instante despues de cobrar; la pagina puede estar fria.
+    getMiEstadoDePago.mockRejectedValueOnce(Object.assign(new Error("x"), { status: 503 }));
+    render(<PayClient pago="ok" />);
+    const alerta = await screen.findByRole("alert");
+    expect(document.body.textContent).not.toMatch(/nothing has been charged|no se ha cobrado/i);
+    expect(document.body.textContent).toMatch(/payment went through to Stripe/i);
+    expect(document.body.textContent).toMatch(/confirmed/i);
+    expect(alerta).toBeTruthy();
+    expect(screen.getByRole("button", { name: /try again/i })).toBeTruthy();
+  });
+
   it("un 401 manda a iniciar sesion, no a reintentar", async () => {
     getMiEstadoDePago.mockRejectedValueOnce(Object.assign(new Error("x"), { status: 401 }));
     render(<PayClient />);
@@ -353,6 +409,13 @@ describe("consola (soy: admin_distinct)", () => {
     await waitFor(() => expect(asignarPlan).toHaveBeenCalledWith(1, { comp_plan_code: "performance" }));
     expect(await screen.findByText(/waiting for payment/i)).toBeTruthy();
     expect(screen.queryByText(/no plan assigned/i)).toBeNull();
+  });
+
+  it("con suscripcion viva avisa que el plan asignado surte efecto en la proxima suscripcion", async () => {
+    await consola([fila({ plan_code: "essential", estado_suscripcion: "active" }), fila({ comp_id: 2, comp_name: "Hotel Luna" })]);
+    await screen.findByRole("table");
+    // Solo la fila con suscripcion viva lleva la nota.
+    expect(screen.getAllByText(/takes effect on its next subscription/i)).toHaveLength(1);
   });
 
   it("el selector ofrece los planes que manda el backend y ninguno mas", async () => {
@@ -402,9 +465,9 @@ describe("soy: nada, individuo y facturacion apagada", () => {
     expect(screen.queryByRole("button", { name: /pay|authorize|manage billing|assign/i })).toBeNull();
   });
 
-  it("individuo: no pinta nada comprable", async () => {
+  it("individuo: dice que no hay nada que comprar todavia y no pinta nada comprable", async () => {
     await conEstado({ soy: "individuo", facturacion_activa: true, plan_code: "essential", puede_pagar: true });
-    await waitFor(() => expect(screen.queryByText(/loading/i)).toBeNull());
+    expect(await screen.findByText(/coming soon/i)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /pay|authorize|manage billing/i })).toBeNull();
   });
 

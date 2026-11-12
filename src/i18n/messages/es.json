@@ -733,7 +733,7 @@
     "loading": "Cargando tus pagos…",
     "waking": "El servicio está despertando. Puede tardar hasta un minuto…",
     "loadFailedTitle": "No pudimos cargar tus pagos",
-    "loadFailedBody": "Puede que el servicio esté despertando o que se haya caído tu conexión. No se ha cobrado nada — inténtalo de nuevo.",
+    "loadFailedBody": "No pudimos leer tus pagos. Puede que el servicio esté despertando o que se haya caído tu conexión — inténtalo de nuevo.",
     "retry": "Intentar de nuevo",
     "signedOutTitle": "Tu sesión terminó",
     "signedOutBody": "Inicia sesión de nuevo para ver tus pagos.",
@@ -792,6 +792,7 @@
       "planFor": "Plan de {company}",
       "assign": "Asignar plan",
       "assigning": "Asignando…",
+      "planNote": "Un plan asignado a una empresa con suscripción vigente surte efecto en su próxima suscripción.",
       "choosePlan": "Elige un plan",
       "missing": {
         "sin_plan": "Sin plan asignado",
@@ -815,6 +816,11 @@
       "creating": "Creando…",
       "createFailed": "No pudimos crear la empresa. Revisa el id de categoría de Moodle e inténtalo de nuevo."
     },
+    "payOkLoadFailed": "Tu pago llegó a Stripe. Tu plan aparecerá cuando se confirme — inténtalo de nuevo en un momento.",
+    "individualSoon": "Las membresías individuales llegarán pronto. Por ahora no hay nada que comprar desde esta cuenta.",
+    "seatsTotalLabel": "Cupos extra que quieres en total",
+    "seatsAtCap": "Tu equipo tiene {members} miembros y tu plan admite {seats} en total. Elige cuántos cupos extra quieres.",
+    "seatsHint": "Los cupos extra se cobran cada mes. No se cobra nada hasta que confirmes abajo.",
     "seatsPrice": "{count} cupos extra a ${unit} cada uno: ${total} / mes",
     "seatsRefreshFailed": "Los cupos extra quedaron autorizados, pero no pudimos actualizar esta pantalla. Recarga la página para ver tu plan actual."
   }

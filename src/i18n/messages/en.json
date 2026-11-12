@@ -733,7 +733,7 @@
     "loading": "Loading your billing…",
     "waking": "The service is waking up. This can take up to a minute…",
     "loadFailedTitle": "We could not load your billing",
-    "loadFailedBody": "The service may be waking up, or your connection dropped. Nothing has been charged — try again.",
+    "loadFailedBody": "We could not read your billing. The service may be waking up, or your connection dropped — try again.",
     "retry": "Try again",
     "signedOutTitle": "Your session ended",
     "signedOutBody": "Sign in again to see your billing.",
@@ -792,6 +792,7 @@
       "planFor": "Plan for {company}",
       "assign": "Assign plan",
       "assigning": "Assigning…",
+      "planNote": "A plan assigned to a company with a live subscription takes effect on its next subscription.",
       "choosePlan": "Choose a plan",
       "missing": {
         "sin_plan": "No plan assigned",
@@ -815,6 +816,11 @@
       "creating": "Creating…",
       "createFailed": "We could not create the company. Check the Moodle category id and try again."
     },
+    "payOkLoadFailed": "Your payment went through to Stripe. Your plan will appear once it is confirmed — try again in a moment.",
+    "individualSoon": "Individual memberships are coming soon. There is nothing to purchase from this account yet.",
+    "seatsTotalLabel": "Extra seats you want in total",
+    "seatsAtCap": "Your team has {members} members and your plan allows {seats} in total. Choose how many extra seats you want.",
+    "seatsHint": "Extra seats are billed monthly. You will only be charged after you confirm below.",
     "seatsPrice": "{count} extra seats at ${unit} each: ${total} / month",
     "seatsRefreshFailed": "The extra seats were authorized, but we could not refresh this screen. Reload the page to see your current plan."
   }

@@ -8,8 +8,8 @@
  * serían dos sitios donde equivocarse.
  *   - admin_distinct → la consola de empresas (AdminBillingTable).
  *   - empresa        → el plan de su compañía y sus acciones (PlanCard).
- *   - individuo      → SIN IMPLEMENTAR: pertenece a otro plan (membresías). No
- *                      se pinta nada comprable hasta que exista.
+ *   - individuo      → SIN IMPLEMENTAR: pertenece a otro plan (membresías). Dice
+ *                      "pronto" y no pinta nada comprable hasta que exista.
  *   - nada           → el cuerpo viene mínimo a propósito (solo `soy` y si la
  *                      facturación está activa); no se asume ningún otro campo.
  *
@@ -110,6 +110,10 @@ export default function PayClient({ pago }) {
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>{t("loadFailedTitle")}</h2>
         <p className={styles.error} role="alert">{t("loadFailedBody")}</p>
+        {/* Volver de Stripe con ?pago=ok significa que el cargo YA pudo ocurrir:
+            un GET fallido no dice nada del cobro, así que aquí no se afirma ni
+            se niega; se dice dónde está el pago. */}
+        {pago === "ok" && <p className={styles.notice} role="status">{t("payOkLoadFailed")}</p>}
         <button type="button" className="btn-ghost" onClick={() => cargar()}>
           {t("retry")}
         </button>
@@ -143,8 +147,13 @@ function Panel({ estado, pago, onRefresh, t }) {
       return <PlanCard estado={estado} pagoRecibido={pago === "ok"} onRefresh={onRefresh} />;
     case "individuo":
       // SIN IMPLEMENTAR a propósito: la membresía individual es de otro plan.
-      // No se inventa una interfaz de compra aquí.
-      return null;
+      // No se inventa una interfaz de compra aquí, pero tampoco se deja la
+      // página vacía: quien llega por el menú ve que todavía no hay nada.
+      return (
+        <section className={styles.card}>
+          <p className={styles.muted}>{t("individualSoon")}</p>
+        </section>
+      );
     default:
       // "nada" y cualquier valor que esta versión no conozca: nada que comprar.
       return (

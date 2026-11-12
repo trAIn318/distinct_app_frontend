@@ -52,6 +52,68 @@ function traducido(t, grupo, valor) {
   return texto === `pay.${clave}` ? valor : texto;
 }
 
+/**
+ * Elegir cuántos cupos extra se quieren EN TOTAL y ver su costo mensual antes
+ * del clic que lo autoriza. Es un componente aparte para que su estado nazca
+ * solo cuando el backend ofrece autorizar (PlanCard tiene retornos tempranos).
+ *
+ * Valor inicial: lo que hace falta si eso supera lo ya facturado; si no, uno más
+ * que lo ya facturado (la compañía al tope que quiere crecer). El mínimo es lo
+ * que dice el backend: menos que eso bloquearía las invitaciones igual.
+ */
+function AutorizarCupos({ estado, enCurso, onAutorizar, t }) {
+  const necesarios = estado.cupos_extra_necesarios || 0;
+  const facturados = estado.cupos_extra || 0;
+  const [texto, setTexto] = useState(String(necesarios > facturados ? necesarios : facturados + 1));
+
+  const total = /^\d+$/.test(texto) ? Number(texto) : null;
+  const valido = total !== null && total >= necesarios;
+  const unitario = estado.precio_cupo_extra_usd;
+
+  return (
+    <div className={styles.block}>
+      {necesarios > 0 ? (
+        <p className={styles.muted}>
+          {t("seatsOver", { members: estado.miembros, extra: necesarios })}
+        </p>
+      ) : (
+        <p className={styles.muted}>
+          {t("seatsAtCap", {
+            members: estado.miembros,
+            seats: (estado.cupos_incluidos ?? 0) + facturados,
+          })}
+        </p>
+      )}
+      <label className={styles.data} htmlFor="cupos-total">{t("seatsTotalLabel")}</label>
+      <input
+        id="cupos-total"
+        className={styles.input}
+        type="number"
+        inputMode="numeric"
+        min={necesarios}
+        step={1}
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        disabled={enCurso !== null}
+      />
+      {valido && typeof unitario === "number" && (
+        <p className={styles.data}>
+          {t("seatsPrice", { count: total, unit: unitario, total: total * unitario })}
+        </p>
+      )}
+      <p className={styles.muted}>{t("seatsHint")}</p>
+      <button
+        type="button"
+        className="btn-ghost"
+        onClick={() => onAutorizar(total)}
+        disabled={enCurso !== null || !valido}
+      >
+        {enCurso === "seats" ? t("authorizingSeats") : t("authorizeSeats", { count: valido ? total : "" })}
+      </button>
+    </div>
+  );
+}
+
 export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
   const t = useT("pay");
   const locale = useLocale();
@@ -131,7 +193,6 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
   // puede_autorizar_cupos) y las cantidades de cupos también.
   const nombrePlan = traducido(t, "plans", estado.plan_code);
   const hayCupos = typeof estado.cupos_incluidos === "number";
-  const extraNecesarios = estado.cupos_extra_necesarios;
   const etiquetaEstado = traducido(t, "statuses", estado.estado_suscripcion);
   const fin = estado.current_period_end
     ? new Date(estado.current_period_end).toLocaleDateString(locale, { dateStyle: "long" })
@@ -189,26 +250,7 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
       )}
 
       {estado.puede_autorizar_cupos && (
-        <div className={styles.block}>
-          <p className={styles.muted}>
-            {t("seatsOver", { members: estado.miembros, extra: extraNecesarios })}
-          </p>
-          <p className={styles.data}>
-            {t("seatsPrice", {
-              count: extraNecesarios,
-              unit: estado.precio_cupo_extra_usd,
-              total: extraNecesarios * estado.precio_cupo_extra_usd,
-            })}
-          </p>
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={() => autorizar(extraNecesarios)}
-            disabled={enCurso !== null}
-          >
-            {enCurso === "seats" ? t("authorizingSeats") : t("authorizeSeats", { count: extraNecesarios })}
-          </button>
-        </div>
+        <AutorizarCupos estado={estado} enCurso={enCurso} onAutorizar={autorizar} t={t} />
       )}
 
       {cupos && (
