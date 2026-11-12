@@ -776,7 +776,7 @@
     "errConflict": "Esta empresa ya tiene un pago en curso o una suscripción activa. Revisa de nuevo en un momento.",
     "errSession": "Tu sesión terminó. Inicia sesión de nuevo.",
     "errForbidden": "Tu cuenta no puede hacer esto.",
-    "errGeneric": "Algo salió mal. No se cobró nada — inténtalo de nuevo.",
+    "errGeneric": "No pudimos completar la acción. Inténtalo de nuevo.",
     "admin": {
       "title": "Empresas",
       "loading": "Cargando empresas…",
@@ -815,6 +815,7 @@
       "creating": "Creando…",
       "createFailed": "No pudimos crear la empresa. Revisa el id de categoría de Moodle e inténtalo de nuevo."
     },
-    "seatsPrice": "{count} cupos extra a ${unit} cada uno: ${total} / mes"
+    "seatsPrice": "{count} cupos extra a ${unit} cada uno: ${total} / mes",
+    "seatsRefreshFailed": "Los cupos extra quedaron autorizados, pero no pudimos actualizar esta pantalla. Recarga la página para ver tu plan actual."
   }
 }

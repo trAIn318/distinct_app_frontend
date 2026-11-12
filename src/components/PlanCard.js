@@ -9,8 +9,14 @@
  *   suscripción viva (portal y, si hacen falta, cupos extra).
  *
  * DOS precios que NO son el mismo número: `precio_mensual_usd` de mi-estado es
- * el del PLAN; el de los cupos extra solo llega en la respuesta de
- * `POST /api/pay/cupos/` (`precio_cupos_usd`) y se imprime únicamente desde ahí.
+ * el del PLAN; el unitario de los cupos extra es `precio_cupo_extra_usd`, que
+ * también llega en mi-estado para decir el monto ANTES de pedir la autorización.
+ * Después de autorizar se confirma con `precio_cupos_usd`, de la respuesta de
+ * `POST /api/pay/cupos/`.
+ *
+ * NINGÚN mensaje de error afirma nada sobre el cobro: un fallo de red no dice si
+ * hubo o no cargo. Si la autorización de cupos se hizo y solo falló releer el
+ * estado, se dice eso aparte y se conserva el aviso de éxito.
  *
  * Contra el doble cobro, aquí hay dos defensas: el botón se desactiva mientras
  * la petición está en curso y un ref descarta un segundo envío del mismo tick
@@ -54,6 +60,7 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
   const [enCurso, setEnCurso] = useState(null);   // null | "pay" | "portal" | "seats" | "refresh"
   const [fallo, setFallo] = useState(null);       // {accion, err}
   const [cupos, setCupos] = useState(null);       // {cupos_extra, precio_cupos_usd}
+  const [refrescoFallo, setRefrescoFallo] = useState(false);  // autorizó, pero no pudo releer
 
   /**
    * Corre una acción de una en una. `fn` devuelve true si navega fuera de la
@@ -65,6 +72,7 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
     ocupadoRef.current = true;
     setEnCurso(accion);
     setFallo(null);
+    setRefrescoFallo(false);
     try {
       const navega = await fn();
       if (navega) return;
@@ -77,6 +85,9 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
 
   async function irA(peticion) {
     const { url } = await peticion();
+    // Sin url no hay a dónde ir: navegar a `undefined` dejaría al cliente en una
+    // página rota con el botón desactivado para siempre.
+    if (typeof url !== "string" || !url) throw new Error("La respuesta no trae url.");
     window.location.href = url;
     return true;
   }
@@ -89,7 +100,13 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
     // diferencia con lo ya facturado: un reintento de red que repitiera "suma 3"
     // sumaría 6.
     setCupos(await autorizarCupos(total));
-    await onRefresh();
+    // Aquí la autorización YA se hizo (y se factura). Si releer el estado falla,
+    // no es un fallo de la acción: se avisa aparte y se conserva el éxito.
+    try {
+      await onRefresh();
+    } catch {
+      setRefrescoFallo(true);
+    }
   });
 
   if (!estado.facturacion_activa) {
@@ -199,6 +216,10 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
           {t("seatsAuthorized", { count: cupos.cupos_extra })}{" "}
           {t("seatsCost", { price: cupos.precio_cupos_usd })}
         </p>
+      )}
+
+      {refrescoFallo && (
+        <p className={styles.error} role="alert">{t("seatsRefreshFailed")}</p>
       )}
 
       {fallo && (

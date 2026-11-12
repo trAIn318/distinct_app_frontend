@@ -119,7 +119,7 @@ export default function PayClient({ pago }) {
 
   return (
     <>
-      {estado.soy === "empresa" && <AvisoDePago pago={pago} t={t} />}
+      {estado.soy === "empresa" && <AvisoDePago pago={pago} yaAparecio={!estado.puede_pagar} t={t} />}
       <Panel estado={estado} pago={pago} onRefresh={() => cargar({ silencioso: true })} t={t} />
     </>
   );
@@ -127,8 +127,10 @@ export default function PayClient({ pago }) {
 
 /** `?pago=ok` NO significa que el plan ya esté activo: el webhook puede no
  *  haber llegado. Por eso el texto dice "recibido", nunca "activo". */
-function AvisoDePago({ pago, t }) {
-  if (pago === "ok") return <p className={styles.notice} role="status">{t("payOk")}</p>;
+function AvisoDePago({ pago, yaAparecio, t }) {
+  // Cuando el backend ya no ofrece pagar, el plan apareció: "aparecerá en un
+  // momento" sería falso sobre algo que ya está ahí.
+  if (pago === "ok" && !yaAparecio) return <p className={styles.notice} role="status">{t("payOk")}</p>;
   if (pago === "cancelado") return <p className={styles.notice} role="status">{t("payCancelled")}</p>;
   return null;
 }

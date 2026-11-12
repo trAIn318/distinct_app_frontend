@@ -776,7 +776,7 @@
     "errConflict": "This company already has a payment in progress or an active subscription. Check again in a moment.",
     "errSession": "Your session ended. Sign in again.",
     "errForbidden": "Your account cannot do this.",
-    "errGeneric": "Something went wrong. Nothing was charged — try again.",
+    "errGeneric": "We could not complete that. Try again.",
     "admin": {
       "title": "Companies",
       "loading": "Loading companies…",
@@ -815,6 +815,7 @@
       "creating": "Creating…",
       "createFailed": "We could not create the company. Check the Moodle category id and try again."
     },
-    "seatsPrice": "{count} extra seats at ${unit} each: ${total} / month"
+    "seatsPrice": "{count} extra seats at ${unit} each: ${total} / month",
+    "seatsRefreshFailed": "The extra seats were authorized, but we could not refresh this screen. Reload the page to see your current plan."
   }
 }

@@ -231,7 +231,12 @@ function Campo({ id, label, value, onChange, error, required = false, inputMode,
     <div className={styles.field}>
       <label htmlFor={id} className={styles.fieldLabel}>
         {label}
-        {required && <span className={styles.requerido} aria-label={t("admin.required")}> *</span>}
+        {required && (
+          <>
+            <span className={styles.requerido} aria-hidden="true"> *</span>
+            <span className="sr-only"> ({t("admin.required")})</span>
+          </>
+        )}
       </label>
       <input
         id={id}

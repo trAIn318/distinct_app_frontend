@@ -13,6 +13,10 @@
   }
 }
 
+/* `calc(100vh - 80px)` y `translateY(24px)` (abajo) siguen el precedente del
+   repo: accept-invitation, account y dashboard/analytics usan estos mismos
+   valores, y claude.md §2.5 fija los 24px de la entrada. No hay token para
+   ninguno. */
 .page {
   background: var(--color-obsidian);
   color: var(--color-text-inverse);

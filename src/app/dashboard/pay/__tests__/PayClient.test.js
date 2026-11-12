@@ -178,7 +178,9 @@ describe("panel de empresa (soy: empresa)", () => {
     iniciarCheckout.mockRejectedValueOnce(Object.assign(new Error("boom"), { status: 503 }));
     await conEstado(empresa());
     fireEvent.click(await screen.findByRole("button", { name: /^pay/i }));
-    expect(await screen.findByRole("alert")).toBeTruthy();
+    const alerta = await screen.findByRole("alert");
+    // Un fallo de red no dice nada sobre si hubo cobro: la pantalla no lo afirma.
+    expect(alerta.textContent).not.toMatch(/charged|cobr/i);
     const reintentar = screen.getByRole("button", { name: /try again/i });
     expect(reintentar).not.toBeDisabled();
     iniciarCheckout.mockResolvedValue({ url: "https://checkout.stripe.com/otra" });
@@ -225,10 +227,42 @@ describe("panel de empresa (soy: empresa)", () => {
     expect(await screen.findByText(/3 extra seats authorized\. Extra seats cost \$12/i)).toBeTruthy();
   });
 
+  it("si la autorizacion se hizo pero el refresco falla, lo dice y NO afirma que no se cobro", async () => {
+    autorizarCupos.mockResolvedValue({ cupos_extra: 3, precio_cupos_usd: 12 });
+    await conEstado(conCuposPorAutorizar());
+    getMiEstadoDePago.mockRejectedValue(Object.assign(new Error("x"), { status: 500 }));
+    fireEvent.click(await screen.findByRole("button", { name: /authorize 3 extra seats/i }));
+    expect(await screen.findByText(/3 extra seats authorized\. Extra seats cost \$12/i)).toBeTruthy();
+    expect(await screen.findByText(/could not refresh this screen/i)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/nothing was charged|no se cobr/i);
+  });
+
   it("no ofrece cupos cuando los miembros caben", async () => {
     await conEstado(viva({ miembros: 7, cupos_incluidos: 10 }));
     await screen.findByRole("button", { name: /manage billing/i });
     expect(screen.queryByRole("button", { name: /authorize/i })).toBeNull();
+  });
+
+  it("sin puede_pagar no hay boton de pagar aunque tenga plan y ninguna suscripcion", async () => {
+    // Si la pantalla derivara el boton de estado_suscripcion === null, aparecería.
+    await conEstado(empresa({ puede_pagar: false, estado_suscripcion: null }));
+    expect(await screen.findByText(/Essential/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^pay/i })).toBeNull();
+  });
+
+  it("sin tiene_portal no hay boton del portal aunque haya estado de suscripcion", async () => {
+    await conEstado(viva({ tiene_portal: false }));
+    expect(await screen.findByText(/status: active/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /manage billing/i })).toBeNull();
+  });
+
+  it("si el backend no devuelve url no navega a undefined y deja reintentar", async () => {
+    iniciarCheckout.mockResolvedValue({});
+    await conEstado(empresa());
+    fireEvent.click(await screen.findByRole("button", { name: /^pay/i }));
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(locationFalso.href).toBe("http://localhost/dashboard/pay");
+    expect(screen.getByRole("button", { name: /try again/i })).not.toBeDisabled();
   });
 
   it("abre el portal con la url que devolvio el backend", async () => {
@@ -246,6 +280,12 @@ describe("regreso de Stripe (?pago=)", () => {
     expect(screen.getByText(/will appear in a moment/i)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^pay/i })).toBeNull();
     expect(screen.getByRole("button", { name: /check again/i })).toBeTruthy();
+  });
+
+  it("pago=ok desaparece cuando el plan ya aparecio", async () => {
+    await conEstado(viva(), { pago: "ok" });
+    await screen.findByRole("button", { name: /manage billing/i });
+    expect(screen.queryByText(/payment received/i)).toBeNull();
   });
 
   it("pago=cancelado lo dice y deja volver a pagar", async () => {
