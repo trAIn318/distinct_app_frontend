@@ -16,12 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { asignarPlan, crearEmpresa, getEmpresasDePago } from "../lib/api";
 import { useT } from "../i18n/client";
-import styles from "../app/dashboard/pay/PayClient.module.css";
-
-// Los planes que el backend acepta en `comp_plan_code` (stripe_catalogo:
-// vendibles + solo contacto). No hay un endpoint que los liste; si el catálogo
-// del backend cambia, esta lista cambia con él.
-const PLANES = ["essential", "performance", "enterprise"];
+import styles from "./AdminBillingTable.module.css";
 
 const FALTA_CONOCIDO = ["sin_plan", "solo_contacto", "impago", "sin_pagar", "cupos_sin_facturar", "al_dia"];
 
@@ -30,12 +25,16 @@ export default function AdminBillingTable() {
 
   const [fase, setFase] = useState("cargando");   // cargando | listo | fallo
   const [filas, setFilas] = useState([]);
+  // Los planes asignables salen del catálogo del backend: una lista copiada aquí
+  // se desincroniza el día que cambie y ofrecería un plan que no se puede cobrar.
+  const [planes, setPlanes] = useState([]);
 
   const cargar = useCallback(async () => {
     setFase("cargando");
     try {
       const datos = await getEmpresasDePago();
       setFilas(Array.isArray(datos && datos.empresas) ? datos.empresas : []);
+      setPlanes(Array.isArray(datos && datos.planes_asignables) ? datos.planes_asignables : []);
       setFase("listo");
     } catch {
       setFase("fallo");
@@ -89,7 +88,7 @@ export default function AdminBillingTable() {
                 <tr><td colSpan={6}>{t("admin.empty")}</td></tr>
               )}
               {filas.map((fila) => (
-                <FilaEmpresa key={fila.comp_id} fila={fila} onChange={reemplazar} t={t} />
+                <FilaEmpresa key={fila.comp_id} fila={fila} planes={planes} onChange={reemplazar} t={t} />
               ))}
             </tbody>
           </table>
@@ -100,7 +99,13 @@ export default function AdminBillingTable() {
   );
 }
 
-function FilaEmpresa({ fila, onChange, t }) {
+/** Nombre legible de un plan; si no hay traducción, el código del backend. */
+function nombreDePlan(t, codigo) {
+  const texto = t(`plans.${codigo}`);
+  return texto === `pay.plans.${codigo}` ? codigo : texto;
+}
+
+function FilaEmpresa({ fila, planes, onChange, t }) {
   const ocupadoRef = useRef(false);
   const [elegido, setElegido] = useState(fila.plan_code || "");
   const [enCurso, setEnCurso] = useState(false);
@@ -121,7 +126,7 @@ function FilaEmpresa({ fila, onChange, t }) {
   }
 
   const falta = FALTA_CONOCIDO.includes(fila.que_falta) ? t(`admin.missing.${fila.que_falta}`) : fila.que_falta;
-  const plan = fila.plan_code ? (PLANES.includes(fila.plan_code) ? t(`plans.${fila.plan_code}`) : fila.plan_code) : "—";
+  const plan = fila.plan_code ? nombreDePlan(t, fila.plan_code) : "—";
 
   return (
     <tr>
@@ -150,7 +155,7 @@ function FilaEmpresa({ fila, onChange, t }) {
           disabled={enCurso}
         >
           <option value="">{t("admin.choosePlan")}</option>
-          {PLANES.map((p) => <option key={p} value={p}>{t(`plans.${p}`)}</option>)}
+          {planes.map((p) => <option key={p} value={p}>{nombreDePlan(t, p)}</option>)}
         </select>
         <button type="button" className="btn-ghost" onClick={asignar} disabled={enCurso || !elegido}>
           {enCurso ? t("admin.assigning") : t("admin.assign")}

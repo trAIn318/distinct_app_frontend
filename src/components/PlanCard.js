@@ -23,13 +23,7 @@ import { useRef, useState } from "react";
 import { abrirPortal, autorizarCupos, iniciarCheckout } from "../lib/api";
 import { useLocale, useT } from "../i18n/client";
 import ContactOwnersButton from "./ContactOwnersButton";
-import styles from "../app/dashboard/pay/PayClient.module.css";
-
-// Estados de Stripe en los que la suscripción cuenta como vigente. Mismo
-// criterio que `ESTADOS_VIVOS` del backend: `past_due` sigue vivo porque Stripe
-// reintenta el cobro. El backend lo reafirma (409), esto solo decide qué botones
-// se ofrecen.
-const ESTADOS_VIVOS = ["active", "trialing", "past_due"];
+import styles from "./PlanCard.module.css";
 
 // Los dueños de la plataforma operan en inglés (mismo criterio que ValuePropBar).
 const ASUNTO_ENTERPRISE = "Enterprise plan inquiry";
@@ -42,6 +36,14 @@ function claveDeError(err) {
   if (status === 401) return "errSession";
   if (status === 403) return "errForbidden";
   return "errGeneric";
+}
+
+/** El texto de una clave de un grupo i18n (plans, statuses) o, si no hay
+ *  traducción, el valor tal cual lo mandó el backend. */
+function traducido(t, grupo, valor) {
+  const clave = `${grupo}.${valor}`;
+  const texto = t(clave);
+  return texto === `pay.${clave}` ? valor : texto;
 }
 
 export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
@@ -107,16 +109,13 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
     );
   }
 
-  const viva = ESTADOS_VIVOS.includes(estado.estado_suscripcion);
-  const nombrePlan = t(`plans.${estado.plan_code}`) === `pay.plans.${estado.plan_code}`
-    ? estado.plan_code
-    : t(`plans.${estado.plan_code}`);
+  // Nada aquí interpreta estados de Stripe ni recalcula reglas: lo que se ofrece
+  // lo dicen los booleanos del backend (puede_pagar, tiene_portal, solo_contacto,
+  // puede_autorizar_cupos) y las cantidades de cupos también.
+  const nombrePlan = traducido(t, "plans", estado.plan_code);
   const hayCupos = typeof estado.cupos_incluidos === "number";
-  const extraNecesarios = hayCupos ? Math.max(0, estado.miembros - estado.cupos_incluidos) : 0;
-  const faltanCupos = viva && hayCupos && extraNecesarios > estado.cupos_extra;
-  const etiquetaEstado = viva
-    ? (t(`statuses.${estado.estado_suscripcion}`))
-    : estado.estado_suscripcion;
+  const extraNecesarios = estado.cupos_extra_necesarios;
+  const etiquetaEstado = traducido(t, "statuses", estado.estado_suscripcion);
   const fin = estado.current_period_end
     ? new Date(estado.current_period_end).toLocaleDateString(locale, { dateStyle: "long" })
     : null;
@@ -163,8 +162,8 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
       {estado.estado_suscripcion && (
         <div className={styles.block}>
           <p className={styles.data}>{t("statusLabel", { status: etiquetaEstado })}</p>
-          {viva && fin && <p className={styles.data}>{t("renewsOn", { date: fin })}</p>}
-          {viva && estado.tiene_portal && (
+          {fin && <p className={styles.data}>{t("renewsOn", { date: fin })}</p>}
+          {estado.tiene_portal && (
             <button type="button" className="btn-ghost" onClick={portal} disabled={enCurso !== null}>
               {enCurso === "portal" ? t("openingPortal") : t("manageBilling")}
             </button>
@@ -172,10 +171,17 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
         </div>
       )}
 
-      {faltanCupos && (
+      {estado.puede_autorizar_cupos && (
         <div className={styles.block}>
           <p className={styles.muted}>
             {t("seatsOver", { members: estado.miembros, extra: extraNecesarios })}
+          </p>
+          <p className={styles.data}>
+            {t("seatsPrice", {
+              count: extraNecesarios,
+              unit: estado.precio_cupo_extra_usd,
+              total: extraNecesarios * estado.precio_cupo_extra_usd,
+            })}
           </p>
           <button
             type="button"

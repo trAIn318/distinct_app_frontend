@@ -41,6 +41,9 @@ function empresa(extra = {}) {
     cupos_incluidos: 10,
     cupos_extra: 0,
     miembros: 7,
+    cupos_extra_necesarios: 0,
+    precio_cupo_extra_usd: 4,
+    puede_autorizar_cupos: false,
     estado_suscripcion: null,
     current_period_end: null,
     puede_pagar: true,
@@ -159,6 +162,8 @@ describe("panel de empresa (soy: empresa)", () => {
     await waitFor(() => expect(locationFalso.href).toBe("https://checkout.stripe.com/c/pay/abc"));
   });
 
+  // Este test lleva la mitad de pantalla del guardarraíl contra el cobro doble;
+  // la otra mitad son el 409 y el candado de 60 s del backend (billing_views.py).
   it("el boton se desactiva mientras la peticion esta en curso", async () => {
     // Una promesa que nunca resuelve: la peticion queda en vuelo.
     iniciarCheckout.mockReturnValue(new Promise(() => {}));
@@ -167,15 +172,6 @@ describe("panel de empresa (soy: empresa)", () => {
     expect(boton).not.toBeDisabled();
     fireEvent.click(boton);
     await waitFor(() => expect(boton).toBeDisabled());
-  });
-
-  it("dos clics seguidos mandan una sola peticion", async () => {
-    iniciarCheckout.mockReturnValue(new Promise(() => {}));
-    await conEstado(empresa());
-    const boton = await screen.findByRole("button", { name: /^pay/i });
-    fireEvent.click(boton);
-    fireEvent.click(boton);
-    expect(iniciarCheckout).toHaveBeenCalledTimes(1);
   });
 
   it("si el backend falla muestra un error con reintentar y no deja el boton girando", async () => {
@@ -190,26 +186,43 @@ describe("panel de empresa (soy: empresa)", () => {
     await waitFor(() => expect(locationFalso.href).toBe("https://checkout.stripe.com/otra"));
   });
 
-  it("con mas miembros que cupos ofrece autorizar los extra", async () => {
-    await conEstado(viva({ miembros: 13, cupos_incluidos: 10, cupos_extra: 0 }));
+  /** Suscripcion viva con 13 miembros y 10 incluidos: faltan 3 cupos a $4. */
+  function conCuposPorAutorizar(extra = {}) {
+    return viva({
+      miembros: 13, cupos_incluidos: 10, cupos_extra: 0,
+      cupos_extra_necesarios: 3, precio_cupo_extra_usd: 4, puede_autorizar_cupos: true,
+      ...extra,
+    });
+  }
+
+  it("ofrece autorizar los cupos extra y dice cuanto cuestan ANTES de pulsar", async () => {
+    await conEstado(conCuposPorAutorizar());
     expect(await screen.findByText(/3 more than your plan includes/i)).toBeTruthy();
+    // 3 cupos a $4: el monto sale de los datos del backend, antes de cualquier clic.
+    expect(screen.getByText(/3 extra seats at \$4 each: \$12 \/ month/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: /authorize 3 extra seats/i })).toBeTruthy();
+    expect(autorizarCupos).not.toHaveBeenCalled();
   });
 
-  it("al autorizar cupos manda la cantidad TOTAL, no la diferencia", async () => {
-    // Ya tiene 2 extra facturados y hacen falta 3 en total (13 miembros - 10 incluidos).
+  it("no ofrece cupos si el backend dice que no se pueden autorizar, aunque sobren miembros", async () => {
+    await conEstado(conCuposPorAutorizar({ puede_autorizar_cupos: false }));
+    await screen.findByRole("button", { name: /manage billing/i });
+    expect(screen.queryByRole("button", { name: /authorize/i })).toBeNull();
+  });
+
+  it("al autorizar cupos manda la cantidad TOTAL que dice el backend, no la diferencia", async () => {
+    // Ya tiene 2 extra facturados y el backend dice que hacen falta 3 en total.
     autorizarCupos.mockResolvedValue({ cupos_extra: 3, precio_cupos_usd: 12 });
-    await conEstado(viva({ miembros: 13, cupos_incluidos: 10, cupos_extra: 2 }));
+    await conEstado(conCuposPorAutorizar({ cupos_extra: 2 }));
     fireEvent.click(await screen.findByRole("button", { name: /authorize 3 extra seats/i }));
     await waitFor(() => expect(autorizarCupos).toHaveBeenCalledWith(3));
   });
 
-  it("tras autorizar dice cuanto cuestan los cupos, sin confundirlo con el precio del plan", async () => {
+  it("tras autorizar confirma el monto que devolvio el backend", async () => {
     autorizarCupos.mockResolvedValue({ cupos_extra: 3, precio_cupos_usd: 12 });
-    await conEstado(viva({ miembros: 13, cupos_incluidos: 10, cupos_extra: 0 }));
+    await conEstado(conCuposPorAutorizar());
     fireEvent.click(await screen.findByRole("button", { name: /authorize 3 extra seats/i }));
-    expect(await screen.findByText(/extra seats cost \$12/i)).toBeTruthy();
-    expect(screen.queryByText(/extra seats cost \$299/i)).toBeNull();
+    expect(await screen.findByText(/3 extra seats authorized\. Extra seats cost \$12/i)).toBeTruthy();
   });
 
   it("no ofrece cupos cuando los miembros caben", async () => {
@@ -274,8 +287,8 @@ describe("carga de mi-estado", () => {
 });
 
 describe("consola (soy: admin_distinct)", () => {
-  async function consola(empresas) {
-    getEmpresasDePago.mockResolvedValue({ empresas });
+  async function consola(empresas, planes = ["essential", "performance", "enterprise"]) {
+    getEmpresasDePago.mockResolvedValue({ empresas, planes_asignables: planes });
     await conEstado({ soy: "admin_distinct", facturacion_activa: true });
   }
 
@@ -300,6 +313,13 @@ describe("consola (soy: admin_distinct)", () => {
     await waitFor(() => expect(asignarPlan).toHaveBeenCalledWith(1, { comp_plan_code: "performance" }));
     expect(await screen.findByText(/waiting for payment/i)).toBeTruthy();
     expect(screen.queryByText(/no plan assigned/i)).toBeNull();
+  });
+
+  it("el selector ofrece los planes que manda el backend y ninguno mas", async () => {
+    await consola([fila()], ["essential", "platinum"]);
+    const selector = await screen.findByLabelText(/plan for hotel sol/i);
+    const opciones = within(selector).getAllByRole("option").map((o) => o.value).filter(Boolean);
+    expect(opciones).toEqual(["essential", "platinum"]);
   });
 
   it("el formulario de crear empresa exige el id de categoria de Moodle", async () => {

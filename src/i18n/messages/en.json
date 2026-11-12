@@ -814,6 +814,7 @@
       "create": "Create company",
       "creating": "Creating…",
       "createFailed": "We could not create the company. Check the Moodle category id and try again."
-    }
+    },
+    "seatsPrice": "{count} extra seats at ${unit} each: ${total} / month"
   }
 }
