@@ -67,7 +67,13 @@ function AutorizarCupos({ estado, enCurso, onAutorizar, t }) {
   const [texto, setTexto] = useState(String(necesarios > facturados ? necesarios : facturados + 1));
 
   const total = /^\d+$/.test(texto) ? Number(texto) : null;
-  const valido = total !== null && total >= necesarios;
+  // El maximo lo calcula el backend (misma cuenta que rechaza); sin el, no hay tope local.
+  const maximo = typeof estado.cupos_extra_maximo === "number" ? estado.cupos_extra_maximo : null;
+  const valido = total !== null && total >= necesarios && (maximo === null || total <= maximo);
+  // Subir pide autorizar un cobro mayor; bajar o dejar igual no lo aumenta.
+  const claveBoton = total === null || total > facturados
+    ? "authorizeSeats"
+    : total < facturados ? "lowerSeats" : "keepSeats";
   const unitario = estado.precio_cupo_extra_usd;
 
   return (
@@ -91,6 +97,7 @@ function AutorizarCupos({ estado, enCurso, onAutorizar, t }) {
         type="number"
         inputMode="numeric"
         min={necesarios}
+        max={maximo ?? undefined}
         step={1}
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
@@ -108,7 +115,7 @@ function AutorizarCupos({ estado, enCurso, onAutorizar, t }) {
         onClick={() => onAutorizar(total)}
         disabled={enCurso !== null || !valido}
       >
-        {enCurso === "seats" ? t("authorizingSeats") : t("authorizeSeats", { count: valido ? total : "" })}
+        {enCurso === "seats" ? t("authorizingSeats") : t(claveBoton, { count: valido ? total : "" })}
       </button>
     </div>
   );

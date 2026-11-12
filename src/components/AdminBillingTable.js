@@ -163,7 +163,7 @@ function FilaEmpresa({ fila, planes, onChange, t }) {
         {/* Con suscripción viva el Plan mostrado sigue al espejo: asignar otro
             plan no lo cambia hasta la próxima suscripción. Sin esta nota el
             operador ve el selector cambiado y la columna igual, y re-pulsa. */}
-        {fila.estado_suscripcion && <p className={styles.personEmail}>{t("admin.planNote")}</p>}
+        {fila.suscripcion_viva && <p className={styles.personEmail}>{t("admin.planNote")}</p>}
         {error && <p className={styles.fieldError} role="alert">{t("errGeneric")}</p>}
       </td>
     </tr>

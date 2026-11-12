@@ -770,6 +770,8 @@
     "openingPortal": "Abriendo facturación…",
     "seatsOver": "Tu equipo tiene {members} miembros, {extra} más de los que incluye tu plan.",
     "authorizeSeats": "Autorizar {count} cupos extra",
+    "lowerSeats": "Reducir a {count} cupos extra",
+    "keepSeats": "Mantener {count} cupos extra",
     "authorizingSeats": "Autorizando…",
     "seatsAuthorized": "{count} cupos extra autorizados.",
     "seatsCost": "Los cupos extra cuestan ${price} / mes.",

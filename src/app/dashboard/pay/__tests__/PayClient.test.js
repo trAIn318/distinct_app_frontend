@@ -42,6 +42,7 @@ function empresa(extra = {}) {
     cupos_extra: 0,
     miembros: 7,
     cupos_extra_necesarios: 0,
+    cupos_extra_maximo: 100,
     precio_cupo_extra_usd: 4,
     puede_autorizar_cupos: false,
     estado_suscripcion: null,
@@ -74,6 +75,7 @@ function fila(extra = {}) {
     plan_code: null,
     precio_mensual_usd: null,
     estado_suscripcion: null,
+    suscripcion_viva: false,
     current_period_end: null,
     miembros: 4,
     cupos_incluidos: null,
@@ -264,6 +266,40 @@ describe("panel de empresa (soy: empresa)", () => {
     expect((await screen.findByLabelText(/extra seats you want in total/i)).value).toBe("1");
   });
 
+  it("el campo respeta el maximo que informa el backend y no deja confirmar por encima", async () => {
+    await conEstado(conCuposPorAutorizar({ cupos_extra_maximo: 103 }));
+    const campo = await screen.findByLabelText(/extra seats you want in total/i);
+    expect(campo.getAttribute("max")).toBe("103");
+    fireEvent.change(campo, { target: { value: "103" } });
+    expect(screen.getByRole("button", { name: /authorize 103 extra seats/i })).not.toBeDisabled();
+    fireEvent.change(campo, { target: { value: "104" } });
+    expect(screen.getByRole("button", { name: /authorize|lower|keep/i })).toBeDisabled();
+    expect(autorizarCupos).not.toHaveBeenCalled();
+  });
+
+  it("si el numero baja lo facturado, el boton dice que reduce y no que autoriza", async () => {
+    autorizarCupos.mockResolvedValue({ cupos_extra: 2, precio_cupos_usd: 8 });
+    await conEstado(viva({
+      miembros: 12, cupos_incluidos: 10, cupos_extra: 5,
+      cupos_extra_necesarios: 2, precio_cupo_extra_usd: 4, puede_autorizar_cupos: true,
+    }));
+    const campo = await screen.findByLabelText(/extra seats you want in total/i);
+    fireEvent.change(campo, { target: { value: "3" } });
+    expect(screen.queryByRole("button", { name: /authorize/i })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /lower to 3 extra seats/i }));
+    await waitFor(() => expect(autorizarCupos).toHaveBeenCalledWith(3));
+  });
+
+  it("si el numero iguala lo facturado, el boton dice que lo mantiene", async () => {
+    await conEstado(viva({
+      miembros: 12, cupos_incluidos: 10, cupos_extra: 5,
+      cupos_extra_necesarios: 2, precio_cupo_extra_usd: 4, puede_autorizar_cupos: true,
+    }));
+    const campo = await screen.findByLabelText(/extra seats you want in total/i);
+    fireEvent.change(campo, { target: { value: "5" } });
+    expect(screen.getByRole("button", { name: /keep 5 extra seats/i })).toBeTruthy();
+  });
+
   it("no deja autorizar menos de lo que el backend dice que hace falta", async () => {
     await conEstado(conCuposPorAutorizar());
     const campo = await screen.findByLabelText(/extra seats you want in total/i);
@@ -412,10 +448,16 @@ describe("consola (soy: admin_distinct)", () => {
   });
 
   it("con suscripcion viva avisa que el plan asignado surte efecto en la proxima suscripcion", async () => {
-    await consola([fila({ plan_code: "essential", estado_suscripcion: "active" }), fila({ comp_id: 2, comp_name: "Hotel Luna" })]);
+    await consola([fila({ plan_code: "essential", estado_suscripcion: "active", suscripcion_viva: true }), fila({ comp_id: 2, comp_name: "Hotel Luna" })]);
     await screen.findByRole("table");
     // Solo la fila con suscripcion viva lleva la nota.
     expect(screen.getAllByText(/takes effect on its next subscription/i)).toHaveLength(1);
+  });
+
+  it("la nota depende del booleano del backend, no del estado: una suscripcion cancelada no la lleva", async () => {
+    await consola([fila({ plan_code: "essential", estado_suscripcion: "canceled", suscripcion_viva: false })]);
+    await screen.findByRole("table");
+    expect(screen.queryByText(/takes effect on its next subscription/i)).toBeNull();
   });
 
   it("el selector ofrece los planes que manda el backend y ninguno mas", async () => {

@@ -770,6 +770,8 @@
     "openingPortal": "Opening billing…",
     "seatsOver": "Your team has {members} members, {extra} more than your plan includes.",
     "authorizeSeats": "Authorize {count} extra seats",
+    "lowerSeats": "Lower to {count} extra seats",
+    "keepSeats": "Keep {count} extra seats",
     "authorizingSeats": "Authorizing…",
     "seatsAuthorized": "{count} extra seats authorized.",
     "seatsCost": "Extra seats cost ${price} / month.",
