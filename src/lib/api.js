@@ -353,6 +353,59 @@ export async function getMenu() {
   }
 }
 
+// ── Pagos (autenticado) ────────────────────────────────────────────────────
+// Mismo patrón que el panel de la empresa: `_apiAuth` propaga el `status` en el
+// Error para que la pantalla distinga un 401 de un 409 de un 503. Ninguna de
+// estas manda comp_id: el backend lo saca de la cuenta autenticada.
+
+/**
+ * GET /api/pay/mi-estado/ → {soy, facturacion_activa, ...}
+ * `soy` ("admin_distinct" | "empresa" | "individuo" | "nada") decide qué panel
+ * se pinta. Con "nada" el cuerpo trae SOLO `soy` y `facturacion_activa`.
+ */
+export async function getMiEstadoDePago() {
+  return _apiAuth("/pay/mi-estado/", { respaldo: "Could not load your billing." });
+}
+
+/** POST /api/pay/checkout/ → {url} de Stripe Checkout. */
+export async function iniciarCheckout() {
+  return _apiAuth("/pay/checkout/", { method: "POST", respaldo: "Could not start the payment." });
+}
+
+/** POST /api/pay/portal/ → {url} del portal de facturación de Stripe. */
+export async function abrirPortal() {
+  return _apiAuth("/pay/portal/", { method: "POST", respaldo: "Could not open billing." });
+}
+
+/**
+ * POST /api/pay/cupos/ → {cupos_extra, precio_cupos_usd}
+ * `cuantos` es el TOTAL de cupos extra que se quiere, nunca cuántos agregar.
+ */
+export async function autorizarCupos(cuantos) {
+  return _apiAuth("/pay/cupos/", {
+    method: "POST", body: { cuantos }, respaldo: "Could not authorize the seats.",
+  });
+}
+
+/** GET /api/pay/admin/empresas/ → {empresas: [...]} (solo personal de Distinct). */
+export async function getEmpresasDePago() {
+  return _apiAuth("/pay/admin/empresas/", { respaldo: "Could not load the companies." });
+}
+
+/** POST /api/pay/admin/empresas/ → la fila de la empresa creada. */
+export async function crearEmpresa(datos) {
+  return _apiAuth("/pay/admin/empresas/", {
+    method: "POST", body: datos, respaldo: "Could not create the company.",
+  });
+}
+
+/** PATCH /api/pay/admin/empresas/<id>/ → la fila actualizada. */
+export async function asignarPlan(compId, datos) {
+  return _apiAuth(`/pay/admin/empresas/${compId}/`, {
+    method: "PATCH", body: datos, respaldo: "Could not assign the plan.",
+  });
+}
+
 /** GET /api/dashboard/courses/ — cursos + avances. */
 export async function getDashboardCourses() {
   const token = getAccessToken();

@@ -46,10 +46,14 @@ describe("resolveMenuTarget", () => {
 
   it("dashboard/dash y el resto caen a /coming-soon (aún sin pantalla)", () => {
     expect(resolveMenuTarget("dashboard/dash")).toEqual({ type: "route", href: "/coming-soon" });
-    expect(resolveMenuTarget("dashboard/pay")).toEqual({ type: "route", href: "/coming-soon" });
     expect(resolveMenuTarget("recruiter/load_cvs")).toEqual({ type: "route", href: "/coming-soon" });
     expect(resolveMenuTarget("")).toEqual({ type: "route", href: "/coming-soon" });
     expect(resolveMenuTarget(undefined)).toEqual({ type: "route", href: "/coming-soon" });
+  });
+
+  it("dashboard/pay ya no cae en coming-soon", () => {
+    expect(resolveMenuTarget("dashboard/pay")).toEqual({ type: "route", href: "/dashboard/pay" });
+    expect(resolveMenuTarget("/dashboard/pay")).toEqual({ type: "route", href: "/dashboard/pay" });
   });
 
   it("mapea dashboard/analytics a su ruta", () => {

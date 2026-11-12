@@ -1,0 +1,125 @@
+/* Pantalla de pagos: el marco de la página y los estados de carga/error.
+   Cada panel (PlanCard, AdminBillingTable) trae su propio CSS. Tokens
+   únicamente. */
+
+@keyframes panelEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* `calc(100vh - 80px)` y `translateY(24px)` (abajo) siguen el precedente del
+   repo: accept-invitation, account y dashboard/analytics usan estos mismos
+   valores, y claude.md §2.5 fija los 24px de la entrada. No hay token para
+   ninguno. */
+.page {
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
+  min-height: calc(100vh - 80px);
+  padding: var(--space-8) 0;
+}
+
+@media (min-width: 48rem) {
+  .page {
+    padding: var(--space-12) 0;
+  }
+}
+
+/* Móvil primero: el ancho se abre con min-width, nunca al contrario. */
+.wrapper {
+  margin: 0 auto;
+  animation: panelEnter 0.6s var(--ease-luxe) both;
+}
+
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin: 0 0 var(--space-6) 0;
+  color: var(--color-ivory);
+}
+
+@media (min-width: 48rem) {
+  .h1 {
+    font-size: var(--text-2xl);
+  }
+}
+
+.card {
+  background: var(--color-surface-dark);
+  border: 1px solid var(--ivory-08);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  animation: panelEnter 0.6s var(--ease-luxe) 0.08s both;
+}
+
+@media (min-width: 48rem) {
+  .card {
+    padding: var(--space-8);
+  }
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* `--color-platinum`, no `--color-smoke`: smoke da 3.36:1 sobre este fondo y
+   AA pide 4.5 en cuerpo. */
+.muted {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-platinum);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.error {
+  background: var(--color-danger-surface);
+  border-left: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  margin: var(--space-4) 0 0 0;
+}
+
+/* Aviso de lo que ya pasó. No usa el color de peligro: un pago recibido o una
+   cancelación no son un error. */
+.notice {
+  border-left: 2px solid var(--color-platinum);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  color: var(--color-ivory);
+  background: var(--ivory-08);
+  margin: 0 0 var(--space-5) 0;
+}
+
+
+/* Un control deshabilitado queda fuera del mínimo de contraste de WCAG; el
+   token de texto secundario ya lo marca como inerte. */
+.card button:disabled {
+  color: var(--color-smoke);
+  border-color: var(--color-smoke);
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrapper,
+  .card {
+    animation: none;
+  }
+}
