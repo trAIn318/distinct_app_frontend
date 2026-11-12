@@ -1,0 +1,252 @@
+/* Pantalla de pagos — la comparten el panel de la empresa (PlanCard) y la
+   consola de Distinct (AdminBillingTable), por eso sus estilos viven juntos.
+   Mismo lenguaje visual que settings/admin-company, con tokens únicamente.
+
+   Dorado: `.btn-primary` (global) es el ÚNICO elemento dorado de cada vista:
+   "Pagar" en el panel de la empresa, "Crear empresa" en la consola. Nunca
+   aparecen juntos. */
+
+.page {
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
+  min-height: calc(100vh - 80px);
+  padding: var(--space-8) 0;
+}
+
+/* Móvil primero: el ancho se abre con min-width, nunca al contrario. */
+.wrapper {
+  margin: 0 auto;
+  animation: panelEnter 0.6s var(--ease-luxe) both;
+}
+
+@media (min-width: 48rem) {
+  .page {
+    padding: var(--space-12) 0;
+  }
+}
+
+@keyframes panelEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin: 0 0 var(--space-6) 0;
+  color: var(--color-ivory);
+}
+
+@media (min-width: 48rem) {
+  .h1 {
+    font-size: var(--text-2xl);
+  }
+}
+
+.card {
+  background: var(--color-surface-dark);
+  border: 1px solid var(--ivory-08);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  animation: panelEnter 0.6s var(--ease-luxe) 0.08s both;
+}
+
+@media (min-width: 48rem) {
+  .card {
+    padding: var(--space-8);
+  }
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* `--color-platinum`, no `--color-smoke`: smoke da 3.36:1 sobre este fondo y
+   AA pide 4.5 en cuerpo. */
+.muted {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-platinum);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.planName {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-3) 0;
+}
+
+/* DM Mono para cifras (claude.md §4). */
+.data {
+  font-family: var(--font-label);
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.block {
+  border-top: 1px solid var(--ivory-08);
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+}
+
+.error {
+  background: var(--color-danger-surface);
+  border-left: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  margin: var(--space-4) 0 0 0;
+}
+
+/* Aviso de lo que ya pasó. No usa el color de peligro: un pago recibido o una
+   cancelación no son un error. */
+.notice {
+  border-left: 2px solid var(--color-platinum);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  color: var(--color-ivory);
+  background: var(--ivory-08);
+  margin: 0 0 var(--space-5) 0;
+}
+
+.card .notice {
+  margin: var(--space-4) 0 0 0;
+}
+
+/* ── La tabla de la consola ─────────────────────────────────────────── */
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--ivory-08);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ivory);
+}
+
+.table th,
+.table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--ivory-08);
+}
+
+.table thead th {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+  white-space: nowrap;
+}
+
+/* DM Mono para datos técnicos (claude.md §2.2). */
+.personEmail {
+  display: block;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  color: var(--color-platinum);
+  margin-top: var(--space-1);
+}
+
+/* ── Formularios ─────────────────────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+/* Etiqueta propia asociada al campo, no un placeholder (claude.md §5.5). */
+.fieldLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+/* Indicador VISIBLE de campo obligatorio, en peligro y no en dorado. */
+.requerido {
+  color: var(--color-danger);
+}
+
+.input {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-ivory);
+  background: var(--color-obsidian);
+  border: 1px solid var(--color-platinum);
+  border-radius: 0;
+  width: 100%;
+  transition: border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-ivory);
+  outline-offset: 2px;
+}
+
+/* En la celda de la tabla el selector comparte fila con su botón. */
+.table .input {
+  width: auto;
+  margin-right: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+/* Error de validación DEBAJO de su campo (claude.md §5.5), nunca en alert(). */
+.fieldError {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  color: var(--color-danger);
+  margin: var(--space-1) 0 0 0;
+}
+
+/* Un control deshabilitado queda fuera del mínimo de contraste de WCAG; el
+   token de texto secundario ya lo marca como inerte. */
+.card button:disabled {
+  color: var(--color-smoke);
+  border-color: var(--color-smoke);
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrapper,
+  .card {
+    animation: none;
+  }
+  .input {
+    transition: none;
+  }
+}
