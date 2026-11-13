@@ -763,7 +763,10 @@
     "statuses": {
       "active": "active",
       "trialing": "trial",
-      "past_due": "payment overdue"
+      "past_due": "payment overdue",
+      "canceled": "cancelled",
+      "unpaid": "unpaid",
+      "incomplete": "payment not completed"
     },
     "renewsOn": "Current period ends {date}",
     "manageBilling": "Manage billing",
@@ -819,11 +822,56 @@
       "createFailed": "We could not create the company. Check the Moodle category id and try again."
     },
     "payOkLoadFailed": "Your payment went through to Stripe. Your plan will appear once it is confirmed — try again in a moment.",
-    "individualSoon": "Individual memberships are coming soon. There is nothing to purchase from this account yet.",
     "seatsTotalLabel": "Extra seats you want in total",
     "seatsAtCap": "Your team has {members} members and your plan allows {seats} in total. Choose how many extra seats you want.",
     "seatsHint": "Extra seats are billed monthly. You will only be charged after you confirm below.",
     "seatsPrice": "{count} extra seats at ${unit} each: ${total} / month",
-    "seatsRefreshFailed": "The extra seats were authorized, but we could not refresh this screen. Reload the page to see your current plan."
+    "seatsRefreshFailed": "The extra seats were authorized, but we could not refresh this screen. Reload the page to see your current plan.",
+    "membership": {
+      "title": "Individual membership",
+      "body": "The membership gives you access to the courses it includes and is billed monthly.",
+      "coursesIncluded": "{count} courses included",
+      "emptyCatalog": "The membership does not include any course yet, so it cannot be purchased.",
+      "noPrice": "We could not read the price from our payment provider, so the membership cannot be purchased right now. Try again in a moment.",
+      "unavailable": "The membership cannot be purchased from this account right now.",
+      "pay": "Get the membership",
+      "redirecting": "Redirecting to payment…",
+      "subscriptionTitle": "Your subscription",
+      "notThisMembership": "If you cannot open the membership courses, the subscription on your account is not this membership. Manage it below or write to us: we do not want to charge you twice.",
+      "payOk": "Payment received. Your membership will appear in a moment.",
+      "contact": "Write to us",
+      "errMembershipLive": "You already have a membership. Refresh this screen to see it.",
+      "errOtherPlan": "There is already an active subscription on your account that is not this membership. Write to us before paying: we do not want to charge you twice.",
+      "errInProgress": "You already have a payment in progress. Wait a moment and check again.",
+      "errNotSellable": "The membership is not available for purchase right now.",
+      "errPaymentsDown": "The payment service is not available. Try again later.",
+      "cutoff": {
+        "needed": "An active membership is required to access the courses.",
+        "otherPlan": "The subscription on your account is not this membership, so the courses are not available. Review it before paying: we do not want to charge you twice.",
+        "cta": "Get the membership",
+        "ctaManage": "Review your subscription"
+      }
+    },
+    "catalog": {
+      "title": "Membership catalog",
+      "body": "These are the courses Moodle reports. The ones you check are what the individual membership delivers.",
+      "loading": "Loading the catalog…",
+      "loadFailedMoodle": "Moodle did not answer the list of courses, so the catalog cannot be shown or checked.",
+      "noneIncluded": "No course is included, so the membership is not on sale. Check the ones it has to deliver.",
+      "includedCount": "{count} courses included",
+      "unknownCategory": "Category unknown",
+      "notVisibleFlag": "Not visible in Moodle",
+      "missingTitle": "Included courses that Moodle no longer reports",
+      "missingBody": "Whoever pays does not get them, and one missing course makes the whole enrolment fail. Uncheck each one here or restore it in Moodle.",
+      "hiddenTitle": "Included courses that are hidden in Moodle",
+      "hiddenBody": "The person pays, the enrolment is confirmed and the course does not show up. Publish each one in Moodle or uncheck it here.",
+      "save": "Save the catalog",
+      "saving": "Saving…",
+      "saved": "Catalog saved.",
+      "errHidden": "Publish them in Moodle first: these courses are hidden there, so access to them cannot be sold ({courses}).",
+      "errUnknown": "Moodle does not report these courses, so they cannot be included: {courses}.",
+      "errSave": "We could not save the catalog. Try again.",
+      "errForbidden": "Your account cannot change the catalog."
+    }
   }
 }

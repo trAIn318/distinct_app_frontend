@@ -6,6 +6,20 @@
  * (SSO a Moodle) y los accesos secundarios del grupo DASHBOARD (Eval/Pay).
  * Carga los cursos la primera vez que se abre. Se abre también por el evento
  * `distinct:open-dashboard` (que dispara el redirect de /dashboard).
+ *
+ * EL 402 POR MEMBRESÍA NO PUEDE PARECER "NO TIENES CURSOS". `/api/dashboard/
+ * courses/` es best-effort: cualquier fallo vuelve como lista vacía, y eso aquí
+ * se pinta como "todavía no tienes cursos". A quien le falta la membresía
+ * individual eso le diría que no tiene nada en vez de ofrecerle comprarla, y a
+ * quien tiene una suscripción ajena cobrándose le ocultaría el único sitio
+ * donde puede arreglarlo. `getDashboardCourses` marca ese caso con
+ * `membership_required` —el BOOLEANO del cuerpo, nunca el texto, que ya cambió
+ * una vez— y aquí se pinta el aviso con su enlace a la pantalla de pagos.
+ *
+ * Con el corte puesto tampoco se ofrece Entrenar: el salto a Moodle devuelve el
+ * MISMO 402 (sus dos puertas son esta lista y ese salto), así que el botón solo
+ * llevaría a "el entrenamiento no está disponible", que es justo el mensaje que
+ * no explica nada.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -19,11 +33,21 @@ import styles from "./DashboardMenu.module.css";
 
 const COURSE_IMAGE_FALLBACK = "/img/courses/under_construction.jpg";
 
+/** La ruta de la pantalla de pagos, la misma para las tres audiencias. */
+const RUTA_PAGOS = "/dashboard/pay";
+
+/** El motivo de corte en el que NO se puede decir "paga": ya hay una
+ *  suscripción cobrándose a su nombre que no es esta membresía, así que pagar
+ *  sería el segundo cobro. Llega en `estado_suscripcion` del cuerpo del 402. */
+const PLAN_AJENO = "plan_ajeno";
+
 export default function DashboardMenu({ menu = [] }) {
   const t = useT("dashboard");
   const tMenu = useT("menu");
+  const tPay = useT("pay");
   const [open, setOpen] = useState(false);
   const [courses, setCourses] = useState(null);
+  const [membership, setMembership] = useState(null);  // null | {estado}
   const [loaded, setLoaded] = useState(false);
   const [training, setTraining] = useState(false);
   const [trainError, setTrainError] = useState(null);
@@ -31,7 +55,12 @@ export default function DashboardMenu({ menu = [] }) {
   const load = useCallback(() => {
     if (loaded) return;
     setLoaded(true);
-    getDashboardCourses().then((d) => setCourses(d.courses || []));
+    getDashboardCourses().then((d) => {
+      // Por el booleano del cuerpo, nunca por el texto del mensaje.
+      setMembership(d && d.membership_required === true
+        ? { estado: d.estado_suscripcion ?? null } : null);
+      setCourses(d.courses || []);
+    });
   }, [loaded]);
 
   useEffect(() => {
@@ -123,6 +152,20 @@ export default function DashboardMenu({ menu = [] }) {
 
         {courses === null ? (
           <p className={styles.muted}>{t("loading")}</p>
+        ) : membership ? (
+          // El 402: hay algo que comprar (o que arreglar), no "no tienes cursos".
+          <div className={styles.membership}>
+            <p className={styles.membershipText}>
+              {membership.estado === PLAN_AJENO
+                ? tPay("membership.cutoff.otherPlan")
+                : tPay("membership.cutoff.needed")}
+            </p>
+            <a className={`btn-primary ${styles.membershipCta}`} href={RUTA_PAGOS}>
+              {membership.estado === PLAN_AJENO
+                ? tPay("membership.cutoff.ctaManage")
+                : tPay("membership.cutoff.cta")}
+            </a>
+          </div>
         ) : courses.length === 0 ? (
           <p className={styles.muted}>{t("empty")}</p>
         ) : (
@@ -167,7 +210,8 @@ export default function DashboardMenu({ menu = [] }) {
           </ul>
         )}
 
-        {hasTraining && (
+        {/* Con el corte puesto, Entrenar devuelve el mismo 402: ver la cabecera. */}
+        {hasTraining && !membership && (
           <button
             type="button"
             className="btn-primary"

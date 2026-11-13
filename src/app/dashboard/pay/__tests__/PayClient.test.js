@@ -17,6 +17,8 @@ const autorizarCupos = vi.fn();
 const getEmpresasDePago = vi.fn();
 const crearEmpresa = vi.fn();
 const asignarPlan = vi.fn();
+const getCatalogoDeMembresia = vi.fn();
+const guardarCatalogoDeMembresia = vi.fn();
 vi.mock("../../../../lib/api", () => ({
   getMiEstadoDePago: (...a) => getMiEstadoDePago(...a),
   iniciarCheckout: (...a) => iniciarCheckout(...a),
@@ -25,6 +27,8 @@ vi.mock("../../../../lib/api", () => ({
   getEmpresasDePago: (...a) => getEmpresasDePago(...a),
   crearEmpresa: (...a) => crearEmpresa(...a),
   asignarPlan: (...a) => asignarPlan(...a),
+  getCatalogoDeMembresia: (...a) => getCatalogoDeMembresia(...a),
+  guardarCatalogoDeMembresia: (...a) => guardarCatalogoDeMembresia(...a),
 }));
 
 import PayClient from "../PayClient";
@@ -51,6 +55,24 @@ function empresa(extra = {}) {
     solo_contacto: false,
     paga_implementacion: true,
     tiene_portal: false,
+    ...extra,
+  };
+}
+
+/**
+ * Lo que manda mi-estado para un INDIVIDUO (`estado_de_persona`). No comparte
+ * ni un campo de cupos con la forma de empresa: una membresia es de una persona.
+ */
+function individuo(extra = {}) {
+  return {
+    soy: "individuo",
+    facturacion_activa: true,
+    plan_code: "membership",
+    precio_mensual_usd: 29,
+    estado_suscripcion: null,
+    puede_pagar: true,
+    tiene_portal: false,
+    cursos_en_el_catalogo: 4,
     ...extra,
   };
 }
@@ -106,6 +128,8 @@ afterEach(() => {
   getEmpresasDePago.mockReset();
   crearEmpresa.mockReset();
   asignarPlan.mockReset();
+  getCatalogoDeMembresia.mockReset();
+  guardarCatalogoDeMembresia.mockReset();
   Object.defineProperty(window, "location", { value: realLocation, writable: true, configurable: true });
 });
 
@@ -421,6 +445,13 @@ describe("carga de mi-estado", () => {
 describe("consola (soy: admin_distinct)", () => {
   async function consola(empresas, planes = ["essential", "performance", "enterprise"]) {
     getEmpresasDePago.mockResolvedValue({ empresas, planes_asignables: planes });
+    // La consola monta tambien el catalogo de la membresia (CatalogPicker).
+    getCatalogoDeMembresia.mockResolvedValue({
+      cursos: [{ moodle_course_id: 12, nombre: "Bartender", categoria: "BARTENDER", categoria_codigo: null, visible: true, incluido: true }],
+      incluidos: 1,
+      incluidos_sin_curso_en_moodle: [],
+      incluidos_ocultos_en_moodle: [],
+    });
     await conEstado({ soy: "admin_distinct", facturacion_activa: true });
   }
 
@@ -492,6 +523,11 @@ describe("consola (soy: admin_distinct)", () => {
     expect(await screen.findByText(/5 extra seats needed, 2 billed/i)).toBeTruthy();
   });
 
+  it("la consola monta tambien el catalogo de la membresia", async () => {
+    await consola([fila()]);
+    expect(await screen.findByRole("checkbox", { name: /bartender/i })).toBeTruthy();
+  });
+
   it("la consola no pinta botones de pagar", async () => {
     await consola([fila()]);
     await screen.findByRole("table");
@@ -500,17 +536,159 @@ describe("consola (soy: admin_distinct)", () => {
   });
 });
 
-describe("soy: nada, individuo y facturacion apagada", () => {
+describe("panel del individuo (soy: individuo)", () => {
+  it("muestra el precio que vino de Stripe y cuantos cursos incluye", async () => {
+    await conEstado(individuo());
+    expect(await screen.findByText(/\$29 \/ month/i)).toBeTruthy();
+    expect(screen.getByText(/4 courses included/i)).toBeTruthy();
+  });
+
+  it("sin precio disponible no ofrece pagar y explica por que", async () => {
+    // `precio_mensual_usd: null` = Stripe no respondio el precio. No se inventa
+    // un numero que la tarjeta no va a cumplir.
+    await conEstado(individuo({ precio_mensual_usd: null, puede_pagar: false }));
+    expect(await screen.findByText(/could not read the price/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /get the membership/i })).toBeNull();
+    expect(document.body.textContent).not.toMatch(/\$null|\$undefined/);
+  });
+
+  it("al pagar manda al navegador a la url que devolvio el backend", async () => {
+    iniciarCheckout.mockResolvedValue({ url: "https://checkout.stripe.com/c/pay/mem" });
+    await conEstado(individuo());
+    fireEvent.click(await screen.findByRole("button", { name: /get the membership/i }));
+    await waitFor(() => expect(locationFalso.href).toBe("https://checkout.stripe.com/c/pay/mem"));
+  });
+
+  it("el boton se desactiva mientras la peticion esta en curso", async () => {
+    iniciarCheckout.mockReturnValue(new Promise(() => {}));
+    await conEstado(individuo());
+    const boton = await screen.findByRole("button", { name: /get the membership/i });
+    expect(boton).not.toBeDisabled();
+    fireEvent.click(boton);
+    await waitFor(() => expect(boton).toBeDisabled());
+  });
+
+  it("con membresia activa muestra el estado y el boton del portal, no el de pagar", async () => {
+    await conEstado(individuo({ estado_suscripcion: "active", puede_pagar: false, tiene_portal: true }));
+    expect(await screen.findByText(/status: active/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /manage billing/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /get the membership/i })).toBeNull();
+  });
+
+  /**
+   * El caso medido de la revision del backend: una suscripcion VIVA que no es
+   * esta membresia (creada a mano en Stripe con otro precio) llega con
+   * `estado_suscripcion: "active"`, `puede_pagar: false` y `tiene_portal: true`
+   * Y CON EL ACCESO CORTADO. mi-estado no lo distingue de una membresia real
+   * (su `plan_code` es la constante del plan, no el del espejo), asi que el
+   * texto no puede afirmar que la persona tenga la membresia ni los cursos.
+   */
+  it("con una suscripcion activa NO afirma que la membresia este comprada ni que haya acceso", async () => {
+    await conEstado(individuo({ estado_suscripcion: "active", puede_pagar: false, tiene_portal: true }));
+    await screen.findByText(/status: active/i);
+    expect(document.body.textContent).not.toMatch(/you have the membership|your membership is active|you now have access/i);
+    // Y nombra la salida del caso del plan ajeno: el portal.
+    expect(document.body.textContent).toMatch(/not this membership/i);
+  });
+
+  /**
+   * Una membresia CANCELADA no cobra, asi que el backend manda
+   * `estado_suscripcion: "canceled"` CON `puede_pagar: true`: quien la cancelo
+   * puede volver. La pantalla sigue a ese booleano y no deduce de "hay estado
+   * de suscripcion" que no se pueda comprar.
+   */
+  it("con la suscripcion cancelada muestra el estado y DEJA volver a contratar", async () => {
+    await conEstado(individuo({
+      estado_suscripcion: "canceled", puede_pagar: true, tiene_portal: true,
+    }));
+    expect(await screen.findByText(/status: cancelled/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /get the membership/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /manage billing/i })).toBeTruthy();
+  });
+
+  it("con la membresia apagada no pinta nada que cobre", async () => {
+    // `facturacion_activa: false` apaga el espejo entero.
+    await conEstado(individuo({ facturacion_activa: false, precio_mensual_usd: null, puede_pagar: false }));
+    expect(await screen.findByText(/payments are not enabled/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /get the membership|manage billing/i })).toBeNull();
+  });
+
+  it("con la venta apagada pero la facturacion encendida tampoco ofrece pagar", async () => {
+    // MEMBERSHIP_ENABLED apagado: el backend manda `puede_pagar: false` con
+    // precio y catalogo. La pantalla sigue al booleano, no lo recalcula.
+    await conEstado(individuo({ puede_pagar: false }));
+    expect(await screen.findByText(/cannot be purchased from this account/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /get the membership/i })).toBeNull();
+  });
+
+  it("si el catalogo esta vacio avisa que todavia no hay cursos incluidos", async () => {
+    await conEstado(individuo({ cursos_en_el_catalogo: 0, puede_pagar: false }));
+    expect(await screen.findByText(/does not include any course yet/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /get the membership/i })).toBeNull();
+  });
+
+  it("un 409 por membresia viva dice que ya la tiene, no que haya otra suscripcion", async () => {
+    // Se distingue por el campo `motivo`, NUNCA por el texto del backend.
+    iniciarCheckout.mockRejectedValueOnce(Object.assign(new Error("x"), {
+      status: 409, motivo: "membresia_viva",
+    }));
+    await conEstado(individuo());
+    fireEvent.click(await screen.findByRole("button", { name: /get the membership/i }));
+    const alerta = await screen.findByRole("alert");
+    expect(alerta.textContent).toMatch(/already have a membership/i);
+    expect(alerta.textContent).not.toMatch(/twice/i);
+  });
+
+  it("un 409 por plan ajeno dice que hay otra suscripcion y que escriba, no que ya la tiene", async () => {
+    iniciarCheckout.mockRejectedValueOnce(Object.assign(new Error("x"), {
+      status: 409, motivo: "plan_ajeno",
+    }));
+    await conEstado(individuo());
+    fireEvent.click(await screen.findByRole("button", { name: /get the membership/i }));
+    const alerta = await screen.findByRole("alert");
+    expect(alerta.textContent).toMatch(/not this membership/i);
+    expect(alerta.textContent).toMatch(/twice/i);
+    expect(alerta.textContent).not.toMatch(/already have a membership/i);
+  });
+
+  it("un 409 sin motivo es el pago en curso: ni 'ya la tienes' ni 'plan ajeno'", async () => {
+    iniciarCheckout.mockRejectedValueOnce(Object.assign(new Error("x"), { status: 409 }));
+    await conEstado(individuo());
+    fireEvent.click(await screen.findByRole("button", { name: /get the membership/i }));
+    const alerta = await screen.findByRole("alert");
+    expect(alerta.textContent).toMatch(/payment in progress/i);
+    expect(alerta.textContent).not.toMatch(/already have a membership|twice/i);
+  });
+
+  it("un fallo al pagar no afirma nada sobre el cobro y deja reintentar", async () => {
+    iniciarCheckout.mockRejectedValueOnce(Object.assign(new Error("x"), { status: 503 }));
+    await conEstado(individuo());
+    fireEvent.click(await screen.findByRole("button", { name: /get the membership/i }));
+    const alerta = await screen.findByRole("alert");
+    expect(alerta.textContent).not.toMatch(/charged|cobr/i);
+    expect(screen.getByRole("button", { name: /try again/i })).not.toBeDisabled();
+  });
+
+  it("al volver de Stripe con pago=ok no afirma que la membresia este activa", async () => {
+    await conEstado(individuo(), { pago: "ok" });
+    expect(await screen.findByText(/payment received/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /get the membership/i })).toBeNull();
+    expect(screen.getByRole("button", { name: /check again/i })).toBeTruthy();
+  });
+
+  it("el individuo nunca ve nada de cupos: una membresia no tiene asientos", async () => {
+    await conEstado(individuo());
+    await screen.findByRole("button", { name: /get the membership/i });
+    expect(screen.queryByText(/seats/i)).toBeNull();
+    expect(screen.queryByRole("button", { name: /authorize/i })).toBeNull();
+  });
+});
+
+describe("soy: nada y facturacion apagada", () => {
   it("nada: no pinta ningun boton de compra", async () => {
     await conEstado({ soy: "nada", facturacion_activa: true });
     expect(await screen.findByText(/nothing to purchase/i)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /pay|authorize|manage billing|assign/i })).toBeNull();
-  });
-
-  it("individuo: dice que no hay nada que comprar todavia y no pinta nada comprable", async () => {
-    await conEstado({ soy: "individuo", facturacion_activa: true, plan_code: "essential", puede_pagar: true });
-    expect(await screen.findByText(/coming soon/i)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /pay|authorize|manage billing/i })).toBeNull();
   });
 
   it("con la facturacion apagada no se pinta nada que cobre", async () => {
