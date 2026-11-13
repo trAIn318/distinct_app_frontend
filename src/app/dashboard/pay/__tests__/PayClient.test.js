@@ -60,16 +60,24 @@ function empresa(extra = {}) {
 }
 
 /**
- * Lo que manda mi-estado para un INDIVIDUO (`estado_de_persona`). No comparte
- * ni un campo de cupos con la forma de empresa: una membresia es de una persona.
+ * Lo que manda mi-estado para un INDIVIDUO (`estado_de_persona`, 10 campos). No
+ * comparte ni un campo de cupos con la forma de empresa: una membresia es de una
+ * persona.
+ *
+ * `plan_code` es el plan REAL de la fila del espejo y es `null` cuando no hay
+ * fila: antes era la constante del plan que se vende y decia "membership"
+ * incluso para quien no tiene nada. `membresia_viva` y `plan_ajeno` son los dos
+ * booleanos con los que se separan los dos casos que llegaban identicos.
  */
 function individuo(extra = {}) {
   return {
     soy: "individuo",
     facturacion_activa: true,
-    plan_code: "membership",
+    plan_code: null,
     precio_mensual_usd: 29,
     estado_suscripcion: null,
+    membresia_viva: false,
+    plan_ajeno: false,
     puede_pagar: true,
     tiene_portal: false,
     cursos_en_el_catalogo: 4,
@@ -568,27 +576,53 @@ describe("panel del individuo (soy: individuo)", () => {
     await waitFor(() => expect(boton).toBeDisabled());
   });
 
+  /** La membresia de verdad: `membresia_viva` es el booleano del backend y es lo
+   *  unico que autoriza a decir que esta activa. */
   it("con membresia activa muestra el estado y el boton del portal, no el de pagar", async () => {
-    await conEstado(individuo({ estado_suscripcion: "active", puede_pagar: false, tiene_portal: true }));
+    await conEstado(individuo({
+      plan_code: "membership", estado_suscripcion: "active", membresia_viva: true,
+      puede_pagar: false, tiene_portal: true,
+    }));
     expect(await screen.findByText(/status: active/i)).toBeTruthy();
+    expect(screen.getByText(/your membership is active/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: /manage billing/i })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /get the membership/i })).toBeNull();
+    // Lo que NO se le dice a quien si pago: que su suscripcion es de otra cosa.
+    expect(document.body.textContent).not.toMatch(/not this membership/i);
   });
 
   /**
    * El caso medido de la revision del backend: una suscripcion VIVA que no es
    * esta membresia (creada a mano en Stripe con otro precio) llega con
    * `estado_suscripcion: "active"`, `puede_pagar: false` y `tiene_portal: true`
-   * Y CON EL ACCESO CORTADO. mi-estado no lo distingue de una membresia real
-   * (su `plan_code` es la constante del plan, no el del espejo), asi que el
-   * texto no puede afirmar que la persona tenga la membresia ni los cursos.
+   * Y CON EL ACCESO CORTADO (402). Se reconoce por `plan_ajeno`, que el backend
+   * calcula con las mismas funciones del corte: `puede_pagar: false` tambien
+   * ocurre con Stripe caido, el catalogo vacio o el interruptor apagado.
    */
-  it("con una suscripcion activa NO afirma que la membresia este comprada ni que haya acceso", async () => {
-    await conEstado(individuo({ estado_suscripcion: "active", puede_pagar: false, tiene_portal: true }));
-    await screen.findByText(/status: active/i);
-    expect(document.body.textContent).not.toMatch(/you have the membership|your membership is active|you now have access/i);
-    // Y nombra la salida del caso del plan ajeno: el portal.
-    expect(document.body.textContent).toMatch(/not this membership/i);
+  it("con un plan ajeno vivo NO dice que tenga la membresia: nombra la otra suscripcion y pide que escriba", async () => {
+    await conEstado(individuo({
+      plan_code: "essential", estado_suscripcion: "active", plan_ajeno: true,
+      puede_pagar: false, tiene_portal: true,
+    }));
+    expect(await screen.findByText(/not this membership/i)).toBeTruthy();
+    expect(document.body.textContent).toMatch(/twice/i);
+    expect(document.body.textContent).not.toMatch(/your membership is active|you have access/i);
+    // El plan que se le esta cobrando, con el nombre que ya conoce la pantalla.
+    expect(screen.getByText(/Essential/)).toBeTruthy();
+    // Las dos salidas: el portal y escribirnos.
+    expect(screen.getByRole("button", { name: /manage billing/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /write to us/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /get the membership/i })).toBeNull();
+  });
+
+  it("un plan ajeno sin plan reconocible no inventa ningun nombre de plan", async () => {
+    // `plan_code: null` = el precio de Stripe no tiene un lookup key conocido.
+    await conEstado(individuo({
+      plan_code: null, estado_suscripcion: "active", plan_ajeno: true,
+      puede_pagar: false, tiene_portal: true,
+    }));
+    expect(await screen.findByText(/not this membership/i)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/plan being charged|null|undefined/i);
   });
 
   /**
@@ -599,11 +633,14 @@ describe("panel del individuo (soy: individuo)", () => {
    */
   it("con la suscripcion cancelada muestra el estado y DEJA volver a contratar", async () => {
     await conEstado(individuo({
-      estado_suscripcion: "canceled", puede_pagar: true, tiene_portal: true,
+      plan_code: "membership", estado_suscripcion: "canceled",
+      membresia_viva: false, plan_ajeno: false, puede_pagar: true, tiene_portal: true,
     }));
     expect(await screen.findByText(/status: cancelled/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: /get the membership/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /manage billing/i })).toBeTruthy();
+    // Ni activa ni plan ajeno: una fila muerta no es ninguna de las dos cosas.
+    expect(document.body.textContent).not.toMatch(/your membership is active|not this membership/i);
   });
 
   it("con la membresia apagada no pinta nada que cobre", async () => {

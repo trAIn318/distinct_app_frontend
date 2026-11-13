@@ -21,12 +21,16 @@
  *    suscripción viva creada a mano en Stripe con otro precio llega como
  *    `estado_suscripcion: "active"`, `puede_pagar: false`, `tiene_portal: true`
  *    Y CON EL ACCESO CORTADO (`motivo_de_corte_de_persona` la llama
- *    `plan_ajeno`). mi-estado NO la distingue de una membresía de verdad: su
- *    `plan_code` es la constante `PLAN_DE_LA_MEMBRESIA`, no el plan del espejo.
- *    Así que el texto de este estado tiene que ser cierto en los DOS casos: se
- *    dice qué suscripción hay y cuál es su estado, nunca que la membresía esté
- *    comprada ni que haya acceso, y se ofrece el portal, que es por donde la
- *    persona lo corrige.
+ *    `plan_ajeno`). Los dos casos se separan con los booleanos del backend
+ *    —`membresia_viva` y `plan_ajeno`— y NO con `plan_code` ni con la lista de
+ *    estados de Stripe, que es del backend y copiada aquí se desincroniza:
+ *      `membresia_viva` → está activa y se le dice así, con el portal.
+ *      `plan_ajeno`     → se le nombra la otra suscripción, se le pide que
+ *                         escriba y se le ofrece el portal, que es por donde lo
+ *                         corrige. Ni "ya estás suscrito" (mentira) ni "paga"
+ *                         (sería el segundo cobro).
+ *    `plan_ajeno` no se deduce de `puede_pagar: false`, que también es falso con
+ *    Stripe caído, el catálogo vacío o el interruptor de la venta apagado.
  *
  * 3. **Una membresía vacía.** Con `cursos_en_el_catalogo` en 0 no hay nada que
  *    entregar (el catálogo lo siembra la consola, y vacío es su valor por
@@ -132,8 +136,11 @@ export default function MembershipCard({ estado, pagoRecibido = false, onRefresh
     );
   }
 
-  // Nada de esto interpreta estados de Stripe: lo que se ofrece lo dicen los
-  // booleanos del backend (`puede_pagar`, `tiene_portal`).
+  // Nada de esto interpreta estados de Stripe: lo que se ofrece y lo que se
+  // afirma lo dicen los booleanos del backend (`membresia_viva`, `plan_ajeno`,
+  // `puede_pagar`, `tiene_portal`).
+  const viva = Boolean(estado.membresia_viva);
+  const ajeno = Boolean(estado.plan_ajeno);
   const haySuscripcion = Boolean(estado.estado_suscripcion);
   // `null` = el backend no mandó el número. No se dice ni que esté vacío ni
   // cuántos cursos tiene: las dos cosas serían inventadas.
@@ -146,8 +153,12 @@ export default function MembershipCard({ estado, pagoRecibido = false, onRefresh
    * cancelada llega con `estado_suscripcion: "canceled"` Y `puede_pagar: true`
    * —no cobra, así que se le puede vender de nuevo—, y con el estado tapando la
    * oferta, quien canceló se quedaba sin forma de volver.
+   *
+   * `!viva && !ajeno` es explícito aunque hoy los dos impliquen
+   * `puede_pagar: false` (los dos son `suscripcion_cobrando`): si alguna vez
+   * llegaran juntos, ofrecer el botón sería el segundo cobro. Falla cerrado.
    */
-  const hayOferta = !haySuscripcion || estado.puede_pagar;
+  const hayOferta = !viva && !ajeno && (!haySuscripcion || estado.puede_pagar);
   const esPlanAjeno = Boolean(fallo && fallo.err && fallo.err.motivo === "plan_ajeno");
 
   const etiquetaPagar = fallo && fallo.accion === "pay"
@@ -163,17 +174,39 @@ export default function MembershipCard({ estado, pagoRecibido = false, onRefresh
   return (
     <section className={styles.card}>
       <h2 className={styles.cardTitle}>
-        {haySuscripcion ? t("membership.subscriptionTitle") : t("membership.title")}
+        {viva ? t("membership.activeTitle")
+          : haySuscripcion ? t("membership.subscriptionTitle") : t("membership.title")}
       </h2>
 
       {haySuscripcion && (
+        <p className={styles.data}>
+          {t("statusLabel", { status: traducido(t, "statuses", estado.estado_suscripcion) })}
+        </p>
+      )}
+
+      {/* Los tres estados, cada uno con su frase. Ver el punto 2 de la cabecera.
+          Una fila muerta (cancelada, impaga) no es ninguno de los dos: ahí el
+          estado de arriba es todo lo que se puede afirmar, y debajo va la
+          oferta de volver a contratar. */}
+      {viva && <p className={styles.muted}>{t("membership.active")}</p>}
+      {ajeno && (
         <>
-          {/* Lo único que se sabe con certeza: hay una suscripción a su nombre y
-              este es su estado. Ver el punto 2 de la cabecera del archivo. */}
-          <p className={styles.data}>
-            {t("statusLabel", { status: traducido(t, "statuses", estado.estado_suscripcion) })}
-          </p>
-          <p className={styles.muted}>{t("membership.notThisMembership")}</p>
+          <p className={styles.muted}>{t("membership.otherPlanBody")}</p>
+          {/* El plan REAL de la fila, que es lo que hay que arreglar en Stripe.
+              Nulo cuando el precio no tiene un lookup key conocido: entonces no
+              se nombra nada. */}
+          {estado.plan_code && (
+            <p className={styles.data}>
+              {t("membership.otherPlanLabel", {
+                plan: traducido(t, "plans", estado.plan_code),
+              })}
+            </p>
+          )}
+          <ContactOwnersButton
+            subject={ASUNTO_MEMBRESIA}
+            label={t("membership.contact")}
+            className="btn-ghost"
+          />
         </>
       )}
 
@@ -228,8 +261,10 @@ export default function MembershipCard({ estado, pagoRecibido = false, onRefresh
         <>
           <p className={styles.error} role="alert">{t(claveDeError(fallo.err))}</p>
           {/* El plan ajeno se arregla hablando con nosotros: el precio está mal
-              en Stripe y pagar otra vez sería el segundo cobro. */}
-          {esPlanAjeno && (
+              en Stripe y pagar otra vez sería el segundo cobro. `!ajeno` para no
+              repetir el botón que ya pinta ese estado (hoy no pueden coincidir:
+              con `plan_ajeno` no hay botón de pagar que pueda dar ese 409). */}
+          {esPlanAjeno && !ajeno && (
             <ContactOwnersButton
               subject={ASUNTO_MEMBRESIA}
               label={t("membership.contact")}

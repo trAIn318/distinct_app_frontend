@@ -7,6 +7,7 @@ import {
   getDashboardCourses,
   getCatalogoDeMembresia,
   guardarCatalogoDeMembresia,
+  startTraining,
 } from "../api";
 
 let fetchMock;
@@ -58,6 +59,33 @@ describe("getDashboardCourses y el 402 por membresia", () => {
     expect(await getDashboardCourses()).toEqual({ courses: [], moodle_linked: false });
     fetchMock.mockRejectedValue(new Error("red caida"));
     expect(await getDashboardCourses()).toEqual({ courses: [], moodle_linked: false });
+  });
+});
+
+describe("startTraining y el 402 por membresia (la otra puerta)", () => {
+  it("propaga el estado y el booleano del cuerpo, no solo el texto", async () => {
+    fetchMock.mockResolvedValue(respuesta({
+      detail: "An active membership is required to access the courses.",
+      membership_required: true,
+      estado_suscripcion: "plan_ajeno",
+      desde: "2026-11-01T00:00:00+00:00",
+    }, { ok: false, status: 402 }));
+    await expect(startTraining()).rejects.toMatchObject({
+      status: 402, membershipRequired: true, estadoSuscripcion: "plan_ajeno",
+    });
+  });
+
+  it("un 402 sin el booleano no se marca como membresia", async () => {
+    fetchMock.mockResolvedValue(respuesta({ detail: "Payment required." }, { ok: false, status: 402 }));
+    await expect(startTraining()).rejects.toMatchObject({ status: 402 });
+    await expect(startTraining()).rejects.not.toMatchObject({ membershipRequired: true });
+  });
+
+  it("los demas fallos siguen llevando el estado y el detail de siempre", async () => {
+    fetchMock.mockResolvedValue(respuesta({ detail: "Moodle account not found." }, { ok: false, status: 404 }));
+    await expect(startTraining()).rejects.toMatchObject({
+      status: 404, message: "Moodle account not found.",
+    });
   });
 });
 

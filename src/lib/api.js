@@ -506,7 +506,19 @@ export async function startTraining(targetUrl) {
     cache: "no-store",
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || "Training is unavailable right now.");
+  if (!res.ok) {
+    const err = new Error(data.detail || "Training is unavailable right now.");
+    err.status = res.status;
+    // La SEGUNDA puerta del 402 por membresía (la primera es la lista de
+    // cursos). Sin esto, a quien le falta la membresía se le culpaba a Moodle
+    // con "no pudimos iniciar tu sesión", que ni explica ni deja hacer nada. Se
+    // reconoce por el BOOLEANO del cuerpo, nunca por el texto del mensaje.
+    if (res.status === 402 && data.membership_required === true) {
+      err.membershipRequired = true;
+      err.estadoSuscripcion = data.estado_suscripcion ?? null;
+    }
+    throw err;
+  }
   return appendWantsurl(data.loginurl, targetUrl);
 }
 
