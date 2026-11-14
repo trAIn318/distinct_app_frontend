@@ -22,19 +22,11 @@ import Link from "next/link";
 import { startTraining } from "../../lib/api";
 import { MOODLE_URL } from "../../lib/config";
 import { useT } from "../../i18n/client";
+import MembershipCutoff from "../../components/MembershipCutoff";
 import styles from "./page.module.css";
-
-/** La ruta de la pantalla de pagos, la misma para las tres audiencias. */
-const RUTA_PAGOS = "/dashboard/pay";
-
-/** El motivo de corte en el que NO se puede decir "paga": ya hay una
- *  suscripción cobrándose que no es esta membresía. Llega en
- *  `estado_suscripcion` del cuerpo del 402. */
-const PLAN_AJENO = "plan_ajeno";
 
 export default function MoodleLaunchClient() {
   const t = useT("moodleLaunch");
-  const tPay = useT("pay");
   const params = useSearchParams();
   // null = todavía en curso. {membresia: null} = fallo normal.
   // {membresia: {estado}} = el 402 por membresía.
@@ -68,16 +60,11 @@ export default function MoodleLaunchClient() {
   }
 
   if (fallo.membresia) {
-    const ajeno = fallo.membresia.estado === PLAN_AJENO;
     return (
       <main className={styles.wrap}>
         <div className={styles.box}>
-          <p className={styles.msg}>
-            {ajeno ? tPay("membership.cutoff.otherPlan") : tPay("membership.cutoff.needed")}
-          </p>
-          <a className="btn-primary" href={RUTA_PAGOS}>
-            {ajeno ? tPay("membership.cutoff.ctaManage") : tPay("membership.cutoff.cta")}
-          </a>
+          {/* Sin "abrir el curso": sin matrícula lleva a una página que no entrega nada. */}
+          <MembershipCutoff estado={fallo.membresia.estado} textClassName={styles.msg} />
           <Link className={styles.back} href="/">{t("back")}</Link>
         </div>
       </main>

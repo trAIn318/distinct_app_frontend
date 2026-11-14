@@ -25,6 +25,7 @@
 import { useCallback, useEffect, useState } from "react";
 import NavDrawer from "./NavDrawer";
 import MenuIcon from "./MenuIcon";
+import MembershipCutoff from "./MembershipCutoff";
 import { getDashboardCourses, startTraining } from "../lib/api";
 import { splitMenuByGroup, resolveMenuTarget, getMenuLabel } from "../lib/menuTargets";
 import { resolveCourseImage } from "../lib/config";
@@ -33,18 +34,9 @@ import styles from "./DashboardMenu.module.css";
 
 const COURSE_IMAGE_FALLBACK = "/img/courses/under_construction.jpg";
 
-/** La ruta de la pantalla de pagos, la misma para las tres audiencias. */
-const RUTA_PAGOS = "/dashboard/pay";
-
-/** El motivo de corte en el que NO se puede decir "paga": ya hay una
- *  suscripción cobrándose a su nombre que no es esta membresía, así que pagar
- *  sería el segundo cobro. Llega en `estado_suscripcion` del cuerpo del 402. */
-const PLAN_AJENO = "plan_ajeno";
-
 export default function DashboardMenu({ menu = [] }) {
   const t = useT("dashboard");
   const tMenu = useT("menu");
-  const tPay = useT("pay");
   const [open, setOpen] = useState(false);
   const [courses, setCourses] = useState(null);
   const [membership, setMembership] = useState(null);  // null | {estado}
@@ -155,16 +147,11 @@ export default function DashboardMenu({ menu = [] }) {
         ) : membership ? (
           // El 402: hay algo que comprar (o que arreglar), no "no tienes cursos".
           <div className={styles.membership}>
-            <p className={styles.membershipText}>
-              {membership.estado === PLAN_AJENO
-                ? tPay("membership.cutoff.otherPlan")
-                : tPay("membership.cutoff.needed")}
-            </p>
-            <a className={`btn-primary ${styles.membershipCta}`} href={RUTA_PAGOS}>
-              {membership.estado === PLAN_AJENO
-                ? tPay("membership.cutoff.ctaManage")
-                : tPay("membership.cutoff.cta")}
-            </a>
+            <MembershipCutoff
+              estado={membership.estado}
+              textClassName={styles.membershipText}
+              ctaClassName={styles.membershipCta}
+            />
           </div>
         ) : courses.length === 0 ? (
           <p className={styles.muted}>{t("empty")}</p>
