@@ -406,7 +406,46 @@ export async function asignarPlan(compId, datos) {
   });
 }
 
-/** GET /api/dashboard/courses/ — cursos + avances. */
+/**
+ * GET|PUT /api/pay/admin/catalogo/ — qué cursos entrega la membresía individual.
+ * Solo personal de Distinct (alcance global): GET con `pay.read`, PUT con
+ * `pay.manage`.
+ *
+ * El GET devuelve `{cursos, incluidos, incluidos_sin_curso_en_moodle,
+ * incluidos_ocultos_en_moodle}`; cada curso es
+ * `{moodle_course_id, nombre, categoria, categoria_codigo, visible, incluido}`.
+ * Un 503 con `motivo: "moodle_no_responde"` significa que no se pudo preguntar:
+ * no es "Moodle no tiene cursos".
+ */
+export async function getCatalogoDeMembresia() {
+  return _apiAuth("/pay/admin/catalogo/", { respaldo: "Could not load the membership catalog." });
+}
+
+/**
+ * PUT /api/pay/admin/catalogo/ → la vista del catálogo ya recalculada.
+ * `ids` es la SELECCIÓN COMPLETA, no las diferencias: el contrato del endpoint
+ * es "esto es el catálogo", y mandar diferencias desde dos pestañas abiertas se
+ * pisa (`guardar_el_catalogo` reemplaza).
+ */
+export async function guardarCatalogoDeMembresia(ids) {
+  return _apiAuth("/pay/admin/catalogo/", {
+    method: "PUT", body: { moodle_course_ids: ids },
+    respaldo: "Could not save the membership catalog.",
+  });
+}
+
+/**
+ * GET /api/dashboard/courses/ — cursos + avances.
+ *
+ * Best-effort: cualquier fallo devuelve la lista vacía, que el Tablero pinta
+ * como "no tienes cursos". El 402 por membresía es la ÚNICA excepción, y se
+ * reconoce por el BOOLEANO `membership_required` del cuerpo, nunca por su
+ * texto (que ya cambió una vez). Sin esa rama, a quien le falta la membresía se
+ * le diría que no tiene cursos en vez de ofrecerle comprarla.
+ *
+ * Se mantiene la forma de siempre (`courses`, `moodle_linked`) y se le añaden
+ * los campos del 402, así que quien no los mire sigue funcionando igual.
+ */
 export async function getDashboardCourses() {
   const token = getAccessToken();
   if (!token) return { courses: [], moodle_linked: false };
@@ -415,7 +454,23 @@ export async function getDashboardCourses() {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
-    if (!res.ok) return { courses: [], moodle_linked: false };
+    if (!res.ok) {
+      if (res.status === 402) {
+        const data = await _cuerpo(res);
+        if (data.membership_required === true) {
+          return {
+            courses: [],
+            moodle_linked: false,
+            membership_required: true,
+            // El motivo del corte, que el backend manda aquí: puede ser
+            // "plan_ajeno" (hay otra suscripción cobrando) y entonces la
+            // pantalla NO puede decir "paga".
+            estado_suscripcion: data.estado_suscripcion ?? null,
+          };
+        }
+      }
+      return { courses: [], moodle_linked: false };
+    }
     return await res.json();
   } catch {
     return { courses: [], moodle_linked: false };
@@ -450,7 +505,19 @@ export async function startTraining(targetUrl) {
     cache: "no-store",
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || "Training is unavailable right now.");
+  if (!res.ok) {
+    const err = new Error(data.detail || "Training is unavailable right now.");
+    err.status = res.status;
+    // La SEGUNDA puerta del 402 por membresía (la primera es la lista de
+    // cursos). Sin esto, a quien le falta la membresía se le culpaba a Moodle
+    // con "no pudimos iniciar tu sesión", que ni explica ni deja hacer nada. Se
+    // reconoce por el BOOLEANO del cuerpo, nunca por el texto del mensaje.
+    if (res.status === 402 && data.membership_required === true) {
+      err.membershipRequired = true;
+      err.estadoSuscripcion = data.estado_suscripcion ?? null;
+    }
+    throw err;
+  }
   return appendWantsurl(data.loginurl, targetUrl);
 }
 
@@ -646,6 +713,18 @@ function _errorDe(res, data, respaldo) {
   const err = new Error(data.detail || "");
   err.status = res.status;
   err.devMessage = respaldo || `HTTP ${res.status}`;
+
+  // QUINTA forma: el `motivo` con el que el backend separa dos respuestas del
+  // MISMO código. Viaja aparte y en claro porque la pantalla tiene que poder
+  // decir cosas distintas sin mirar el texto: los dos 409 del checkout de la
+  // membresía ("ya la tienes" / "tienes otra suscripción cobrándose") son el
+  // caso que lo motivó, y ese texto ya cambió una vez. Comparar la prosa del
+  // backend es exactamente lo que no puede hacer el cliente.
+  if (typeof data.motivo === "string") err.motivo = data.motivo;
+  // Y las listas de cursos culpables del catálogo de la membresía, para que el
+  // mensaje pueda NOMBRAR el curso en vez de pedir que lo busquen.
+  if (Array.isArray(data.cursos_ocultos)) err.cursosOcultos = data.cursos_ocultos;
+  if (Array.isArray(data.cursos_desconocidos)) err.cursosDesconocidos = data.cursos_desconocidos;
 
   if (data.errors !== undefined) {
     err.errors = data.errors;

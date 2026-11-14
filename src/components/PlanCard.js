@@ -71,9 +71,11 @@ function AutorizarCupos({ estado, enCurso, onAutorizar, t }) {
   const maximo = typeof estado.cupos_extra_maximo === "number" ? estado.cupos_extra_maximo : null;
   const valido = total !== null && total >= necesarios && (maximo === null || total <= maximo);
   // Subir pide autorizar un cobro mayor; bajar o dejar igual no lo aumenta.
-  const claveBoton = total === null || total > facturados
+  const claveBase = total === null || total > facturados
     ? "authorizeSeats"
     : total < facturados ? "lowerSeats" : "keepSeats";
+  // Con UN cupo, singular ("1 cupo extra", no "1 cupos extra").
+  const claveBoton = total === 1 ? `${claveBase}One` : claveBase;
   const unitario = estado.precio_cupo_extra_usd;
 
   return (
@@ -105,7 +107,7 @@ function AutorizarCupos({ estado, enCurso, onAutorizar, t }) {
       />
       {valido && typeof unitario === "number" && (
         <p className={styles.data}>
-          {t("seatsPrice", { count: total, unit: unitario, total: total * unitario })}
+          {t(total === 1 ? "seatsPriceOne" : "seatsPrice", { count: total, unit: unitario, total: total * unitario })}
         </p>
       )}
       <p className={styles.muted}>{t("seatsHint")}</p>
@@ -262,7 +264,8 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
 
       {cupos && (
         <p className={styles.notice} role="status">
-          {t("seatsAuthorized", { count: cupos.cupos_extra })}{" "}
+          {t(cupos.cupos_extra === 1 ? "seatsAuthorizedOne" : "seatsAuthorized",
+             { count: cupos.cupos_extra })}{" "}
           {t("seatsCost", { price: cupos.precio_cupos_usd })}
         </p>
       )}

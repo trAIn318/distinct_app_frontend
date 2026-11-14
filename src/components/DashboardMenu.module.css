@@ -211,3 +211,30 @@
   font-family: var(--font-body);
   font-size: var(--text-sm);
 }
+
+/* El 402 por membresia: hay algo que comprar (o que arreglar), no "no tienes
+   cursos". Tokens unicamente. */
+.membership {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  border-left: 2px solid var(--color-platinum);
+  background: var(--ivory-08);
+  padding: var(--space-4);
+}
+
+/* `--color-platinum`, no `--color-smoke`: smoke da 3.36:1 sobre este fondo y
+   AA pide 4.5 en cuerpo. */
+.membershipText {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-platinum);
+  margin: 0;
+}
+
+/* El CTA es un enlace, no un boton: navega a la pantalla de pagos. */
+.membershipCta {
+  text-decoration: none;
+}

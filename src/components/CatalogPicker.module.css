@@ -1,0 +1,191 @@
+/* CatalogPicker: qué cursos entrega la membresía individual.
+   Tokens únicamente, como su vecina AdminBillingTable.module.css. Dorado:
+   `.btn-primary` (global) es el único elemento dorado de la vista. */
+
+@keyframes panelEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.card {
+  background: var(--color-surface-dark);
+  border: 1px solid var(--ivory-08);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  animation: panelEnter 0.6s var(--ease-luxe) 0.08s both;
+}
+
+@media (min-width: 48rem) {
+  .card {
+    padding: var(--space-8);
+  }
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* `--color-platinum`, no `--color-smoke`: smoke da 3.36:1 sobre este fondo y
+   AA pide 4.5 en cuerpo. */
+.muted {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-platinum);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* DM Mono para cifras y datos técnicos: aquí los ids de curso (claude.md §4). */
+.data {
+  font-family: var(--font-label);
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.block {
+  border-top: 1px solid var(--ivory-08);
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+}
+
+.error {
+  background: var(--color-danger-surface);
+  border-left: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  margin: var(--space-4) 0 0 0;
+}
+
+/* Aviso de lo que ya pasó o del estado actual. No usa el color de peligro: un
+   catálogo vacío es un estado correcto, no un error. */
+.notice {
+  border-left: 2px solid var(--color-platinum);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  color: var(--color-ivory);
+  background: var(--ivory-08);
+  margin: var(--space-4) 0 0 0;
+}
+
+/* Los dos avisos que nombran cursos: un curso incluido que Moodle ya no
+   reporta, y uno que está oculto. Llevan el color de peligro porque cada uno
+   es dinero cobrado por algo que no se entrega. */
+.warning {
+  border-left: 2px solid var(--color-danger);
+  background: var(--color-danger-surface);
+  padding: var(--space-4);
+  margin: var(--space-4) 0 0 0;
+}
+
+.warningTitle {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-danger);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.problemList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.problemItem {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-ivory);
+  padding: var(--space-1) 0;
+}
+
+.courseList {
+  list-style: none;
+  margin: var(--space-5) 0 0 0;
+  padding: 0;
+  border-top: 1px solid var(--ivory-08);
+}
+
+.courseItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--ivory-08);
+}
+
+.checkbox {
+  margin: var(--space-1) 0 0 0;
+  width: var(--space-4);
+  height: var(--space-4);
+  flex: none;
+  accent-color: var(--color-gold);
+}
+
+.checkbox:focus-visible {
+  outline: 2px solid var(--color-ivory);
+  outline-offset: 2px;
+}
+
+/* Etiqueta propia asociada a la casilla, no un placeholder (claude.md §5.5). */
+.courseLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  cursor: pointer;
+}
+
+.courseName {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-ivory);
+}
+
+/* La categoría en Moodle: dato técnico, en DM Mono y en mayúsculas como la
+   reporta Moodle. Es la única señal de que un curso es de un cliente. */
+.category {
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  color: var(--color-platinum);
+}
+
+.flag {
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-danger);
+}
+
+/* Un control deshabilitado queda fuera del mínimo de contraste de WCAG; el
+   token de texto secundario ya lo marca como inerte. */
+.card button:disabled {
+  color: var(--color-smoke);
+  border-color: var(--color-smoke);
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}

@@ -6,10 +6,15 @@
  * Pide `GET /api/pay/mi-estado/` y despacha por el campo `soy`. NUNCA mira el
  * rol del usuario: la autorización es del servidor, y duplicarla aquí
  * serían dos sitios donde equivocarse.
- *   - admin_distinct → la consola de empresas (AdminBillingTable).
+ *   - admin_distinct → la consola de empresas (AdminBillingTable) y el catálogo
+ *                      de la membresía (CatalogPicker). Son dos paneles
+ *                      hermanos y NO uno dentro del otro: si la lista de
+ *                      empresas falla, el catálogo —la única pantalla donde se
+ *                      ve un curso muerto u oculto que ya se está cobrando—
+ *                      tiene que seguir ahí.
  *   - empresa        → el plan de su compañía y sus acciones (PlanCard).
- *   - individuo      → SIN IMPLEMENTAR: pertenece a otro plan (membresías). Dice
- *                      "pronto" y no pinta nada comprable hasta que exista.
+ *   - individuo      → su membresía (MembershipCard). No comparte ni un campo
+ *                      con el panel de empresa: una membresía no tiene cupos.
  *   - nada           → el cuerpo viene mínimo a propósito (solo `soy` y si la
  *                      facturación está activa); no se asume ningún otro campo.
  *
@@ -25,7 +30,9 @@ import { getMiEstadoDePago } from "../../../lib/api";
 import { isAuthenticated } from "../../../lib/session";
 import { useT } from "../../../i18n/client";
 import PlanCard from "../../../components/PlanCard";
+import MembershipCard from "../../../components/MembershipCard";
 import AdminBillingTable from "../../../components/AdminBillingTable";
+import CatalogPicker from "../../../components/CatalogPicker";
 import styles from "./PayClient.module.css";
 
 const RUTA = "/dashboard/pay";
@@ -121,20 +128,32 @@ export default function PayClient({ pago }) {
     );
   }
 
+  // Los dos sujetos que pueden volver de Stripe son la empresa y el individuo;
+  // cada uno con su texto, porque lo que aparecerá es un plan o una membresía.
+  const compra = estado.soy === "empresa" || estado.soy === "individuo";
+
   return (
     <>
-      {estado.soy === "empresa" && <AvisoDePago pago={pago} yaAparecio={!estado.puede_pagar} t={t} />}
+      {compra && (
+        <AvisoDePago
+          pago={pago}
+          yaAparecio={!estado.puede_pagar}
+          claveOk={estado.soy === "individuo" ? "membership.payOk" : "payOk"}
+          t={t}
+        />
+      )}
       <Panel estado={estado} pago={pago} onRefresh={() => cargar({ silencioso: true })} t={t} />
     </>
   );
 }
 
-/** `?pago=ok` NO significa que el plan ya esté activo: el webhook puede no
- *  haber llegado. Por eso el texto dice "recibido", nunca "activo". */
-function AvisoDePago({ pago, yaAparecio, t }) {
-  // Cuando el backend ya no ofrece pagar, el plan apareció: "aparecerá en un
+/** `?pago=ok` NO significa que el plan o la membresía ya estén activos: el
+ *  webhook puede no haber llegado. Por eso el texto dice "recibido", nunca
+ *  "activo". */
+function AvisoDePago({ pago, yaAparecio, claveOk, t }) {
+  // Cuando el backend ya no ofrece pagar, lo comprado apareció: "aparecerá en un
   // momento" sería falso sobre algo que ya está ahí.
-  if (pago === "ok" && !yaAparecio) return <p className={styles.notice} role="status">{t("payOk")}</p>;
+  if (pago === "ok" && !yaAparecio) return <p className={styles.notice} role="status">{t(claveOk)}</p>;
   if (pago === "cancelado") return <p className={styles.notice} role="status">{t("payCancelled")}</p>;
   return null;
 }
@@ -142,18 +161,17 @@ function AvisoDePago({ pago, yaAparecio, t }) {
 function Panel({ estado, pago, onRefresh, t }) {
   switch (estado.soy) {
     case "admin_distinct":
-      return <AdminBillingTable />;
+      // Hermanos, no anidados: ver la cabecera del archivo.
+      return (
+        <>
+          <AdminBillingTable />
+          <CatalogPicker />
+        </>
+      );
     case "empresa":
       return <PlanCard estado={estado} pagoRecibido={pago === "ok"} onRefresh={onRefresh} />;
     case "individuo":
-      // SIN IMPLEMENTAR a propósito: la membresía individual es de otro plan.
-      // No se inventa una interfaz de compra aquí, pero tampoco se deja la
-      // página vacía: quien llega por el menú ve que todavía no hay nada.
-      return (
-        <section className={styles.card}>
-          <p className={styles.muted}>{t("individualSoon")}</p>
-        </section>
-      );
+      return <MembershipCard estado={estado} pagoRecibido={pago === "ok"} onRefresh={onRefresh} />;
     default:
       // "nada" y cualquier valor que esta versión no conozca: nada que comprar.
       return (
