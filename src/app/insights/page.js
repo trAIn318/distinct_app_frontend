@@ -3,7 +3,8 @@ import styles from "./page.module.css";
 import PaperCard from "../../components/PaperCard";
 import { getT } from "../../i18n/server";
 import { getAllCategories, getAllPapers } from "../../lib/insights";
-import { organizationSchema, SITE_URL } from "../../lib/insightsSeo";
+import OrganizationSchema from "../../components/OrganizationSchema";
+import { SITE_URL } from "../../lib/insightsSeo";
 
 const DESCRIPCION =
   "Research and point of view from Distinct Hospitality Solutions on workforce intelligence, training and technology in hospitality.";
@@ -33,10 +34,7 @@ export default async function InsightsHub() {
     <div className={styles.page}>
       {/* Identidad de la empresa para Google. Va en el índice porque es la
           página raíz de la sección (sección 6 de la ficha). */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema()) }}
-      />
+      <OrganizationSchema />
 
       <header className={styles.header}>
         <div className="container">

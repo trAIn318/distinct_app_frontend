@@ -17,6 +17,9 @@ vi.mock("../../lib/config", async (importOriginal) => {
 });
 
 import ContactForm from "../ContactForm";
+import { CONTACT_EMAIL } from "../../lib/config";
+import en from "../../i18n/messages/en.json";
+import es from "../../i18n/messages/es.json";
 
 const AGENDA_REAL = "https://meetings-na2.hubspot.com/ejemplo";
 
@@ -72,5 +75,36 @@ describe("ContactForm — canales de contacto", () => {
     // Y no hereda la clase del enlace de WhatsApp, que es la que lleva el dorado
     // (claude.md: maximo un elemento dorado por pantalla).
     expect(agenda.className).not.toBe(whatsapp.className);
+  });
+});
+
+describe("ContactForm -- el correo de contacto", () => {
+  it("ofrece la direccion escrita, no solo el formulario", () => {
+    // El formulario es un canal de una sola direccion: quien quiere escribir
+    // desde su propio correo (o guardar la direccion, o citarla) necesita
+    // verla. Es tambien el unico canal que queda en pie mientras BOOKING_URL
+    // siga vacia por el dominio de HubSpot que no resuelve.
+    render(<ContactForm />);
+
+    const enlace = screen.getByRole("link", { name: CONTACT_EMAIL });
+    expect(enlace).toHaveAttribute("href", `mailto:${CONTACT_EMAIL}`);
+  });
+
+  it("el mailto NO abre en pestana nueva (dejaria una pestana en blanco)", () => {
+    render(<ContactForm />);
+
+    expect(screen.getByRole("link", { name: CONTACT_EMAIL }))
+      .not.toHaveAttribute("target");
+  });
+});
+
+describe("ContactForm -- el aviso de exito", () => {
+  it("no le dice al visitante que el envio fue simulado", () => {
+    // El formulario envia de verdad desde el 2026-11-06, pero el aviso de
+    // exito se quedo diciendo "(Simulated)" / "(Simulado)": quien escribia
+    // leia, en la misma frase, que su mensaje habia sido enviado y que no.
+    for (const copy of [en.contact.success, es.contact.success]) {
+      expect(copy).not.toMatch(/simulad/i);
+    }
   });
 });

@@ -40,6 +40,21 @@ export const SITE_URL = (
 // bueno probablemente empiece por `meetings-na2.hubspot.com`. Está pedido.
 export const BOOKING_URL = (process.env.NEXT_PUBLIC_BOOKING_URL || "").trim();
 
+// ── Contacto publico ──────────────────────────────────────────
+
+// La direccion que el sitio PUBLICA. Es un dato distinto de `CONTACT_EMAIL` en
+// el backend (distinct/settings_api.py): ese decide a quien le ENTREGA el
+// formulario, este decide que direccion LEEN las personas y las maquinas. Hoy
+// son la misma cuenta y conviene que lo sigan siendo.
+//
+// Tiene que estar publicada, no solo configurada: un asistente de IA, un
+// rastreador o el proceso que reclama el sitio solo pueden citar el correo que
+// encuentran en la pagina y en los datos estructurados. Un destino que vive
+// unicamente en el backend no existe para nadie de afuera.
+export const CONTACT_EMAIL = (
+  process.env.NEXT_PUBLIC_CONTACT_EMAIL || "distinctassistant@traindistinct.com"
+).trim();
+
 // ── Moodle ─────────────────────────────────────────────────────────────────
 
 export const MOODLE_URL =

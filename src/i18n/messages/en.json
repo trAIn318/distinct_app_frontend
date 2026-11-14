@@ -118,6 +118,7 @@
     "sidebar": "Whether you're a hotel operator, investor, or potential partner — we want to hear from you. Distinct moves fast and so do we.",
     "whatsapp": "Message us on WhatsApp →",
     "meeting": "You can also contact us here",
+    "emailUs": "Or email us at",
     "name": "Name",
     "namePlaceholder": "Your Name",
     "email": "Email",
@@ -129,7 +130,7 @@
     "send": "Send",
     "emailRequired": "Email is required.",
     "emailInvalid": "Please enter a valid email address.",
-    "success": "Thank you! Your message has been sent. (Simulated)"
+    "success": "Thank you! Your message has been sent."
   },
   "contactOwners": {
     "chooseTitle": "Which email would you like to write from?",
@@ -147,6 +148,7 @@
     "tagline": "The AI platform built for the people who run hospitality.",
     "privacy": "Privacy Policy",
     "cookies": "Cookie Policy",
+    "contact": "Contact:",
     "location": "Location: Based in Miami, FL. Operating across the USA, Latin America, and Southeast Asia.",
     "response": "Response time: We respond to all inquiries within 24 hours.",
     "copyright": "© 2026 Distinct Luxury Hospitality LLC d/b/a Distinct Hospitality Solutions. All rights reserved."

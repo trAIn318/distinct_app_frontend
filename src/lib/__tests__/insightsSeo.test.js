@@ -12,6 +12,7 @@ import {
   paperUrl,
   SITE_URL,
 } from "../insightsSeo";
+import { CONTACT_EMAIL } from "../config";
 
 const PAPER = {
   slug: "ai-automation-in-hospitality",
@@ -119,6 +120,21 @@ describe("organizationSchema", () => {
     expect(schema.name).toBe("Distinct Hospitality Solutions");
     expect(schema.url).toBe(SITE_URL);
     expect(schema.logo).toMatch(/^https:\/\//);
+  });
+
+  it("publica el correo de contacto de la empresa", () => {
+    // Cambiar a donde ENTREGA el formulario (CONTACT_EMAIL del backend) no
+    // publica nada: para quien lee el sitio de afuera -- un rastreador, un
+    // asistente que responde "cual es su correo", el proceso que reclama el
+    // sitio -- la direccion solo existe si esta en la pagina. Este es el campo
+    // que la declara en terminos que una maquina entiende.
+    const schema = organizationSchema();
+
+    expect(schema.email).toBe(CONTACT_EMAIL);
+    expect(schema.contactPoint).toMatchObject({
+      "@type": "ContactPoint",
+      email: CONTACT_EMAIL,
+    });
   });
 
   it("no inventa redes sociales que nadie nos ha dado", () => {

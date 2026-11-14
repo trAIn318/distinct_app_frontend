@@ -8,7 +8,7 @@
  *
  * Regla que atraviesa todo el archivo: JSON-LD solo acepta URLs ABSOLUTAS.
  */
-import { SITE_URL } from "./config";
+import { CONTACT_EMAIL, SITE_URL } from "./config";
 
 export { SITE_URL };
 
@@ -20,7 +20,14 @@ export function paperUrl(slug) {
 }
 
 /**
- * Identidad de la empresa.
+ * Identidad de la empresa. Ya NO es solo del centro de white papers: la emite
+ * tambien la portada, via el componente `OrganizationSchema`. La definicion
+ * vive aqui porque dos definiciones serian dos identidades.
+ *
+ * `email` y `contactPoint` son la respuesta a "cual es su correo de contacto"
+ * en terminos que una maquina entiende. Sin ellos, cambiar el destino del
+ * formulario en el backend no publica nada: la direccion no aparece en ninguna
+ * parte que alguien de afuera pueda leer.
  *
  * `sameAs` (LinkedIn, Instagram) y la dirección de Miami que pide la sección 8
  * de la ficha NO se incluyen todavía: no los tenemos. Un `sameAs` con un perfil
@@ -34,6 +41,14 @@ export function organizationSchema() {
     name: ORGANIZATION_NAME,
     url: SITE_URL,
     logo: ORGANIZATION_LOGO,
+    email: CONTACT_EMAIL,
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: CONTACT_EMAIL,
+      // El sitio atiende en los dos idiomas en los que esta escrito.
+      availableLanguage: ["en", "es"],
+    },
   };
 }
 

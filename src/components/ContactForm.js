@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useT } from "../i18n/client";
 import { sendContactApi } from "../lib/api";
-import { BOOKING_URL } from "../lib/config";
+import { BOOKING_URL, CONTACT_EMAIL } from "../lib/config";
 import styles from "./ContactForm.module.css";
 
 export default function ContactForm() {
@@ -102,6 +102,20 @@ export default function ContactForm() {
                 {t("meeting")}
               </a>
             )}
+
+            {/* El formulario es un canal de una sola direccion. Quien prefiere
+                escribir desde su propio correo, guardar la direccion o citarla
+                necesita VERLA. Es ademas el unico canal que queda en pie
+                mientras BOOKING_URL siga vacia (el dominio de HubSpot que
+                estuvo fijo aqui no resuelve en DNS). Sin dorado: claude.md
+                permite un solo elemento dorado por pantalla y lo gasta el
+                enlace de WhatsApp. */}
+            <p className={styles.emailChannel}>
+              {t("emailUs")}{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} className={styles.emailLink}>
+                {CONTACT_EMAIL}
+              </a>
+            </p>
           </div>
 
           {/* Form */}

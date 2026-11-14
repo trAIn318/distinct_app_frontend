@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getT } from "../i18n/server";
+import { CONTACT_EMAIL } from "../lib/config";
 import styles from "./Footer.module.css";
 
 /**
@@ -37,6 +38,22 @@ export default async function Footer() {
               <Link href="/cookie-policy" className={`${styles.privacyLink} link-underline`}>
                 {t("cookies")}
               </Link>
+            </p>
+            {/* El correo, en texto y enlazado. El footer es global, asi
+                que esta es la unica linea que publica la direccion en todas
+                las paginas -- incluidas las de /insights, que son las que se
+                escriben para que alguien las encuentre buscando. El texto del
+                enlace es la direccion misma: un "escribenos" enlazado no le
+                dice el correo a nadie, ni a quien lo copia ni a quien lo
+                lee. */}
+            <p className={styles.infoText}>
+              {t("contact")}{" "}
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className={`${styles.privacyLink} link-underline`}
+              >
+                {CONTACT_EMAIL}
+              </a>
             </p>
             <p className={styles.infoText}>{t("location")}</p>
             <p className={styles.infoText}>{t("response")}</p>

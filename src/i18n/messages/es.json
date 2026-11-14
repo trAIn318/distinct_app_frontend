@@ -118,6 +118,7 @@
     "sidebar": "Seas operador hotelero, inversionista o aliado potencial — queremos escucharte. Distinct se mueve rápido, y nosotros también.",
     "whatsapp": "Escríbenos por WhatsApp →",
     "meeting": "También puedes contactarnos aquí",
+    "emailUs": "O escríbenos a",
     "name": "Nombre",
     "namePlaceholder": "Tu Nombre",
     "email": "Correo",
@@ -129,7 +130,7 @@
     "send": "Enviar",
     "emailRequired": "El correo es obligatorio.",
     "emailInvalid": "Ingresa una dirección de correo válida.",
-    "success": "¡Gracias! Tu mensaje ha sido enviado. (Simulado)"
+    "success": "¡Gracias! Tu mensaje ha sido enviado."
   },
   "contactOwners": {
     "chooseTitle": "¿Desde qué correo quieres escribirnos?",
@@ -147,6 +148,7 @@
     "tagline": "La plataforma de IA creada para quienes dirigen la hospitalidad.",
     "privacy": "Política de Privacidad",
     "cookies": "Política de Cookies",
+    "contact": "Contacto:",
     "location": "Ubicación: Con sede en Miami, FL. Operando en EE. UU., Latinoamérica y el Sudeste Asiático.",
     "response": "Tiempo de respuesta: Respondemos todas las consultas en menos de 24 horas.",
     "copyright": "© 2026 Distinct Luxury Hospitality LLC d/b/a Distinct Hospitality Solutions. Todos los derechos reservados."

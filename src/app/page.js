@@ -10,6 +10,7 @@ import HomeTestimonials from "../components/HomeTestimonials";
 import HomePartners from "../components/HomePartners";
 import ScrollRail from "../components/ScrollRail";
 import GoldenThread from "../components/GoldenThread";
+import OrganizationSchema from "../components/OrganizationSchema";
 import { getEnabledHomeSections } from "../lib/homeSections";
 
 // Mapa key→componente. Las keys, el orden canónico y qué secciones se muestran
@@ -32,6 +33,11 @@ export default function Home() {
   const sections = getEnabledHomeSections();
   return (
     <>
+      {/* Quien es la empresa y como escribirle, en la RAIZ del sitio: es la
+          pagina por la que entra cualquiera que lo rastree. Hasta ahora esto
+          solo estaba en /insights, asi que la portada no declaraba ni la
+          identidad ni el correo de contacto. */}
+      <OrganizationSchema />
       <GoldenThread />
       <ScrollRail />
       {sections.map((key) => {

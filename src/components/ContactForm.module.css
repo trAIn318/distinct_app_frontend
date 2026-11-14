@@ -73,6 +73,33 @@
   }
 }
 
+/* Correo de contacto, en su propia linea bajo los otros canales. Mismo peso
+   tipografico que el enlace de agenda: es una frase, no un boton. */
+.emailChannel {
+  margin-top: var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+}
+
+.emailLink {
+  color: var(--color-ivory);
+  text-decoration: underline;
+  text-decoration-color: var(--color-smoke);
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.emailLink:hover {
+  text-decoration-color: var(--color-ivory);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emailLink {
+    transition: none;
+  }
+}
+
 .formContainer {
   flex: 1 1 50%;
   min-width: 300px;
