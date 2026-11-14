@@ -303,6 +303,22 @@ describe("panel de empresa (soy: empresa)", () => {
     expect(document.body.textContent).not.toMatch(/1 extra seats/i);
   });
 
+  it("tras autorizar UN cupo, la confirmacion tambien conjuga", async () => {
+    // Es el estado EXACTO al que lleva el boton singular de arriba: autorizas
+    // un cupo y el panel -- vivo en produccion -- responde "1 extra seats
+    // authorized". El conteo lo manda el backend en la respuesta.
+    autorizarCupos.mockResolvedValue({ cupos_extra: 1, precio_cupos_usd: 4 });
+    await conEstado(viva({
+      miembros: 10, cupos_incluidos: 10, cupos_extra: 0,
+      cupos_extra_necesarios: 0, precio_cupo_extra_usd: 4, puede_autorizar_cupos: true,
+    }));
+
+    fireEvent.click(await screen.findByRole("button", { name: /^authorize 1 extra seat$/i }));
+
+    expect(await screen.findByText(/1 extra seat authorized\. Extra seats cost \$4/i)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/1 extra seats authorized/i);
+  });
+
   it("reducir y mantener tambien conjugan con UN cupo extra", async () => {
     await conEstado(viva({
       miembros: 12, cupos_incluidos: 10, cupos_extra: 3,
@@ -504,8 +520,29 @@ describe("consola (soy: admin_distinct)", () => {
     });
     await conEstado({ soy: "admin_distinct", facturacion_activa: true });
     expect(await screen.findByRole("checkbox", { name: /bartender/i })).toBeTruthy();
-    expect(screen.queryByRole("table")).toBeNull();
     expect(screen.getByRole("button", { name: /save the catalog/i })).toBeTruthy();
+    // Sin estas dos, la prueba pasaria tambien si el panel de empresas hubiera
+    // desaparecido del todo -- que no es aislamiento, es ausencia. Lo que se
+    // fija es que el panel caido SE PINTO Y FALLO, no que no este.
+    expect(getEmpresasDePago).toHaveBeenCalled();
+    expect(await screen.findByRole("button", { name: /retry|try again/i })).toBeTruthy();
+    expect(screen.queryByRole("table")).toBeNull();
+  });
+
+  it("y al contrario: si el catalogo falla, la lista de empresas sigue pintando", async () => {
+    // La otra direccion no estaba cubierta, y el aislamiento no es simetrico
+    // por arte de magia: son dos componentes hermanos con su propio estado.
+    getEmpresasDePago.mockResolvedValue({
+      empresas: [fila()],
+      planes_asignables: ["essential", "performance", "enterprise"],
+    });
+    getCatalogoDeMembresia.mockRejectedValue(new Error("moodle caido"));
+    await conEstado({ soy: "admin_distinct", facturacion_activa: true });
+
+    const tabla = await screen.findByRole("table");
+    expect(within(tabla).getByText("Hotel Sol")).toBeTruthy();
+    expect(getCatalogoDeMembresia).toHaveBeenCalled();
+    expect(screen.queryByRole("checkbox", { name: /bartender/i })).toBeNull();
   });
 
   it("lista las empresas con su columna de que falta", async () => {

@@ -336,3 +336,40 @@ describe("CatalogPicker: una respuesta que no se entiende NO es un catalogo vaci
     expect(screen.queryByRole("button", { name: /retry|try again/i })).toBeNull();
   });
 });
+
+describe("CatalogPicker: el PUT guardo pero su respuesta no se entiende", () => {
+  // Caso aparte del de la carga: aqui el `PUT` ya contesto bien, o sea que
+  // GUARDO. No se puede decir que fallo, pero tampoco se puede pintar la lista
+  // con una respuesta que no se entiende, asi que se le vuelve a preguntar el
+  // estado al servidor. Lo que esta en juego es que la confirmacion sobreviva a
+  // esa relectura: `cargar()` limpia el aviso de guardado -- correcto para una
+  // carga normal -- y por eso la marca tiene que ir DESPUES y solo si la
+  // relectura salio bien.
+  it("confirma el guardado y pinta lo que diga la relectura", async () => {
+    await conCatalogo(vista({ cursos: [curso({ incluido: true })], incluidos: 1 }));
+    guardarCatalogoDeMembresia.mockResolvedValue(undefined);          // ilegible
+    getCatalogoDeMembresia.mockResolvedValue(vista({                   // relectura OK
+      cursos: [curso({ incluido: true }), curso({ moodle_course_id: 20, nombre: "House Keeping" })],
+      incluidos: 1,
+    }));
+
+    fireEvent.click(await screen.findByRole("button", { name: /save the catalog/i }));
+
+    expect(await screen.findByText(/catalog saved/i)).toBeInTheDocument();
+    expect(await screen.findByText(/House Keeping/)).toBeInTheDocument();
+    // No se afirma lo contrario de lo que paso: el guardado NO fallo.
+    expect(screen.queryByText(/could not save/i)).toBeNull();
+  });
+
+  it("si la relectura TAMBIEN falla, no confirma el guardado ni dice que fallo", async () => {
+    await conCatalogo(vista({ cursos: [curso({ incluido: true })], incluidos: 1 }));
+    guardarCatalogoDeMembresia.mockResolvedValue(undefined);
+    getCatalogoDeMembresia.mockRejectedValue(new Error("red caida"));
+
+    fireEvent.click(await screen.findByRole("button", { name: /save the catalog/i }));
+
+    expect(await screen.findByRole("button", { name: /retry|try again/i })).toBeInTheDocument();
+    expect(screen.queryByText(/catalog saved/i)).toBeNull();
+    expect(screen.queryByText(/could not save/i)).toBeNull();
+  });
+});

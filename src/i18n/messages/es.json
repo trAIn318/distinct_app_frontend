@@ -782,6 +782,7 @@
     "keepSeatsOne": "Mantener {count} cupo extra",
     "authorizingSeats": "Autorizando…",
     "seatsAuthorized": "{count} cupos extra autorizados.",
+    "seatsAuthorizedOne": "{count} cupo extra autorizado.",
     "seatsCost": "Los cupos extra cuestan ${price} / mes.",
     "errConflict": "Esta empresa ya tiene un pago en curso o una suscripción activa. Revisa de nuevo en un momento.",
     "errSession": "Tu sesión terminó. Inicia sesión de nuevo.",

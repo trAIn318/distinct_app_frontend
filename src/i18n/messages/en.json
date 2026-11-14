@@ -782,6 +782,7 @@
     "keepSeatsOne": "Keep {count} extra seat",
     "authorizingSeats": "Authorizing…",
     "seatsAuthorized": "{count} extra seats authorized.",
+    "seatsAuthorizedOne": "{count} extra seat authorized.",
     "seatsCost": "Extra seats cost ${price} / month.",
     "errConflict": "This company already has a payment in progress or an active subscription. Check again in a moment.",
     "errSession": "Your session ended. Sign in again.",

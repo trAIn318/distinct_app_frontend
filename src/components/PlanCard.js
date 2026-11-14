@@ -264,7 +264,8 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
 
       {cupos && (
         <p className={styles.notice} role="status">
-          {t("seatsAuthorized", { count: cupos.cupos_extra })}{" "}
+          {t(cupos.cupos_extra === 1 ? "seatsAuthorizedOne" : "seatsAuthorized",
+             { count: cupos.cupos_extra })}{" "}
           {t("seatsCost", { price: cupos.precio_cupos_usd })}
         </p>
       )}

@@ -112,10 +112,13 @@ export default function CatalogPicker() {
     try {
       // Sin cuerpo utilizable no hay nada que afirmar: es un fallo de carga,
       // con su botón de reintentar, no un catálogo vacío.
-      setFase(aplicar(await getCatalogoDeMembresia()) ? FASE.LISTO : FASE.FALLO);
+      const ok = aplicar(await getCatalogoDeMembresia());
+      setFase(ok ? FASE.LISTO : FASE.FALLO);
+      return ok;
     } catch (err) {
       setFalloDeCarga(err);
       setFase(FASE.FALLO);
+      return false;
     }
   }, [aplicar]);
 
@@ -179,11 +182,16 @@ export default function CatalogPicker() {
       // La selección COMPLETA y ordenada, nunca las diferencias.
       const refrescado = aplicar(
         await guardarCatalogoDeMembresia([...marcados].sort((a, b) => a - b)));
-      setGuardado(true);
       // El `PUT` respondió bien: guardó. Si lo que devolvió no se entiende, el
       // guardado NO falló y decir que falló sería tan falso como lo contrario,
-      // así que se vuelve a preguntar el estado real al servidor.
-      if (!refrescado) await cargar();
+      // pero tampoco se puede pintar la lista con una respuesta que no se
+      // entiende: se le vuelve a preguntar el estado real al servidor.
+      //
+      // La confirmación va DESPUÉS de esa relectura, y solo si salió bien:
+      // `cargar()` empieza limpiando el aviso de guardado — correcto para una
+      // carga normal — así que marcarlo antes lo borraba en el mismo lote y
+      // quien guardaba no veía ninguna confirmación.
+      setGuardado(refrescado || await cargar());
     } catch (err) {
       setFalloAlGuardar(err);
     }
