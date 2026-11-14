@@ -466,7 +466,6 @@ export async function getDashboardCourses() {
             // "plan_ajeno" (hay otra suscripción cobrando) y entonces la
             // pantalla NO puede decir "paga".
             estado_suscripcion: data.estado_suscripcion ?? null,
-            desde: data.desde ?? null,
           };
         }
       }

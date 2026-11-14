@@ -43,7 +43,9 @@ describe("getDashboardCourses y el 402 por membresia", () => {
     const datos = await getDashboardCourses();
     expect(datos.membership_required).toBe(true);
     expect(datos.estado_suscripcion).toBe("plan_ajeno");
-    expect(datos.desde).toBe("2026-11-01T00:00:00+00:00");
+    // `desde` llega en el cuerpo pero ninguna pantalla lo usa: no se propaga en
+    // ninguna de las dos puertas, para que las dos formas sigan siendo espejo.
+    expect(datos).not.toHaveProperty("desde");
     expect(datos.courses).toEqual([]);
   });
 
