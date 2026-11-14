@@ -62,6 +62,9 @@ function categoriaDe(t, curso) {
     : curso.categoria;
 }
 
+/** El error que bloquea el guardado, para colgarlo del botón inerte. */
+const ID_ERROR_BLOQUEO = "catalogo-error-bloqueo";
+
 export default function CatalogPicker() {
   const t = useT("pay");
 
@@ -76,14 +79,16 @@ export default function CatalogPicker() {
 
   /** La selección en pantalla nace de lo que el backend dice que está incluido. */
   const aplicar = useCallback((datos) => {
-    const cursos = Array.isArray(datos && datos.cursos) ? datos.cursos : [];
+    // `datos` puede no ser un objeto: se protege el contenedor, no solo un campo.
+    const d = datos && typeof datos === "object" ? datos : {};
+    const cursos = Array.isArray(d.cursos) ? d.cursos : [];
     setVista({
       cursos,
-      incluidos: typeof datos.incluidos === "number" ? datos.incluidos : 0,
-      sinCurso: Array.isArray(datos.incluidos_sin_curso_en_moodle)
-        ? datos.incluidos_sin_curso_en_moodle : [],
-      ocultos: Array.isArray(datos.incluidos_ocultos_en_moodle)
-        ? datos.incluidos_ocultos_en_moodle : [],
+      incluidos: typeof d.incluidos === "number" ? d.incluidos : 0,
+      sinCurso: Array.isArray(d.incluidos_sin_curso_en_moodle)
+        ? d.incluidos_sin_curso_en_moodle : [],
+      ocultos: Array.isArray(d.incluidos_ocultos_en_moodle)
+        ? d.incluidos_ocultos_en_moodle : [],
     });
     setMarcados(cursos.filter((c) => c.incluido).map((c) => c.moodle_course_id));
   }, []);
@@ -148,6 +153,8 @@ export default function CatalogPicker() {
   const ocultosMarcados = vista.cursos.filter(
     (c) => !c.visible && marcados.includes(c.moodle_course_id));
 
+  const cuentaPendiente = marcados.length;
+
   async function guardar() {
     // El guardado se bloquea con un curso oculto marcado: el `PUT` lo
     // rechazaría igual, y es mejor nombrarlo antes que gastar la petición.
@@ -187,9 +194,14 @@ export default function CatalogPicker() {
     <section className={styles.card}>
       <h2 className={styles.cardTitle}>{t("catalog.title")}</h2>
       <p className={styles.muted}>{t("catalog.body")}</p>
-      <p className={styles.data}>{t(vista.incluidos === 1 ? "catalog.includedCountOne" : "catalog.includedCount", { count: vista.incluidos })}</p>
+      {/* El número es el de las casillas (la selección pendiente), que es lo
+          guardado mientras no se toque nada: si no, quien desmarca los 16 cursos seguiría
+          leyendo "16 cursos incluidos" junto a 16 casillas vacías. */}
+      <p className={styles.data}>{t(cuentaPendiente === 1 ? "catalog.includedCountOne" : "catalog.includedCount", { count: cuentaPendiente })}</p>
 
-      {vista.incluidos === 0 && (
+      {/* Con la selección vacía el aviso sale ANTES de guardar, en línea, que
+          es cuando se está decidiendo (sin `confirm()` ni modal). */}
+      {cuentaPendiente === 0 && (
         <p className={styles.notice} role="status">{t("catalog.noneIncluded")}</p>
       )}
 
@@ -249,7 +261,7 @@ export default function CatalogPicker() {
       </ul>
 
       {ocultosMarcados.length > 0 && (
-        <p className={styles.error} role="alert">
+        <p id={ID_ERROR_BLOQUEO} className={styles.error} role="alert">
           {t("catalog.errHidden", {
             courses: nombrar(ocultosMarcados.map((c) => c.moodle_course_id)),
           })}
@@ -262,6 +274,7 @@ export default function CatalogPicker() {
           className="btn-primary"
           onClick={guardar}
           disabled={guardando || ocultosMarcados.length > 0}
+          aria-describedby={ocultosMarcados.length > 0 ? ID_ERROR_BLOQUEO : undefined}
         >
           {guardando ? t("catalog.saving") : t("catalog.save")}
         </button>

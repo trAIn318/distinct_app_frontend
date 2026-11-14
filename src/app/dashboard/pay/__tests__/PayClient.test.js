@@ -465,6 +465,20 @@ describe("consola (soy: admin_distinct)", () => {
     await conEstado({ soy: "admin_distinct", facturacion_activa: true });
   }
 
+  it("si la lista de empresas falla, el catalogo de la membresia sigue pintando (paneles aislados)", async () => {
+    getEmpresasDePago.mockRejectedValue(new Error("red caida"));
+    getCatalogoDeMembresia.mockResolvedValue({
+      cursos: [{ moodle_course_id: 12, nombre: "Bartender", categoria: "BARTENDER", categoria_codigo: null, visible: true, incluido: true }],
+      incluidos: 1,
+      incluidos_sin_curso_en_moodle: [],
+      incluidos_ocultos_en_moodle: [],
+    });
+    await conEstado({ soy: "admin_distinct", facturacion_activa: true });
+    expect(await screen.findByRole("checkbox", { name: /bartender/i })).toBeTruthy();
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.getByRole("button", { name: /save the catalog/i })).toBeTruthy();
+  });
+
   it("lista las empresas con su columna de que falta", async () => {
     await consola([
       fila(),

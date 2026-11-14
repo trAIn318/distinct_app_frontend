@@ -241,4 +241,62 @@ describe("CatalogPicker: la lista de cursos de la membresia", () => {
     expect(await screen.findByRole("alert")).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/catalog saved/i);
   });
+
+  /**
+   * Los numeros no pueden contradecir a las casillas: quien desmarca los 16
+   * cursos no puede seguir leyendo "16 courses included", y la consecuencia
+   * (nadie recibe cursos) se ve ANTES de guardar. Sin `confirm()` ni modal.
+   */
+  it("con la seleccion pendiente distinta de la guardada, el numero sigue a las casillas", async () => {
+    await conCatalogo(vista({
+      cursos: [
+        curso({ incluido: true }),
+        curso({ moodle_course_id: 20, nombre: "House Keeping", incluido: true }),
+      ],
+      incluidos: 2,
+    }));
+    expect(await screen.findByText("2 courses included")).toBeTruthy();
+    fireEvent.click(screen.getByRole("checkbox", { name: /house keeping/i }));
+    expect(screen.getByText("1 course included")).toBeTruthy();
+    expect(screen.queryByText("2 courses included")).toBeNull();
+  });
+
+  it("al desmarcar todo avisa ANTES de guardar que nadie recibira cursos", async () => {
+    const confirmar = vi.spyOn(window, "confirm").mockReturnValue(true);
+    await conCatalogo(vista({ cursos: [curso({ incluido: true })], incluidos: 1 }));
+    expect(await screen.findByText("1 course included")).toBeTruthy();
+    expect(screen.queryByText(/no course is included/i)).toBeNull();
+    fireEvent.click(screen.getByRole("checkbox", { name: /bartender/i }));
+    const aviso = screen.getByText(/no course is included/i);
+    expect(aviso.textContent).toMatch(/already pay/i);
+    expect(screen.getByText("0 courses included")).toBeTruthy();
+    expect(guardarCatalogoDeMembresia).not.toHaveBeenCalled();
+    expect(confirmar).not.toHaveBeenCalled();
+    // Volver a marcarlo quita el aviso.
+    fireEvent.click(screen.getByRole("checkbox", { name: /bartender/i }));
+    expect(screen.queryByText(/no course is included/i)).toBeNull();
+    confirmar.mockRestore();
+  });
+
+  it("el boton bloqueado apunta con aria-describedby al error que lo bloquea", async () => {
+    await conCatalogo(vista({
+      cursos: [curso({ moodle_course_id: 55, nombre: "Room Service", visible: false, incluido: true })],
+      incluidos: 1,
+      incluidos_ocultos_en_moodle: [{ moodle_course_id: 55, nombre: "Room Service" }],
+    }));
+    const guardar = await screen.findByRole("button", { name: /save the catalog/i });
+    expect(guardar).toBeDisabled();
+    expect(guardar).toHaveAccessibleDescription(/publish them in moodle/i);
+    // Sin bloqueo no hay descripcion colgando de un elemento que no existe.
+    fireEvent.click(screen.getByRole("checkbox", { name: /room service/i }));
+    expect(screen.getByRole("button", { name: /save the catalog/i }).getAttribute("aria-describedby")).toBeNull();
+  });
+
+  it("si la respuesta del backend llega vacia no se rompe: pinta el catalogo vacio y lo avisa", async () => {
+    // El contenedor tambien se protege, no solo `cursos`.
+    getCatalogoDeMembresia.mockResolvedValue(undefined);
+    render(<CatalogPicker />);
+    expect(await screen.findByText(/no course is included/i)).toBeTruthy();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+  });
 });
