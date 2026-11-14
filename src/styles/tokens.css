@@ -26,6 +26,25 @@
      tema claro a proposito: un velo oscurece en los dos temas. */
   --scrim:              rgba(10, 10, 10, 0.6);
 
+  /* ── Superficie que NO se invierte, y sus dos textos ───────────────
+     El banner de consentimiento es oscuro en los DOS temas (es una barra
+     flotante sobre la pagina, no una superficie de la pagina). Su fondo estaba
+     escrito a mano y su texto usaba --color-ivory, que SI se invierte: en tema
+     claro el texto quedaba #1B1A17 sobre #0A0A0A. **Medido en el navegador:
+     1.14:1** — el parrafo, el enlace a la politica y el boton "Rechazar" eran
+     ilegibles, y lo unico que se leia era el "Aceptar" dorado (6.03:1, que se
+     salva porque usa --color-on-gold). Un banner de consentimiento donde solo
+     se lee "Aceptar" no es aceptable.
+
+     Es la misma trampa que ya documenta --color-on-gold: cuando el FONDO no se
+     invierte, el texto tampoco puede. Ninguno de estos tres se redefine en
+     [data-theme="light"], a proposito.
+     Medido despues del arreglo: 17.21:1 el texto y 4.19:1 el borde. */
+  --surface-fixed-dark: rgba(10, 10, 10, 0.95);
+  --on-fixed-dark:      #F7F4EF;   /* texto sobre esa superficie */
+  --on-fixed-light:     #0A0A0A;   /* texto sobre un relleno claro encima */
+  --border-on-fixed:    rgba(247, 244, 239, 0.45);  /* bordes sobre ella */
+
   /* Brillo que barre el boton dorado. Marfil y no blanco puro (claude.md 2.1).
      Tampoco se invierte: un brillo sobre dorado es claro en los dos temas. */
   --gloss:              rgba(247, 244, 239, 0.4);
@@ -86,6 +105,13 @@
   --gold-50:  rgba(201, 169, 110, 0.50);
   --ivory-08: rgba(247, 244, 239, 0.08);
   --ivory-15: rgba(247, 244, 239, 0.15);
+  /* Borde del boton fantasma. Estaba escrito a mano en buttons.css, asi que en
+     tema claro quedaba marfil claro sobre superficie clara: **medido 1.03:1**,
+     el boton perdia su contorno y se leia como texto suelto.
+     Se nombra por su PAPEL y no por su alfa (como --ivory-08) a proposito: el
+     alfa tiene que ser distinto en cada tema para pesar lo mismo. WCAG 1.4.11
+     pide 3:1 para el contorno de un control. Medido: 4.19:1 en oscuro. */
+  --border-ghost: rgba(247, 244, 239, 0.45);
 
   /* ── Living Elegance — efectos reactivos (parametrizables) ──────── */
   --duotone-tint:          var(--color-gold);   /* color del overlay duotono */
@@ -132,6 +158,8 @@
   --gold-50:  rgba(168, 137, 90, 0.55);
   --ivory-08: rgba(27, 26, 23, 0.08);
   --ivory-15: rgba(27, 26, 23, 0.15);
+  /* 0.45 daba 2.88:1, justo por debajo del 3:1. Medido con 0.60: ver abajo. */
+  --border-ghost: rgba(27, 26, 23, 0.60);
 
   --shadow-card:       0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-card-hover: 0 20px 48px rgba(0, 0, 0, 0.14), 0 0 0 1px var(--gold-30);
