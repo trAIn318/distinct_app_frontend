@@ -292,6 +292,35 @@ describe("panel de empresa (soy: empresa)", () => {
     await waitFor(() => expect(autorizarCupos).toHaveBeenCalledWith(5));
   });
 
+  // Panel de EMPRESA, vivo en produccion: con 1 cupo el texto no puede decir "1 cupos".
+  it("con UN cupo extra el boton y el precio van en singular", async () => {
+    await conEstado(viva({
+      miembros: 10, cupos_incluidos: 10, cupos_extra: 0,
+      cupos_extra_necesarios: 0, precio_cupo_extra_usd: 4, puede_autorizar_cupos: true,
+    }));
+    expect(await screen.findByRole("button", { name: /^authorize 1 extra seat$/i })).toBeTruthy();
+    expect(screen.getByText(/^1 extra seat at \$4: \$4 \/ month$/i)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/1 extra seats/i);
+  });
+
+  it("reducir y mantener tambien conjugan con UN cupo extra", async () => {
+    await conEstado(viva({
+      miembros: 12, cupos_incluidos: 10, cupos_extra: 3,
+      cupos_extra_necesarios: 0, precio_cupo_extra_usd: 4, puede_autorizar_cupos: true,
+    }));
+    const campo = await screen.findByLabelText(/extra seats you want in total/i);
+    fireEvent.change(campo, { target: { value: "1" } });
+    expect(screen.getByRole("button", { name: /^lower to 1 extra seat$/i })).toBeTruthy();
+    cleanup();
+    await conEstado(viva({
+      miembros: 11, cupos_incluidos: 10, cupos_extra: 1,
+      cupos_extra_necesarios: 0, precio_cupo_extra_usd: 4, puede_autorizar_cupos: true,
+    }));
+    const campo2 = await screen.findByLabelText(/extra seats you want in total/i);
+    fireEvent.change(campo2, { target: { value: "1" } });
+    expect(screen.getByRole("button", { name: /^keep 1 extra seat$/i })).toBeTruthy();
+  });
+
   it("sin cupos extra y al tope, el valor inicial es 1", async () => {
     await conEstado(viva({
       miembros: 10, cupos_incluidos: 10, cupos_extra: 0,
