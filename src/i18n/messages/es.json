@@ -766,7 +766,9 @@
       "past_due": "pago vencido",
       "canceled": "cancelada",
       "unpaid": "sin pagar",
-      "incomplete": "pago sin completar"
+      "incomplete": "pago sin completar",
+      "incomplete_expired": "pago vencido sin completar",
+      "paused": "en pausa"
     },
     "renewsOn": "El periodo actual termina el {date}",
     "manageBilling": "Administrar facturación",
@@ -840,7 +842,7 @@
       "redirecting": "Redirigiendo al pago…",
       "subscriptionTitle": "Tu suscripción",
       "activeTitle": "Tu membresía",
-      "active": "Tu membresía está activa: tienes acceso a los cursos que incluye.",
+      "active": "Tu membresía está activa. Si no ves tus cursos, escríbenos.",
       "otherPlanBody": "La suscripción que se está cobrando a tu nombre no es esta membresía, así que no te da acceso a los cursos. Escríbenos antes de pagar: no queremos cobrarte dos veces.",
       "otherPlanLabel": "Plan que se está cobrando: {plan}",
       "payOk": "Pago recibido. Tu membresía aparecerá en un momento.",

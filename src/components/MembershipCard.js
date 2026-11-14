@@ -203,10 +203,23 @@ export default function MembershipCard({ estado, pagoRecibido = false, onRefresh
             />
           </>
         ) : (
-          <p className={styles.muted}>{t("membership.active")}</p>
+          <>
+            {/* Solo se afirma lo que el sistema sabe: la membresía está activa y
+                el catálogo tiene N cursos. Que la persona los tenga depende de una
+                matrícula en Moodle que esta pantalla no puede ver. */}
+            <p className={styles.muted}>{t("membership.active")}</p>
+            {cursos !== null && (
+              <p className={styles.data}>{t(cursos === 1 ? "membership.coursesIncludedOne" : "membership.coursesIncluded", { count: cursos })}</p>
+            )}
+            <ContactOwnersButton
+              subject={ASUNTO_MEMBRESIA}
+              label={t("membership.contact")}
+              className="btn-ghost"
+            />
+          </>
         )
       )}
-      {ajeno && (
+      {ajeno && !viva && (
         <>
           <p className={styles.muted}>{t("membership.otherPlanBody")}</p>
           {/* El plan REAL de la fila, que es lo que hay que arreglar en Stripe.

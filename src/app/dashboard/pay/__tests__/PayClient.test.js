@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import en from "../../../../i18n/messages/en.json";
+import es from "../../../../i18n/messages/es.json";
 import { render, screen, cleanup, waitFor, fireEvent, within } from "@testing-library/react";
 
 const replace = vi.fn();
@@ -610,10 +612,53 @@ describe("panel del individuo (soy: individuo)", () => {
   it("membresia viva sin el dato del catalogo no afirma que este vacio", async () => {
     await conEstado(individuo({
       plan_code: "membership", estado_suscripcion: "active", membresia_viva: true,
-      puede_pagar: false, tiene_portal: true, cursos_en_el_catalogo: undefined,
+      puede_pagar: false, tiene_portal: true, cursos_en_el_catalogo: null,
     }));
-    expect(await screen.findByText(/your membership is active: you have access/i)).toBeTruthy();
+    expect(await screen.findByText(/your membership is active\./i)).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/does not include any course/i);
+    expect(document.body.textContent).not.toMatch(/courses? included/i);
+  });
+
+  /**
+   * Con la membresia viva y el catalogo lleno, lo unico que el sistema SABE es que
+   * esta activa y cuantos cursos incluye. Que la persona tenga acceso depende de
+   * una matricula en Moodle que esta pantalla no puede ver (alguien sin cuenta de
+   * Moodle paga, queda "viva" y no recibe nada): no se afirma, y se le dice a
+   * donde escribir.
+   */
+  it("membresia viva con cursos no afirma acceso: dice cuantos incluye y ofrece escribir", async () => {
+    await conEstado(individuo({
+      plan_code: "membership", estado_suscripcion: "active", membresia_viva: true,
+      puede_pagar: false, tiene_portal: true, cursos_en_el_catalogo: 16,
+    }));
+    expect(await screen.findByText(/your membership is active\./i)).toBeTruthy();
+    expect(screen.getByText("16 courses included")).toBeTruthy();
+    expect(screen.getByText(/if you do not see your courses/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /write to us/i })).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/you have access|have access to/i);
+  });
+
+  it("si llegaran viva y ajena a la vez, solo se pinta una frase (falla cerrado)", async () => {
+    await conEstado(individuo({
+      plan_code: "essential", estado_suscripcion: "active", membresia_viva: true,
+      plan_ajeno: true, puede_pagar: false, tiene_portal: true, cursos_en_el_catalogo: 16,
+    }));
+    expect(await screen.findByText(/your membership is active/i)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/not this membership/i);
+  });
+
+  it("un estado de Stripe sin traduccion no se pinta crudo: incomplete_expired", async () => {
+    await conEstado(individuo({ estado_suscripcion: "incomplete_expired", puede_pagar: true }));
+    expect(await screen.findByText(/status: checkout expired/i)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/incomplete_expired/);
+  });
+
+  it("pay.statuses traduce incomplete_expired y paused en los dos idiomas", () => {
+    for (const idioma of [en, es]) {
+      for (const estado of ["incomplete_expired", "paused"]) {
+        expect(typeof idioma.pay.statuses[estado]).toBe("string");
+      }
+    }
   });
 
   it("con un solo curso incluido dice '1 course included', no '1 courses'", async () => {
