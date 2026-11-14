@@ -77,7 +77,13 @@ export default function NavDrawer({
         aria-modal="true"
         aria-label={label}
         aria-hidden={!open}
-        {...(!open ? { inert: "" } : {})}
+        // Booleano, NO la cadena vacía del HTML plano: React 19 trata `inert`
+        // como booleano, y con `inert=""` avisaba por consola y NO aplicaba el
+        // atributo — así que el panel cerrado nunca quedó inerte y se podía
+        // tabular hacia dentro de algo invisible. `aria-hidden` lo esconde del
+        // lector de pantalla; sacarlo del recorrido con Tab lo hace `inert`, y
+        // solo él.
+        inert={!open}
       >
         <div className={styles.panelHeader}>
           <div className={styles.panelHeaderLeft}>
