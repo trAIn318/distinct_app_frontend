@@ -77,20 +77,31 @@ export default function CatalogPicker() {
   const [guardado, setGuardado] = useState(false);
   const [falloAlGuardar, setFalloAlGuardar] = useState(null);
 
-  /** La selección en pantalla nace de lo que el backend dice que está incluido. */
+  /** La selección en pantalla nace de lo que el backend dice que está incluido.
+   *
+   *  Devuelve `false` si la respuesta no se entiende, y entonces NO pinta nada:
+   *  protegerse de un cuerpo inesperado no es coaccionarlo a `{cursos: [],
+   *  incluidos: 0}`, porque eso lo vuelve indistinguible de un catálogo de
+   *  verdad vacío — y el catálogo vacío tiene su propio aviso, que afirma que
+   *  quien ya paga no recibe cursos. "No se sabe" y "no hay ninguno" son dos
+   *  cosas distintas, igual que `null` y `0` en la tarjeta de la persona.
+   *  Cada llamador decide qué hacer con el `false`. */
   const aplicar = useCallback((datos) => {
-    // `datos` puede no ser un objeto: se protege el contenedor, no solo un campo.
-    const d = datos && typeof datos === "object" ? datos : {};
-    const cursos = Array.isArray(d.cursos) ? d.cursos : [];
+    const d = datos && typeof datos === "object" ? datos : null;
+    // El contrato mínimo para poder afirmar algo: la lista y su cuenta.
+    if (!d || !Array.isArray(d.cursos) || typeof d.incluidos !== "number") {
+      return false;
+    }
     setVista({
-      cursos,
-      incluidos: typeof d.incluidos === "number" ? d.incluidos : 0,
+      cursos: d.cursos,
+      incluidos: d.incluidos,
       sinCurso: Array.isArray(d.incluidos_sin_curso_en_moodle)
         ? d.incluidos_sin_curso_en_moodle : [],
       ocultos: Array.isArray(d.incluidos_ocultos_en_moodle)
         ? d.incluidos_ocultos_en_moodle : [],
     });
-    setMarcados(cursos.filter((c) => c.incluido).map((c) => c.moodle_course_id));
+    setMarcados(d.cursos.filter((c) => c.incluido).map((c) => c.moodle_course_id));
+    return true;
   }, []);
 
   const cargar = useCallback(async () => {
@@ -99,8 +110,9 @@ export default function CatalogPicker() {
     setGuardado(false);
     setFalloAlGuardar(null);
     try {
-      aplicar(await getCatalogoDeMembresia());
-      setFase(FASE.LISTO);
+      // Sin cuerpo utilizable no hay nada que afirmar: es un fallo de carga,
+      // con su botón de reintentar, no un catálogo vacío.
+      setFase(aplicar(await getCatalogoDeMembresia()) ? FASE.LISTO : FASE.FALLO);
     } catch (err) {
       setFalloDeCarga(err);
       setFase(FASE.FALLO);
@@ -165,8 +177,13 @@ export default function CatalogPicker() {
     setFalloAlGuardar(null);
     try {
       // La selección COMPLETA y ordenada, nunca las diferencias.
-      aplicar(await guardarCatalogoDeMembresia([...marcados].sort((a, b) => a - b)));
+      const refrescado = aplicar(
+        await guardarCatalogoDeMembresia([...marcados].sort((a, b) => a - b)));
       setGuardado(true);
+      // El `PUT` respondió bien: guardó. Si lo que devolvió no se entiende, el
+      // guardado NO falló y decir que falló sería tan falso como lo contrario,
+      // así que se vuelve a preguntar el estado real al servidor.
+      if (!refrescado) await cargar();
     } catch (err) {
       setFalloAlGuardar(err);
     }

@@ -292,11 +292,47 @@ describe("CatalogPicker: la lista de cursos de la membresia", () => {
     expect(screen.getByRole("button", { name: /save the catalog/i }).getAttribute("aria-describedby")).toBeNull();
   });
 
-  it("si la respuesta del backend llega vacia no se rompe: pinta el catalogo vacio y lo avisa", async () => {
-    // El contenedor tambien se protege, no solo `cursos`.
+  it("si la respuesta del backend llega vacia no se rompe NI afirma que no hay cursos", async () => {
+    // El contenedor se protege, no solo `cursos` -- pero protegerlo no es
+    // coaccionarlo: una respuesta sin cursos no es un catalogo vacio. Ver el
+    // bloque "una respuesta que no se entiende NO es un catalogo vacio".
     getCatalogoDeMembresia.mockResolvedValue(undefined);
     render(<CatalogPicker />);
-    expect(await screen.findByText(/no course is included/i)).toBeTruthy();
+    expect(await screen.findByRole("button", { name: /retry|try again/i })).toBeTruthy();
+    expect(screen.queryByText(/no course is included/i)).toBeNull();
     expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+});
+
+describe("CatalogPicker: una respuesta que no se entiende NO es un catalogo vacio", () => {
+  // "Vacio" y "no se sabe" son dos cosas distintas, y confundirlas aqui le
+  // afirma a quien administra que la membresia no entrega nada -- con su aviso
+  // de que "quienes ya pagan no reciben cursos" -- cuando en realidad no se
+  // pudo leer el catalogo. Es el mismo defecto que se corrigio en la tarjeta de
+  // la persona con la distincion `null` / `0`, y se colo aqui al proteger el
+  // contenedor: coaccionar la respuesta a `{cursos: [], incluidos: 0}` la
+  // vuelve indistinguible de un catalogo de verdad vacio.
+  it.each([
+    ["un objeto sin cursos", {}],
+    ["null", null],
+    ["una cadena", "vacio"],
+    ["cursos que no es lista", { cursos: "ninguno", incluidos: 0 }],
+    ["incluidos que no es numero", { cursos: [], incluidos: null }],
+  ])("%s cae al fallo de carga, no a catalogo vacio", async (_nombre, respuesta) => {
+    await conCatalogo(respuesta);
+
+    expect(await screen.findByRole("button", { name: /retry|try again/i }))
+      .toBeInTheDocument();
+    expect(screen.queryByText(/receive no courses|not on sale/i)).toBeNull();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+
+  it("un catalogo de verdad vacio SI se pinta, con sus casillas", async () => {
+    // El control de la prueba anterior: sin esto, hacer fallar todo lo que no
+    // trae cursos marcados tambien pasaria.
+    await conCatalogo(vista({ cursos: [curso()], incluidos: 0 }));
+
+    expect(await screen.findByRole("checkbox")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /retry|try again/i })).toBeNull();
   });
 });
