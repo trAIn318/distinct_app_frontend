@@ -19,8 +19,19 @@ export const API_URL =
 // los datos estructurados JSON-LD, que EXIGEN URLs absolutas: una ruta
 // relativa ahí se ignora en silencio y el resultado enriquecido no aparece.
 // Sin barra final — las rutas se concatenan empezando por "/".
+// CON `www`, y no es un detalle de gusto. Medido contra Vercel el 2026-11-14:
+// el dominio sin `www` está configurado como REDIRECCIÓN 308 hacia
+// `www.distincthospitalitysolutions.com`, o sea que el host canónico es `www`.
+// Mientras esto decía el ápice, el sitio se contradecía sobre su propia
+// dirección: el sitemap listaba URLs que redirigen, el `robots.txt` apuntaba el
+// sitemap al host que redirige, y el JSON-LD de identidad declaraba
+// `"url": "<ápice>"` en páginas servidas desde `www`. Funciona —los rastreadores
+// siguen redirecciones— pero es justo la ambigüedad que debilita un proceso de
+// "reclamar este sitio", que es para lo que se publicó el correo de contacto.
+// Si algún día se decide servir el ápice y redirigir `www`, hay que cambiar las
+// dos cosas a la vez: esto y la configuración de dominios en Vercel.
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://distincthospitalitysolutions.com"
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.distincthospitalitysolutions.com"
 ).replace(/\/+$/, "");
 
 // ── Agendar una reunión (calendario de HubSpot) ────────────────────────────

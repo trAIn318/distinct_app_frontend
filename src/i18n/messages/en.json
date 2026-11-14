@@ -744,6 +744,7 @@
     "payCancelled": "The payment was cancelled. You can try again whenever you are ready.",
     "checkAgain": "Check again",
     "nothingToBuy": "There is nothing to purchase from this account.",
+    "panelCrashed": "This panel could not be shown. Reload the page.",
     "billingOff": "Payments are not enabled yet.",
     "planTitle": "Your plan",
     "noPlanTitle": "No plan assigned yet",

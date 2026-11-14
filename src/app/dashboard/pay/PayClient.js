@@ -31,6 +31,7 @@ import { isAuthenticated } from "../../../lib/session";
 import { useT } from "../../../i18n/client";
 import PlanCard from "../../../components/PlanCard";
 import MembershipCard from "../../../components/MembershipCard";
+import PanelBoundary from "../../../components/PanelBoundary";
 import AdminBillingTable from "../../../components/AdminBillingTable";
 import CatalogPicker from "../../../components/CatalogPicker";
 import styles from "./PayClient.module.css";
@@ -158,14 +159,30 @@ function AvisoDePago({ pago, yaAparecio, claveOk, t }) {
   return null;
 }
 
+/** Lo que queda en el sitio de un panel que revento al pintarse. Dice que fue
+ *  de ESE panel y no de la pantalla, para que el hermano no parezca sospechoso. */
+function AvisoDePanelCaido({ t }) {
+  return (
+    <section className={styles.card}>
+      <p className={styles.error} role="alert">{t("panelCrashed")}</p>
+    </section>
+  );
+}
+
 function Panel({ estado, pago, onRefresh, t }) {
   switch (estado.soy) {
     case "admin_distinct":
-      // Hermanos, no anidados: ver la cabecera del archivo.
+      // Hermanos, no anidados: ver la cabecera del archivo. Y cada uno en su
+      // limite de error, porque ser hermanos solo aisla los fallos de RED: una
+      // excepcion de render tumba el arbol entero y se perderian los dos.
       return (
         <>
-          <AdminBillingTable />
-          <CatalogPicker />
+          <PanelBoundary fallback={<AvisoDePanelCaido t={t} />}>
+            <AdminBillingTable />
+          </PanelBoundary>
+          <PanelBoundary fallback={<AvisoDePanelCaido t={t} />}>
+            <CatalogPicker />
+          </PanelBoundary>
         </>
       );
     case "empresa":

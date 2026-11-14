@@ -744,6 +744,7 @@
     "payCancelled": "El pago se canceló. Puedes intentarlo de nuevo cuando quieras.",
     "checkAgain": "Revisar de nuevo",
     "nothingToBuy": "No hay nada que comprar desde esta cuenta.",
+    "panelCrashed": "Este panel no se pudo mostrar. Recarga la página.",
     "billingOff": "Los pagos todavía no están habilitados.",
     "planTitle": "Tu plan",
     "noPlanTitle": "Aún no tienes un plan asignado",
