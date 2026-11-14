@@ -188,7 +188,24 @@ export default function MembershipCard({ estado, pagoRecibido = false, onRefresh
           Una fila muerta (cancelada, impaga) no es ninguno de los dos: ahí el
           estado de arriba es todo lo que se puede afirmar, y debajo va la
           oferta de volver a contratar. */}
-      {viva && <p className={styles.muted}>{t("membership.active")}</p>}
+      {viva && (
+        // Viva Y sin cursos: se cobra y no se entrega nada. El backend no corta
+        // el acceso con el catálogo vacío a propósito, así que este estado
+        // existe en producción y "tienes acceso a los cursos" sería falso. No se
+        // dice que el cobro se detuvo, porque no se detuvo: se manda a escribir.
+        sinCatalogo ? (
+          <>
+            <p className={styles.muted}>{t("membership.activeEmpty")}</p>
+            <ContactOwnersButton
+              subject={ASUNTO_MEMBRESIA}
+              label={t("membership.contact")}
+              className="btn-ghost"
+            />
+          </>
+        ) : (
+          <p className={styles.muted}>{t("membership.active")}</p>
+        )
+      )}
       {ajeno && (
         <>
           <p className={styles.muted}>{t("membership.otherPlanBody")}</p>
@@ -222,7 +239,7 @@ export default function MembershipCard({ estado, pagoRecibido = false, onRefresh
                 <p className={styles.data}>{t("pricePerMonth", { price: estado.precio_mensual_usd })}</p>
               )}
               {cursos !== null && (
-                <p className={styles.data}>{t("membership.coursesIncluded", { count: cursos })}</p>
+                <p className={styles.data}>{t(cursos === 1 ? "membership.coursesIncludedOne" : "membership.coursesIncluded", { count: cursos })}</p>
               )}
               {!hayPrecio && (
                 <>

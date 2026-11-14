@@ -187,7 +187,7 @@ export default function CatalogPicker() {
     <section className={styles.card}>
       <h2 className={styles.cardTitle}>{t("catalog.title")}</h2>
       <p className={styles.muted}>{t("catalog.body")}</p>
-      <p className={styles.data}>{t("catalog.includedCount", { count: vista.incluidos })}</p>
+      <p className={styles.data}>{t(vista.incluidos === 1 ? "catalog.includedCountOne" : "catalog.includedCount", { count: vista.incluidos })}</p>
 
       {vista.incluidos === 0 && (
         <p className={styles.notice} role="status">{t("catalog.noneIncluded")}</p>

@@ -140,6 +140,47 @@ describe("CatalogPicker: la lista de cursos de la membresia", () => {
     expect(within(aviso).getByText("77")).toBeTruthy();
   });
 
+  it("con un solo curso incluido dice '1 course included', no '1 courses'", async () => {
+    await conCatalogo(vista({ cursos: [curso({ incluido: true })], incluidos: 1 }));
+    expect(await screen.findByText("1 course included")).toBeTruthy();
+  });
+
+  it("el aviso de catalogo vacio dice tambien que quien ya paga no recibe cursos", async () => {
+    await conCatalogo(vista({ incluidos: 0 }));
+    const aviso = await screen.findByText(/no course is included/i);
+    expect(aviso.textContent).toMatch(/not on sale/i);
+    expect(aviso.textContent).toMatch(/already pay/i);
+  });
+
+  it("el aviso de cursos que Moodle ya no reporta dice que se quitan al guardar, no que se desmarquen", async () => {
+    await conCatalogo(vista({
+      incluidos: 2,
+      incluidos_sin_curso_en_moodle: [{ moodle_course_id: 77, nombre: "Mucura House Keeping" }],
+    }));
+    const aviso = (await screen.findByText(/no longer reports/i)).closest("section");
+    expect(aviso.textContent).toMatch(/removed from the catalog when you save/i);
+    // Ya no promete una accion que no existe: esas filas no tienen casilla.
+    expect(aviso.textContent).not.toMatch(/uncheck/i);
+    expect(within(aviso).queryByRole("checkbox")).toBeNull();
+  });
+
+  it("al guardar con un curso muerto, el PUT lleva solo los ids que Moodle reporta: el muerto se cae", async () => {
+    // Es el comportamiento correcto (un curso que Moodle ya no reporta tiene que
+    // salir del catalogo, o la matricula entera falla), y lo que se fija aqui es
+    // exactamente que ids viajan.
+    const vivos = [curso({ incluido: true }), curso({ moodle_course_id: 20, nombre: "House Keeping", incluido: true })];
+    guardarCatalogoDeMembresia.mockResolvedValue(vista({ cursos: vivos, incluidos: 2 }));
+    await conCatalogo(vista({
+      cursos: vivos,
+      incluidos: 3,
+      incluidos_sin_curso_en_moodle: [{ moodle_course_id: 77, nombre: "Mucura House Keeping" }],
+    }));
+    fireEvent.click(await screen.findByRole("button", { name: /save the catalog/i }));
+    await waitFor(() => expect(guardarCatalogoDeMembresia).toHaveBeenCalledTimes(1));
+    expect(guardarCatalogoDeMembresia).toHaveBeenCalledWith([12, 20]);
+    expect(guardarCatalogoDeMembresia.mock.calls[0][0]).not.toContain(77);
+  });
+
   it("nombra los cursos incluidos que en Moodle estan ocultos", async () => {
     await conCatalogo(vista({
       cursos: [curso({ moodle_course_id: 55, nombre: "Room Service", visible: false, incluido: true })],

@@ -591,6 +591,36 @@ describe("panel del individuo (soy: individuo)", () => {
     expect(document.body.textContent).not.toMatch(/not this membership/i);
   });
 
+  it("membresia viva con el catalogo vacio NO dice que tiene acceso: avisa que no hay cursos y que escriba", async () => {
+    // Dinero cobrado por nada: el backend no corta el acceso con el catalogo
+    // vacio a proposito, asi que este estado existe en produccion. La pantalla
+    // tiene que decirlo, y NO puede decir que el cobro se detuvo (no se detuvo).
+    await conEstado(individuo({
+      plan_code: "membership", estado_suscripcion: "active", membresia_viva: true,
+      puede_pagar: false, tiene_portal: true, cursos_en_el_catalogo: 0,
+    }));
+    expect(await screen.findByText(/membership is active, but it does not include any course right now/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /write to us/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /manage billing/i })).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/you have access to the courses/i);
+    expect(document.body.textContent).not.toMatch(/stopped|no longer (be )?charg|not be charged/i);
+    expect(screen.queryByRole("button", { name: /get the membership/i })).toBeNull();
+  });
+
+  it("membresia viva sin el dato del catalogo no afirma que este vacio", async () => {
+    await conEstado(individuo({
+      plan_code: "membership", estado_suscripcion: "active", membresia_viva: true,
+      puede_pagar: false, tiene_portal: true, cursos_en_el_catalogo: undefined,
+    }));
+    expect(await screen.findByText(/your membership is active: you have access/i)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/does not include any course/i);
+  });
+
+  it("con un solo curso incluido dice '1 course included', no '1 courses'", async () => {
+    await conEstado(individuo({ cursos_en_el_catalogo: 1 }));
+    expect(await screen.findByText("1 course included")).toBeTruthy();
+  });
+
   /**
    * El caso medido de la revision del backend: una suscripcion VIVA que no es
    * esta membresia (creada a mano en Stripe con otro precio) llega con
