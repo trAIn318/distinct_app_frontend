@@ -932,6 +932,79 @@ export async function commitMembersImport(file) {
   return _apiUpload("/company-admin/import/", file, "Could not import the file.");
 }
 
+// ── Formación: cubrir cursos a varias personas ─────────────────────────────
+//
+// Los fallos se distinguen por ESTADO HTTP y por la FORMA del cuerpo, nunca por
+// el texto. Y el texto del servidor NO viaja en el Error: el 503 lo dice con el
+// nombre del proveedor de cursos y el jefe no sabe qué es. Lo que se pinta lo
+// decide la pantalla con su propia copia, a partir de `error.kind`.
+
+/** Estado HTTP → `kind`. */
+function _kindFormacion(status) {
+  if (status === 503) return "sin_lectura"; // no se pudo hablar con el proveedor de cursos
+  if (status === 400) return "pedido";
+  if (status === 401) return "sesion";
+  if (status === 403) return "permiso";
+  return "generico";
+}
+
+async function _apiFormacion(path, opciones, formaValida) {
+  // Sin sesión no hay petición que valga: el error lo dice por su `kind`.
+  if (!getAccessToken()) {
+    const sinSesion = new Error("");
+    sinSesion.kind = "sesion";
+    throw sinSesion;
+  }
+  let datos;
+  try {
+    datos = await _apiAuth(path, opciones);
+  } catch (err) {
+    const e = new Error("");
+    e.devMessage = err && err.devMessage;
+    if (err && typeof err.status === "number") {
+      e.status = err.status;
+      e.kind = _kindFormacion(err.status);
+    } else {
+      e.kind = "red"; // fetch rechazó: no llegó respuesta
+    }
+    throw e;
+  }
+  // `_cuerpo` devuelve `{}` ante un cuerpo que no es JSON (un 200 del proxy de
+  // Render dormido). Un `{}` no es "cero filas": es que no se entendió.
+  if (!formaValida(datos)) {
+    const e = new Error("");
+    e.kind = "ilegible";
+    throw e;
+  }
+  return datos;
+}
+
+const _tieneFilas = (d) => Boolean(d) && Array.isArray(d.filas);
+
+/** GET /api/company-admin/training/catalog/ → {secciones: [...], avisos: int}.
+ *  `avisos` es solo un número: el backend no detalla los desajustes. */
+export async function getCatalogoDeFormacion() {
+  return _apiFormacion("/company-admin/training/catalog/", {},
+    (d) => Boolean(d) && Array.isArray(d.secciones)
+      && typeof d.avisos === "number" && Number.isFinite(d.avisos));
+}
+
+/** POST /api/company-admin/training/cover/ → {filas: [{usr_id, email, resultado, detalle}]}.
+ *  Un lote parcial responde 200: las que entraron, entraron. */
+export async function cubrirCurso(courseId, usrIds) {
+  return _apiFormacion("/company-admin/training/cover/", {
+    method: "POST", body: { course_id: courseId, usr_ids: usrIds },
+  }, _tieneFilas);
+}
+
+/** POST /api/company-admin/training/uncover/ — SUSPENDE la matrícula; su
+ *  vocabulario de resultados es otro: uncovered / not_covered / enrol_failed. */
+export async function dejarDeCubrirCurso(courseId, usrIds) {
+  return _apiFormacion("/company-admin/training/uncover/", {
+    method: "POST", body: { course_id: courseId, usr_ids: usrIds },
+  }, _tieneFilas);
+}
+
 /**
  * POST /api/contact/ — el formulario de contacto del sitio público.
  *
