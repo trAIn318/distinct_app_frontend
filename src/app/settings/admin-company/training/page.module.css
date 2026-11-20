@@ -7,15 +7,13 @@
    solo se pinta en modo "cubrir". Dejar de cubrir, su confirmación, reintentar
    y paginar son fantasma, así que en ningún estado hay dos dorados.
 
-   CONTRASTES (mismas parejas que la pantalla de al lado, ya medidas en ambos
-   temas): marfil y platino sobre la tarjeta, y el color de peligro sobre su
-   superficie. `--color-smoke` NO se usa para texto de cuerpo (3.36 sobre este
-   fondo, y AA pide 4.5): solo aparece en controles apagados, que WCAG deja fuera
-   del mínimo.
-
-   HEREDADO Y NO ARREGLADO AQUÍ: `.card` usa `--color-surface-dark`, que en
-   `[data-theme=light]` vale #FFFFFF; es una línea de `tokens.css` que afecta a
-   todo el repositorio y está diferida al usuario. */
+   CONTRASTES: el texto de cuerpo es marfil o platino sobre `.card`, que usa
+   `--color-surface-dark`; en tema claro ese token vale #FDFCFA (no blanco
+   puro) y en oscuro #111111. Medido en la revisión de la ronda 1, platino sobre
+   la tarjeta da ~9,5:1 en tema claro, y el color de peligro sobre su superficie
+   ~5,7:1; ambos pasan los 4,5:1 de AA. El tema claro cuenta: esta pantalla no
+   tiene un caso como el del banner de cookies, donde solo se podía leer un
+   botón. */
 
 .page {
   background: var(--color-obsidian);
@@ -247,9 +245,34 @@
   border-bottom: 1px solid var(--ivory-08);
 }
 
+/* En móvil la casilla ocupa las tres filas de la izquierda y nombre, correo y
+   estado van SIEMPRE en la columna 2. Sin esto la autocolocación de la
+   cuadrícula mete el correo en la columna de la casilla, y esa pista crece con
+   el correo y estrecha el nombre. */
+.persona input {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+}
+
+.persona .nombre,
+.persona .correo,
+.persona .estado {
+  grid-column: 2;
+}
+
 @media (min-width: 48rem) {
   .persona {
     grid-template-columns: auto 1fr 1fr auto;
+  }
+
+  .persona input {
+    grid-row: auto;
+  }
+
+  .persona .nombre,
+  .persona .correo,
+  .persona .estado {
+    grid-column: auto;
   }
 }
 
@@ -268,18 +291,11 @@
 }
 
 .estado {
-  grid-column: 2;
   font-family: var(--font-label);
   font-size: var(--text-xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-platinum);
-}
-
-@media (min-width: 48rem) {
-  .estado {
-    grid-column: auto;
-  }
 }
 
 .pager {
@@ -333,6 +349,44 @@
   font-size: var(--text-base);
   line-height: 1.618;
   color: var(--color-ivory);
+}
+
+/* CONTROLES APAGADOS. Los botones globales siguen levantándose y brillando en
+   :hover aunque estén deshabilitados (el dorado con 0 marcados parecía vivo), así
+   que aquí se les quita el hover y se atenúan. Solo dentro de esta pantalla: las
+   pantallas hermanas no se tocan. El texto de un control apagado queda fuera del
+   mínimo de contraste de WCAG. */
+.wrapper button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wrapper button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+  letter-spacing: 0.1em;
+}
+
+.wrapper button:disabled:hover::before {
+  left: -130%;
+}
+
+.wrapper :global(.btn-primary):disabled:hover {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-on-gold);
+}
+
+.wrapper :global(.btn-ghost):disabled:hover {
+  background: transparent;
+  color: var(--color-ivory);
+  border-color: var(--border-ghost);
+}
+
+.wrapper input:disabled,
+.wrapper select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .link {
