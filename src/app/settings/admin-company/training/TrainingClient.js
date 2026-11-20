@@ -310,7 +310,6 @@ export default function TrainingClient() {
   // Al abrir la confirmación el foco pasa a ella: quien usa teclado o lector de
   // pantalla no se queda en un botón que ya no es lo importante.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- (no es estado) enfoque tras mostrar el diálogo
     if (confirmando && dialogoRef.current) dialogoRef.current.focus();
   }, [confirmando]);
 
