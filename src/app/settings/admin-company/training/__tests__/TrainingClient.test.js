@@ -49,8 +49,13 @@ function personas(desde, n, total) {
 
 const fila = (usr_id, resultado, detalle = null) => ({ usr_id, email: `p${usr_id}@x.com`, resultado, detalle });
 
+// La frase REAL que el backend manda en su 503. Si la pantalla alguna vez pinta
+// el texto del servidor en vez de su propia copia, esta frase sale en pantalla
+// y las pruebas se ponen rojas.
+const FRASE_DEL_SERVIDOR = "No se pudo consultar a Moodle en este momento. Intente de nuevo en unos minutos.";
+
 function error(kind, status) {
-  const e = new Error("");
+  const e = new Error(FRASE_DEL_SERVIDOR);
   e.kind = kind;
   if (status) e.status = status;
   return e;
@@ -187,7 +192,16 @@ describe("el resultado es una fila por persona, no un total", () => {
 
 describe("tandas de 10 con avance", () => {
   it("25 personas salen en tandas de 10, 10 y 5, y el avance se muestra", async () => {
-    cubrirCurso.mockImplementation(async (_c, ids) => ({ filas: ids.map((i) => fila(i, "covered")) }));
+    // La 2a tanda se queda en vuelo para poder LEER el avance: si {i, n} se
+    // cruzaran saldria "batch 3 of 2".
+    let soltarSegunda;
+    cubrirCurso.mockImplementation((_c, ids) => {
+      const respuesta = { filas: ids.map((i) => fila(i, "covered")) };
+      if (cubrirCurso.mock.calls.length === 2) {
+        return new Promise((res) => { soltarSegunda = () => res(respuesta); });
+      }
+      return Promise.resolve(respuesta);
+    });
     getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
     getCompanyMembers.mockImplementation(async ({ offset }) =>
       personas(offset + 1, Math.min(10, 25 - offset), 25));
@@ -199,6 +213,8 @@ describe("tandas de 10 con avance", () => {
       if (pag < 2) fireEvent.click(screen.getByRole("button", { name: en.training.page.next }));
     }
     fireEvent.click(botonCubrir());
+    expect(await screen.findByText("Sending batch 2 of 3")).toBeInTheDocument();
+    soltarSegunda();
     await screen.findByText(en.training.results.title);
     expect(cubrirCurso.mock.calls.map((c) => c[1].length)).toEqual([10, 10, 5]);
     expect(within(screen.getByRole("table")).getAllByRole("row")).toHaveLength(26);
@@ -387,6 +403,7 @@ describe("si no se pudo leer, lo dice y NO pinta una lista vacia", () => {
     render(<TrainingClient />);
     const aviso = await screen.findByRole("alert");
     expect(aviso).toHaveTextContent(en.training.loadError.sin_lectura);
+    expect(document.body.textContent).not.toContain("Intente de nuevo");
     expect(screen.queryByLabelText(/^Course/)).toBeNull();
     expect(screen.queryByText(en.training.noCourses)).toBeNull();
     expect(screen.getByRole("button", { name: en.training.retryLoad })).toBeInTheDocument();
@@ -418,10 +435,16 @@ describe("si no se pudo leer, lo dice y NO pinta una lista vacia", () => {
 });
 
 describe("el catalogo trae solo un numero de avisos", () => {
-  it("con avisos > 0 dice que puede faltar algo, sin nombres ni el numero", async () => {
-    getCatalogoDeFormacion.mockResolvedValue({ ...CATALOGO, avisos: 3 });
+  it("con avisos > 0 dice que puede faltar algo, SIN nombres y SIN el numero", async () => {
+    getCatalogoDeFormacion.mockResolvedValue({ ...CATALOGO, avisos: 37 });
     render(<TrainingClient />);
-    expect(await screen.findByText(en.training.avisos)).toBeInTheDocument();
+    const nota = await screen.findByText(en.training.avisos);
+    // la nota es EXACTAMENTE la frase: ni cifra pegada ni nombres de secciones
+    expect(nota.textContent).toBe(en.training.avisos);
+    expect(document.body.textContent).not.toMatch(/37/);
+    for (const s of CATALOGO.secciones) {
+      expect(nota.textContent).not.toContain(s.nombre);
+    }
   });
 
   it("con 0 avisos no pinta nada", async () => {
@@ -498,5 +521,133 @@ describe("la copia existe en los dos idiomas", () => {
     (typeof v === "object" ? claves(v, `${p}${k}.`) : [`${p}${k}`]));
   it("en y es tienen las mismas claves de `training`", () => {
     expect(claves(es.training).sort()).toEqual(claves(en.training).sort());
+  });
+});
+
+describe("la cobertura que se aprende al DEJAR de cubrir", () => {
+  const modoDejar = () => fireEvent.click(screen.getByRole("radio", { name: en.training.modeStop }));
+  const dejar = () => {
+    fireEvent.click(screen.getByRole("button", { name: /^Stop covering \d+ selected$/ }));
+    fireEvent.click(screen.getByRole("button", { name: en.training.confirm.yes }));
+  };
+  const estadoDe = (id) => within(casilla(id).closest("li")).getByText(
+    new RegExp(`^(${en.training.coverage.covered}|${en.training.coverage.notCovered}|${en.training.coverage.unknown})$`));
+
+  it("tras un uncovered la persona queda SIN cubrir (y bloqueada al dejar, libre al cubrir)", async () => {
+    cubrirCurso.mockResolvedValue({ filas: [fila(1, "covered")] });
+    dejarDeCubrirCurso.mockResolvedValue({ filas: [fila(1, "uncovered")] });
+    await abrir();
+    marcar(1);
+    fireEvent.click(botonCubrir());
+    await screen.findByText(en.training.results.title);
+    expect(estadoDe(1)).toHaveTextContent(en.training.coverage.covered);
+
+    modoDejar();
+    marcar(1);
+    dejar();
+    await waitFor(() => expect(dejarDeCubrirCurso).toHaveBeenCalled());
+    await waitFor(() => expect(estadoDe(1)).toHaveTextContent(en.training.coverage.notCovered));
+    expect(casilla(1)).toBeDisabled();          // ya no hay nada que dejar
+    fireEvent.click(screen.getByRole("radio", { name: en.training.modeCover }));
+    expect(casilla(1)).not.toBeDisabled();      // y SI se puede volver a cubrir
+  });
+
+  it("tras un not_covered tambien queda sin cubrir", async () => {
+    dejarDeCubrirCurso.mockResolvedValue({ filas: [fila(2, "not_covered")] });
+    await abrir();
+    modoDejar();
+    marcar(2);
+    dejar();
+    await waitFor(() => expect(estadoDe(2)).toHaveTextContent(en.training.coverage.notCovered));
+  });
+
+  it("una persona que el servidor NO devolvio (sin_fila) no cambia su cobertura: el servidor no dijo nada", async () => {
+    dejarDeCubrirCurso.mockResolvedValue({ filas: [fila(1, "uncovered")] }); // la 2 no vuelve
+    await abrir();
+    modoDejar();
+    marcar(1, 2);
+    dejar();
+    await screen.findByText(en.training.result.noRow);
+    expect(estadoDe(1)).toHaveTextContent(en.training.coverage.notCovered);
+    expect(estadoDe(2)).toHaveTextContent(en.training.coverage.unknown);
+    expect(casilla(2)).not.toBeDisabled();
+  });
+
+  it("un enrol_failed al dejar tampoco cambia la cobertura", async () => {
+    dejarDeCubrirCurso.mockResolvedValue({ filas: [fila(1, "enrol_failed", "no_se_intento_por_tiempo")] });
+    await abrir();
+    modoDejar();
+    marcar(1);
+    dejar();
+    await screen.findByText(en.training.results.title);
+    expect(estadoDe(1)).toHaveTextContent(en.training.coverage.unknown);
+  });
+});
+
+describe("las personas desactivadas", () => {
+  const gente = () => {
+    const g = personas(1, 3, 3);
+    g.members[1].active = false; // la 2
+    return g;
+  };
+
+  it("se pinta su estado EN TEXTO y no se pueden marcar", async () => {
+    await abrir({ gente: gente() });
+    const fila2 = casilla(2).closest("li");
+    expect(within(fila2).getByText(en.companyAdmin.status.deactivated)).toBeInTheDocument();
+    expect(casilla(2)).toBeDisabled();
+    expect(casilla(1)).not.toBeDisabled();
+  });
+
+  it("'seleccionar a todos' las salta y el lote no lleva su id", async () => {
+    cubrirCurso.mockResolvedValue({ filas: [fila(1, "covered"), fila(3, "covered")] });
+    await abrir({ gente: gente() });
+    fireEvent.click(screen.getByRole("checkbox", { name: en.training.selectAllPage }));
+    expect(casilla(2)).not.toBeChecked();
+    fireEvent.click(botonCubrir());
+    await waitFor(() => expect(cubrirCurso).toHaveBeenCalledWith(7, [1, 3]));
+  });
+
+  it("tambien al dejar de cubrir (no hay nada que dejar en quien no puede entrar)", async () => {
+    await abrir({ gente: gente() });
+    fireEvent.click(screen.getByRole("radio", { name: en.training.modeStop }));
+    expect(casilla(2)).toBeDisabled();
+  });
+});
+
+describe("accesibilidad de la lista", () => {
+  it("quien no tiene nombre ni correo no deja la casilla con el nombre accesible 'Select '", async () => {
+    const g = personas(1, 2, 2);
+    g.members[1] = { id: 2, email: "", firstname: "", lastname: "", name: "", active: true };
+    await abrir({ gente: g });
+    expect(screen.getByRole("checkbox", { name: "Select Person without a name" })).toBeInTheDocument();
+  });
+
+  it("al CONFIRMAR dejar de cubrir el foco no cae al body", async () => {
+    dejarDeCubrirCurso.mockReturnValue(new Promise(() => {}));
+    await abrir();
+    fireEvent.click(screen.getByRole("radio", { name: en.training.modeStop }));
+    marcar(1);
+    fireEvent.click(screen.getByRole("button", { name: /^Stop covering \d+ selected$/ }));
+    fireEvent.click(screen.getByRole("button", { name: en.training.confirm.yes }));
+    await waitFor(() => expect(dejarDeCubrirCurso).toHaveBeenCalled());
+    expect(document.activeElement).not.toBe(document.body);
+    expect(document.activeElement).toBe(screen.getByRole("heading", { name: en.training.peopleTitle }));
+  });
+
+  it("dos secciones con el MISMO nombre no chocan (sin aviso de clave repetida)", async () => {
+    const espia = vi.spyOn(console, "error").mockImplementation(() => {});
+    getCatalogoDeFormacion.mockResolvedValue({
+      secciones: [
+        { nombre: "General", cursos: [{ moodle_course_id: 7, nombre: "A" }] },
+        { nombre: "General", cursos: [{ moodle_course_id: 8, nombre: "B" }] },
+      ],
+      avisos: 0,
+    });
+    render(<TrainingClient />);
+    await screen.findByLabelText(/^Course/);
+    const claves = espia.mock.calls.filter((c) => /same key/i.test(String(c[0])));
+    expect(claves).toHaveLength(0);
+    expect(screen.getByRole("option", { name: "B" })).toBeInTheDocument();
   });
 });

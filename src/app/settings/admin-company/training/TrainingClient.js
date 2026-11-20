@@ -41,7 +41,12 @@ import {
   getCompanyMembers,
 } from "../../../../lib/api";
 import { isAuthenticated } from "../../../../lib/session";
-import { errorMessageFor } from "../../../../lib/companyAdmin";
+import {
+  ROW_STATUS,
+  displayNameFor,
+  errorMessageFor,
+  memberStatus,
+} from "../../../../lib/companyAdmin";
 import {
   DET_NO_SE_ENVIO,
   DET_SIN_RESPUESTA,
@@ -83,10 +88,10 @@ function fusionar(actuales, nuevas) {
   return salida;
 }
 
-function nombreDe(m) {
-  const n = `${m.firstname || ""} ${m.lastname || ""}`.trim();
-  return n || m.name || m.email || "";
-}
+/** Una persona desactivada no puede entrar: cubrirla gasta un cupo de curso en
+ *  alguien sin acceso. Se decide con el mismo helper que usa el panel de al lado
+ *  (`memberStatus`), no con una segunda lectura de `active`. */
+const estaDesactivada = (m) => memberStatus(m) === ROW_STATUS.DEACTIVATED;
 
 export default function TrainingClient() {
   const t = useT("training");
@@ -118,6 +123,7 @@ export default function TrainingClient() {
   const ocupadoRef = useRef(false);
   const dialogoRef = useRef(null);
   const botonDejarRef = useRef(null);
+  const tituloGenteRef = useRef(null);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -186,11 +192,13 @@ export default function TrainingClient() {
   }, []);
 
   /** ¿Se puede marcar? Quien ya está cubierto no (al cubrir); quien ya no lo
-   *  está tampoco (al dejar de cubrir). */
-  const marcable = useCallback((id) => {
-    if (enCurso) return false;
-    if (modo === "cubrir") return cobertura[id] !== true;
-    return cobertura[id] !== false;
+   *  está tampoco (al dejar de cubrir); y quien está desactivado, nunca:
+   *  reactivarlo es un clic en la pantalla de al lado, gastar un cupo en
+   *  silencio no. */
+  const marcable = useCallback((m) => {
+    if (enCurso || estaDesactivada(m)) return false;
+    if (modo === "cubrir") return cobertura[m.id] !== true;
+    return cobertura[m.id] !== false;
   }, [enCurso, modo, cobertura]);
 
   const alternar = useCallback((m) => {
@@ -203,7 +211,7 @@ export default function TrainingClient() {
   }, []);
 
   const members = gente.estado === "ok" ? gente.members : [];
-  const delaPagina = members.filter((m) => marcable(m.id));
+  const delaPagina = members.filter((m) => marcable(m));
   const todosMarcados = delaPagina.length > 0 && delaPagina.every((m) => seleccion.has(m.id));
 
   const alternarPagina = useCallback(() => {
@@ -224,6 +232,9 @@ export default function TrainingClient() {
   const correr = useCallback(async (accion, ids, base, correos) => {
     if (ocupadoRef.current || ids.length === 0) return;
     ocupadoRef.current = true;
+    // El botón (o el diálogo) que tenía el foco se apaga o desaparece: sin esto
+    // el foco cae al <body> justo cuando arranca la operación larga.
+    if (tituloGenteRef.current) tituloGenteRef.current.focus();
     setEnCurso(accion);
     setErrorRun(null);
     setConfirmando(false);
@@ -255,8 +266,10 @@ export default function TrainingClient() {
           break;
         }
         const nuevas = [...respuesta.filas];
-        // El servidor ignora a quien no es de su empresa o no es de rol 3 o 4:
-        // esa persona NO vuelve en `filas`. Sin esto desaparecería sin decir nada.
+        // Una persona pedida puede no volver en `filas` (el servidor descarta a
+        // quien ya no es de la empresa o dejó de ser rol 3 o 4 entre el GET de la
+        // lista y este POST; la lista ya viene filtrada por rol, así que es una
+        // carrera, no el caso normal). Sin esto desaparecería sin decir nada.
         for (const id of tanda) {
           if (!nuevas.some((f) => f.usr_id === id)) nuevas.push(filaLocal(id, "sin_fila", null));
         }
@@ -264,9 +277,13 @@ export default function TrainingClient() {
         setCobertura((prev) => {
           const sig = { ...prev };
           for (const f of nuevas) {
-            const { tipo } = clasificarFila(accion, f);
-            if (tipo === "ok") sig[f.usr_id] = accion === "cubrir";
-            else if (tipo === "neutro" && accion === "dejar") sig[f.usr_id] = false;
+            if (accion === "cubrir") {
+              if (clasificarFila(accion, f).tipo === "ok") sig[f.usr_id] = true;
+            } else if (f.resultado === "uncovered" || f.resultado === "not_covered") {
+              // SOLO lo que el servidor dijo. La fila `sin_fila` la fabrica esta
+              // pantalla: de esa persona no se sabe nada y no cambia su estado.
+              sig[f.usr_id] = false;
+            }
           }
           return sig;
         });
@@ -376,8 +393,10 @@ export default function TrainingClient() {
             disabled={ocupado}
           >
             <option value="">{t("coursePlaceholder")}</option>
-            {secciones.map((s) => (
-              <optgroup key={s.nombre} label={s.nombre}>
+            {secciones.map((s, i) => (
+              // El catálogo no trae un id de sección: dos con el mismo nombre
+              // chocarían como clave, así que va con su posición.
+              <optgroup key={`${i}-${s.nombre}`} label={s.nombre}>
                 {s.cursos.map((c) => (
                   <option key={c.moodle_course_id} value={String(c.moodle_course_id)}>{c.nombre}</option>
                 ))}
@@ -410,7 +429,7 @@ export default function TrainingClient() {
       </section>
 
       <section className={styles.card} aria-busy={gente.estado === "cargando"}>
-        <h2 className={styles.cardTitle}>{t("peopleTitle")}</h2>
+        <h2 ref={tituloGenteRef} tabIndex={-1} className={styles.cardTitle}>{t("peopleTitle")}</h2>
 
         {!cursoId && <p className={styles.muted}>{t("chooseCourseFirst")}</p>}
         {cursoId && gente.estado === "cargando" && (
@@ -436,7 +455,9 @@ export default function TrainingClient() {
             </label>
             <ul className={styles.gente} aria-label={t("peopleTitle")}>
               {members.map((m) => {
-                const nombre = nombreDe(m);
+                // Último recurso: nunca una casilla con el nombre accesible "Select ".
+                const nombre = displayNameFor(m) || m.name || t("unnamed");
+                const desactivada = estaDesactivada(m);
                 const estado = cobertura[m.id] === true
                   ? "covered" : (cobertura[m.id] === false ? "notCovered" : "unknown");
                 return (
@@ -445,12 +466,14 @@ export default function TrainingClient() {
                       type="checkbox"
                       checked={seleccion.has(m.id)}
                       onChange={() => alternar(m)}
-                      disabled={!marcable(m.id)}
+                      disabled={!marcable(m)}
                       aria-label={t("selectPerson", { name: nombre })}
                     />
                     <span className={styles.nombre}>{nombre}</span>
                     <span className={styles.correo}>{m.email}</span>
-                    <span className={styles.estado}>{t(`coverage.${estado}`)}</span>
+                    <span className={styles.estado}>
+                      {desactivada ? tPanel("status.deactivated") : t(`coverage.${estado}`)}
+                    </span>
                   </li>
                 );
               })}

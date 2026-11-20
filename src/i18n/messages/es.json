@@ -927,6 +927,7 @@
     "chooseCourseFirst": "Elige un curso para ver a tu gente.",
     "selectAllPage": "Seleccionar a todos en esta página",
     "selectPerson": "Seleccionar a {name}",
+    "unnamed": "Persona sin nombre",
     "coverage": {
       "covered": "Cubierto",
       "notCovered": "Sin cubrir",
