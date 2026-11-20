@@ -750,13 +750,16 @@ describe("la cobertura se pide de la pagina a la vista", () => {
     expect(getCoberturaDeCurso).toHaveBeenLastCalledWith(7, [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
   });
 
-  it("nunca pide mas de 10 por peticion", async () => {
+  it("nunca pide mas de 10 por peticion, AUNQUE la lista traiga mas (el doble ignora el limite)", async () => {
+    // Si la pagina creciera, el backend respondería 400 al llegar a 11 y la
+    // pantalla lo mostraria como "todo desconocido": un diagnostico falso.
     getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
-    getCompanyMembers.mockResolvedValue(personas(1, 10, 50));
+    getCompanyMembers.mockResolvedValue(personas(1, 12, 50));
     render(<TrainingClient />);
     fireEvent.change(await screen.findByLabelText(/^Course/), { target: { value: "7" } });
     await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenCalled());
-    for (const [, ids] of getCoberturaDeCurso.mock.calls) expect(ids.length).toBeLessThanOrEqual(10);
+    expect(getCoberturaDeCurso).toHaveBeenCalledTimes(1);
+    expect(getCoberturaDeCurso.mock.calls[0][1]).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 
   it("covered: se ve cubierta y no se puede marcar al cubrir; not_covered: al reves al dejar", async () => {
@@ -817,8 +820,13 @@ describe("la cobertura se pide de la pagina a la vista", () => {
     fireEvent.click(botonCubrir());
     await screen.findByText(en.training.results.title);
     expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.covered);
+    // Mientras la pregunta sigue en vuelo, la 2 dice "Checking...".
+    expect(estadoDeCob(2)).toHaveTextContent(en.training.coverage.checking);
     soltar({ filas: [cob(1, "not_covered")] }); // preguntada ANTES de cubrir
-    await waitFor(() => expect(estadoDeCob(2)).toBeInTheDocument());
+    // El HECHO que solo ocurre DESPUES de procesar la respuesta tardia: la 2 deja
+    // de decir "Checking..." y pasa a "Not checked" (la respuesta no trajo su fila).
+    // Sin esta espera la prueba acertaba por el orden de los ticks, no por el hecho.
+    await waitFor(() => expect(estadoDeCob(2)).toHaveTextContent(en.training.coverage.unknown));
     expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.covered);
   });
 
@@ -869,6 +877,20 @@ describe("cobertura UNKNOWN: no se pudo preguntar, y NO es 'sin cubrir'", () => 
     expect(document.body.textContent).not.toMatch(/moodle/i);
     expect(document.body.textContent).not.toContain("Intente de nuevo");
     // y se puede seguir: nada se bloquea
+    expect(casilla(1)).not.toBeDisabled();
+  });
+
+  it("un 400 (curso fuera del catalogo del jefe) tambien deja la pagina desconocida, con frase propia", async () => {
+    const e = new Error("Ese curso no está disponible para su compañía.");
+    e.kind = "pedido";
+    e.status = 400;
+    getCoberturaDeCurso.mockRejectedValue(e);
+    await abrir();
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.couldNotCheck));
+    for (const id of [2, 3, 4]) expect(estadoDeCob(id)).toHaveTextContent(en.training.coverage.couldNotCheck);
+    expect(screen.queryByText(en.training.coverage.notCovered)).toBeNull();
+    expect(document.body.textContent).toContain(en.training.coverageUnavailable);
+    expect(document.body.textContent).not.toContain("no está disponible");
     expect(casilla(1)).not.toBeDisabled();
   });
 

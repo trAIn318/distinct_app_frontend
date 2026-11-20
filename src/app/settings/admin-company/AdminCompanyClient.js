@@ -398,6 +398,11 @@ export default function AdminCompanyClient() {
     disparadorRef.current = typeof document !== "undefined" ? document.activeElement : null;
     setErrorAccion(null);
     setErroresCampo({});
+    // El conteo se reinicia AL ABRIR, en el mismo lote que el diálogo: si no, el
+    // primer pintado del diálogo de otra persona lleva el número de la anterior
+    // (con el nombre nuevo) hasta que corre el efecto, y esa región es viva: un
+    // lector de pantalla puede anunciar ese instante.
+    setConteo({ estado: "cargando" });
     setEdicion(tipo === "edit"
       ? {
         firstname: fila.firstname || "",
@@ -423,8 +428,6 @@ export default function AdminCompanyClient() {
   useEffect(() => {
     if (!dialogo || dialogo.tipo !== "deactivate") return undefined;
     let vigente = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- se reinicia al abrir cada diálogo
-    setConteo({ estado: "cargando" });
     getCursosCubiertos(dialogo.fila.id)
       .then((r) => { if (vigente) setConteo({ estado: "ok", n: r.cursos_cubiertos }); })
       .catch(() => { if (vigente) setConteo({ estado: "error" }); });

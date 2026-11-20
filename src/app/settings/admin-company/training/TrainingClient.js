@@ -201,12 +201,16 @@ export default function TrainingClient() {
   // personas a la vista y solo de las que no se sabe (ni cubierta ni sin cubrir).
   useEffect(() => {
     if (!ready || !cursoId || gente.estado !== "ok") return undefined;
+    // El servidor acepta 10 por petición (con 11 responde 400, que aquí se vería
+    // como "todo desconocido": un diagnóstico falso). La página es de 10, pero el
+    // tope no puede depender de que nadie la agrande.
     const ids = gente.members
       .map((m) => m.id)
       .filter((id) => {
         const v = coberturaRef.current[id];
         return v === undefined || v === "unknown";
-      });
+      })
+      .slice(0, TAMANO_DE_TANDA);
     if (ids.length === 0) {
       setCobEstado("idle");
       return undefined;

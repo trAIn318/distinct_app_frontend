@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup, waitFor, fireEvent, within } from "@testing-library/react";
+import { render, screen, cleanup, waitFor, fireEvent, within, act } from "@testing-library/react";
 
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
@@ -1175,17 +1175,59 @@ describe("desactivar AVISA cuantos cursos tiene, pedido aparte del boton", () =>
     expect(getCursosCubiertos).not.toHaveBeenCalled();
   });
 
-  it("si se cierra el dialogo antes de que llegue, el conteo no aparece en el siguiente", async () => {
+  it("una respuesta VIEJA que llega con otro dialogo ya abierto se ignora", async () => {
     let soltar;
-    getCursosCubiertos.mockReturnValueOnce(new Promise((res) => { soltar = res; }));
+    const vieja = new Promise((res) => { soltar = res; });
+    getCursosCubiertos.mockReturnValueOnce(vieja);
     await abrirDesactivar();
     fireEvent.click(screen.getByRole("button", { name: /^keep as is$/i }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    soltar({ cursos_cubiertos: 9 });
+    // Se abre OTRO dialogo (de la misma persona) cuya pregunta sigue en vuelo...
     getCursosCubiertos.mockReturnValue(new Promise(() => {}));
     fireEvent.click(screen.getByRole("button", { name: /^turn off access for juan perez$/i }));
     const d = await screen.findByRole("dialog");
-    expect(d.textContent).not.toMatch(/9 courses/);
+    expect(d.textContent).toMatch(/counting the courses juan perez has/i);
+    // ...y SOLO ahora llega la vieja. Se espera a que su callback ya haya corrido:
+    // el .then del componente se registro antes que este await.
+    soltar({ cursos_cubiertos: 9 });
+    await vieja;
+    await act(async () => {});
+    expect(screen.getByRole("dialog").textContent).toMatch(/counting the courses juan perez has/i);
+    expect(screen.getByRole("dialog").textContent).not.toMatch(/9 courses/);
+  });
+
+  it("al abrir el dialogo de OTRA persona NUNCA se pinta el numero de la anterior (ni un instante: es una region viva)", async () => {
+    const maria = miembro({ id: 2, name: "mlopez", email: "maria@hotel.com", firstname: "Maria", lastname: "Lopez" });
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro(), maria], total: 2 }));
+    getCursosCubiertos.mockResolvedValueOnce({ cursos_cubiertos: 3 });
+    render(<AdminCompanyClient />);
+    await tablaCon(2);
+    fireEvent.click(screen.getByRole("button", { name: /^turn off access for juan perez$/i }));
+    const d = await screen.findByRole("dialog");
+    await waitFor(() => expect(d.textContent).toMatch(/juan perez has 3 courses/i));
+    fireEvent.click(screen.getByRole("button", { name: /^keep as is$/i }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    // Todo lo que el DOM mostro desde aqui, INCLUIDO el primer pintado antes de
+    // que corra el efecto: un lector de pantalla anuncia ese instante.
+    const vistos = [];
+    const registrar = (recs) => {
+      for (const r of recs) {
+        if (r.oldValue) vistos.push(r.oldValue);
+        r.addedNodes.forEach((n) => vistos.push(n.textContent));
+        r.removedNodes.forEach((n) => vistos.push(n.textContent));
+      }
+    };
+    const obs = new MutationObserver(registrar);
+    obs.observe(document.body, { subtree: true, childList: true, characterData: true, characterDataOldValue: true });
+    getCursosCubiertos.mockReturnValue(new Promise(() => {}));
+    fireEvent.click(screen.getByRole("button", { name: /^turn off access for maria lopez$/i }));
+    await screen.findByRole("dialog");
+    await act(async () => {});
+    registrar(obs.takeRecords());
+    obs.disconnect();
+    expect(vistos.join("|")).not.toMatch(/\b3 courses/);
+    expect(vistos.join("|")).toMatch(/counting the courses maria lopez has/i); // el control: SI vio algo
   });
 
   it("la copia nueva existe en los dos idiomas y no nombra a Moodle", () => {
