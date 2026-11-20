@@ -725,6 +725,12 @@ export default function AdminCompanyClient() {
             Va como enlace de texto, no como botón dorado: el dorado de esta
             vista es el de invitar (claude.md §2.1, máximo uno por vista). */}
         <a className={styles.link} href={`${RUTA}/import`}>{t("panel.uploadFile")}</a>
+        {/* La pantalla de cursos NO tiene fila de menu propia (las sub-pantallas se
+            alcanzan desde dentro del panel), asi que este enlace es su UNICO
+            camino: tiene que estar en la vista de la TABLA y no solo en el estado
+            vacio, que desaparece con la primera invitacion. Enlace de texto: el
+            dorado de esta vista es el de invitar. */}
+        <a className={styles.link} href={`${RUTA}/training`}>{t("panel.coursesLink")}</a>
       </BloqueInvitar>
 
       {/* Lo que pasó con la última acción de una fila. Mientras hay un diálogo

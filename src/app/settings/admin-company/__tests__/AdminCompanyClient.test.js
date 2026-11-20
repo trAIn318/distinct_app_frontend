@@ -30,6 +30,8 @@ vi.mock("../../../../lib/api", () => ({
 }));
 
 import AdminCompanyClient from "../AdminCompanyClient";
+import en from "../../../../i18n/messages/en.json";
+import es from "../../../../i18n/messages/es.json";
 
 // Sin I18nProvider, useT cae al ingles de en.json: todo se asserta en ingles.
 const EMPEZAR = /no one on your team yet/i;
@@ -801,6 +803,61 @@ describe("C2 — la carga por archivo se alcanza con la empresa ya poblada", () 
     render(<AdminCompanyClient />);
     await waitFor(() => expect(screen.getByText(EMPEZAR)).toBeInTheDocument());
     expect(screen.getAllByRole("link", ENLACE)).toHaveLength(1);
+  });
+});
+
+// ── El enlace a la pantalla de cursos del equipo ────────────────────────────
+
+describe("el enlace a los cursos del equipo se alcanza con la empresa ya poblada", () => {
+  // Mismo riesgo que C2: la pantalla /settings/admin-company/training no tiene
+  // fila de menu propia (las sub-pantallas se alcanzan desde dentro del panel),
+  // asi que este enlace es su UNICO camino. Si solo viviera en el estado vacio,
+  // desapareceria con la primera invitacion. Por eso TODAS estas pruebas montan
+  // la TABLA con gente, y la primera lo afirma.
+  const ENLACE = { name: /courses for your team/i };
+  const HREF = "/settings/admin-company/training";
+
+  it("el enlace esta en la vista de la TABLA con gente, no en el estado vacio", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(screen.getAllByRole("row").length).toBeGreaterThan(1); // hay gente de verdad
+    expect(screen.queryByText(EMPEZAR)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", ENLACE)).toHaveAttribute("href", HREF);
+  });
+
+  it("y tambien en la pagina 2 y con una busqueda puesta", async () => {
+    getCompanyMembers
+      .mockResolvedValueOnce(respuesta({ members: personas(1, 25), total: 60 }))
+      .mockResolvedValue(respuesta({ members: personas(26, 25), total: 60 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: /next/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    await waitFor(() => expect(ultimaPeticion().offset).toBe(25));
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.getByRole("link", ENLACE)).toHaveAttribute("href", HREF);
+    fireEvent.change(screen.getByLabelText(/search by name or email/i), {
+      target: { value: "p0" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^search$/i }));
+    await waitFor(() => expect(ultimaPeticion().q).toBe("p0"));
+    expect(screen.getByRole("link", ENLACE)).toHaveAttribute("href", HREF);
+  });
+
+  it("es un enlace de texto: no suma un dorado", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(screen.getByRole("link", ENLACE).className).not.toMatch(/btn-primary/);
+    expect(document.querySelectorAll(".btn-primary").length).toBeLessThanOrEqual(1);
+  });
+
+  it("la copia existe en los dos idiomas y no nombra a Moodle", () => {
+    for (const idioma of [en, es]) {
+      expect(idioma.companyAdmin.panel.coursesLink).toBeTruthy();
+      expect(idioma.companyAdmin.panel.coursesLink).not.toMatch(/moodle/i);
+    }
   });
 });
 
