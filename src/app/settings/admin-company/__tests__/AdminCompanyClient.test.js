@@ -18,7 +18,13 @@ vi.mock("../../../../lib/session", () => ({
 // que falta en la factory revienta la importacion del componente. Lo que hacen
 // se prueba en AdminCompanyActions.test.js.
 const getCompanyMembers = vi.fn();
+// `getCursosCubiertos` TIENE que estar declarado aqui: el componente lo importa y
+// el dialogo de desactivar lo llama al abrirse. Sin la clave, la primera prueba de
+// este archivo que abra ese dialogo moriria con un error de export inexistente
+// que no se parece en nada al problema.
+const getCursosCubiertos = vi.fn();
 vi.mock("../../../../lib/api", () => ({
+  getCursosCubiertos: (...a) => getCursosCubiertos(...a),
   getCompanyMembers: (...a) => getCompanyMembers(...a),
   addCompanyMember: vi.fn(),
   resendInvitation: vi.fn(),
@@ -74,6 +80,7 @@ beforeEach(() => {
   replace.mockClear();
   isAuthenticated.mockReset();
   getCompanyMembers.mockReset();
+  getCursosCubiertos.mockReset().mockResolvedValue({ cursos_cubiertos: 2 });
   isAuthenticated.mockReturnValue(true);
 });
 afterEach(() => {
@@ -875,6 +882,37 @@ describe("claude.md 2.1 — como maximo UN dorado por vista, en todos los estado
     fireEvent.click(screen.getByRole("button", { name: /^edit juan perez$/i }));
     await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
     expect(dorados(), "la tabla con el dialogo abierto").toBe(1);
+  });
+
+  it("los dialogos de DESACTIVAR (con su conteo, cargando, resuelto y fallido) y de DESVINCULAR", async () => {
+    // El dialogo de desactivar es el unico que cambia de contenido solo (el
+    // conteo llega despues): se cuenta el dorado en cada uno de sus estados.
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    let soltar;
+    getCursosCubiertos.mockReturnValueOnce(new Promise((res) => { soltar = res; }));
+    render(<AdminCompanyClient />);
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /^turn off access for juan perez$/i }));
+    const d = await screen.findByRole("dialog");
+    expect(d.textContent).toMatch(/counting the courses/i);
+    expect(dorados(), "desactivar, contando").toBe(1);
+    await act(async () => { soltar({ cursos_cubiertos: 2 }); });
+    await waitFor(() => expect(d.textContent).toMatch(/has 2 courses covered/i));
+    expect(dorados(), "desactivar, con el conteo").toBe(1);
+    fireEvent.click(screen.getByRole("button", { name: /^keep as is$/i }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    getCursosCubiertos.mockRejectedValueOnce(Object.assign(new Error(""), { kind: "sin_lectura", status: 503 }));
+    fireEvent.click(screen.getByRole("button", { name: /^turn off access for juan perez$/i }));
+    const d2 = await screen.findByRole("dialog");
+    await waitFor(() => expect(d2.textContent).toMatch(/could not count/i));
+    expect(dorados(), "desactivar, sin poder contar").toBe(1);
+    fireEvent.click(screen.getByRole("button", { name: /^keep as is$/i }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: /^remove juan perez from your team$/i }));
+    await screen.findByRole("dialog");
+    expect(dorados(), "desvincular").toBe(1);
   });
 
   it("el estado vacio, la pagina fuera de rango y los cuatro estados de error", async () => {
