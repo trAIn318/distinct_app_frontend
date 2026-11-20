@@ -50,6 +50,7 @@ import {
   addCompanyMember,
   cancelInvitation,
   deactivateCompanyMember,
+  getCursosCubiertos,
   getCompanyMembers,
   resendInvitation,
   unlinkCompanyMember,
@@ -164,6 +165,8 @@ export default function AdminCompanyClient() {
   const [aviso, setAviso] = useState(null);                 // acciones de fila
   const [errorAccion, setErrorAccion] = useState(null);
   const [dialogo, setDialogo] = useState(null);             // {tipo, fila}
+  // Cuántos cursos tiene cubiertos quien se va a desactivar: {estado, n}.
+  const [conteo, setConteo] = useState({ estado: "cargando" }); // cargando | ok | error
   const [edicion, setEdicion] = useState(null);             // valores del formulario
   const [erroresCampo, setErroresCampo] = useState({});
   const primerControlRef = useRef(null);
@@ -411,6 +414,22 @@ export default function AdminCompanyClient() {
     const vuelve = disparadorRef.current;
     if (vuelve && typeof vuelve.focus === "function") vuelve.focus();
   }, []);
+
+  // El aviso de "cuántos cursos tiene" se pide AL ABRIR el diálogo de desactivar y
+  // aparte del botón: son 4 llamadas secuenciales (hasta ~45 s con timeouts), y
+  // desactivar no puede quedarse colgado esperando un número informativo. Si no
+  // se pudo contar se dice así —nunca como 0— y se puede desactivar igual: es un
+  // aviso, no un requisito. El texto del servidor no se pinta jamás.
+  useEffect(() => {
+    if (!dialogo || dialogo.tipo !== "deactivate") return undefined;
+    let vigente = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- se reinicia al abrir cada diálogo
+    setConteo({ estado: "cargando" });
+    getCursosCubiertos(dialogo.fila.id)
+      .then((r) => { if (vigente) setConteo({ estado: "ok", n: r.cursos_cubiertos }); })
+      .catch(() => { if (vigente) setConteo({ estado: "error" }); });
+    return () => { vigente = false; };
+  }, [dialogo]);
 
   const confirmarDestructiva = useCallback(() => {
     if (!dialogo) return;
@@ -1043,6 +1062,11 @@ export default function AdminCompanyClient() {
               { name: dialogo.fila.displayName },
             )}
           </p>
+          {dialogo.tipo === "deactivate" && (
+            <p className={styles.dialogBody} role="status" aria-live="polite">
+              {t(claveConteo(conteo), { name: dialogo.fila.displayName, n: conteo.n })}
+            </p>
+          )}
           <ErrorDeAccion
             t={t}
             error={errorAccion}
@@ -1077,6 +1101,15 @@ export default function AdminCompanyClient() {
       )}
     </section>
   );
+}
+
+/** Clave de la frase del aviso de cursos al desactivar. Un 0 solo sale de un 200
+ *  con `cursos_cubiertos: 0`: "no se pudo contar" es otra frase, siempre. */
+function claveConteo(conteo) {
+  if (conteo.estado === "cargando") return "panel.deactivateCoursesLoading";
+  if (conteo.estado === "error") return "panel.deactivateCoursesUnknown";
+  if (conteo.n === 0) return "panel.deactivateCoursesNone";
+  return conteo.n === 1 ? "panel.deactivateCoursesOne" : "panel.deactivateCoursesMany";
 }
 
 /** Horas que le quedan a una invitación pendiente, o `null` si no hay nada que

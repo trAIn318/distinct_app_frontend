@@ -20,7 +20,9 @@ const updateCompanyMember = vi.fn();
 const deactivateCompanyMember = vi.fn();
 const activateCompanyMember = vi.fn();
 const unlinkCompanyMember = vi.fn();
+const getCursosCubiertos = vi.fn();
 vi.mock("../../../../lib/api", () => ({
+  getCursosCubiertos: (...a) => getCursosCubiertos(...a),
   getCompanyMembers: (...a) => getCompanyMembers(...a),
   addCompanyMember: (...a) => addCompanyMember(...a),
   resendInvitation: (...a) => resendInvitation(...a),
@@ -102,8 +104,9 @@ beforeEach(() => {
   for (const m of [
     isAuthenticated, getCompanyMembers, addCompanyMember, resendInvitation,
     cancelInvitation, updateCompanyMember, deactivateCompanyMember, activateCompanyMember,
-    unlinkCompanyMember,
+    unlinkCompanyMember, getCursosCubiertos,
   ]) m.mockReset();
+  getCursosCubiertos.mockResolvedValue({ cursos_cubiertos: 2 });
   isAuthenticated.mockReturnValue(true);
   addCompanyMember.mockResolvedValue({ invitation: invitacion({ id: 55 }), email_sent: true });
   resendInvitation.mockResolvedValue({ invitation: invitacion(), email_sent: true });
@@ -1098,6 +1101,99 @@ describe("volver a dar el acceso a quien se desactivo", () => {
     for (const clave of ["activate", "activateFor", "activated"]) {
       for (const [idioma, mensajes] of [["en", en], ["es", es]]) {
         expect(mensajes.companyAdmin.panel[clave], `${idioma} ${clave}`).toBeTruthy();
+      }
+    }
+  });
+});
+
+describe("desactivar AVISA cuantos cursos tiene, pedido aparte del boton", () => {
+  async function abrirDesactivar() {
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await tablaCon(1);
+    fireEvent.click(screen.getByRole("button", { name: /^turn off access for juan perez$/i }));
+    return screen.findByRole("dialog");
+  }
+  const FRASE_DEL_SERVIDOR = "No se pudo consultar a Moodle en este momento. Intente de nuevo en unos minutos.";
+
+  it("al abrir pide el conteo de ESA persona, y desactivar no espera a que llegue", async () => {
+    getCursosCubiertos.mockReturnValue(new Promise(() => {})); // nunca llega
+    await abrirDesactivar();
+    expect(getCursosCubiertos).toHaveBeenCalledTimes(1);
+    expect(getCursosCubiertos).toHaveBeenCalledWith(1);
+    expect(screen.getByRole("dialog").textContent).toMatch(/counting the courses juan perez has/i);
+    fireEvent.click(screen.getByRole("button", { name: /^turn off access$/i }));
+    await waitFor(() => expect(deactivateCompanyMember).toHaveBeenCalledWith(1));
+  });
+
+  it("muestra el numero: varios, uno, y cero (que es un 0 de verdad)", async () => {
+    getCursosCubiertos.mockResolvedValue({ cursos_cubiertos: 3 });
+    const d = await abrirDesactivar();
+    await waitFor(() => expect(d.textContent).toMatch(/juan perez has 3 courses covered by your company/i));
+    cleanup();
+    getCursosCubiertos.mockResolvedValue({ cursos_cubiertos: 1 });
+    const d1 = await abrirDesactivar();
+    await waitFor(() => expect(d1.textContent).toMatch(/has 1 course covered/i));
+    expect(d1.textContent).not.toMatch(/1 courses/i);
+    cleanup();
+    getCursosCubiertos.mockResolvedValue({ cursos_cubiertos: 0 });
+    const d0 = await abrirDesactivar();
+    await waitFor(() => expect(d0.textContent).toMatch(/has no courses covered/i));
+  });
+
+  it("si NO se pudo contar lo dice asi (no un 0) y deja desactivar igual", async () => {
+    const e = new Error(FRASE_DEL_SERVIDOR);
+    e.kind = "sin_lectura";
+    e.status = 503;
+    getCursosCubiertos.mockRejectedValue(e);
+    const d = await abrirDesactivar();
+    await waitFor(() => expect(d.textContent).toMatch(/could not count the courses juan perez has/i));
+    expect(d.textContent).not.toMatch(/no courses covered/i);
+    expect(d.textContent).not.toMatch(/\b0\b/);
+    // el texto del servidor nunca sale
+    expect(document.body.textContent).not.toMatch(/moodle/i);
+    expect(document.body.textContent).not.toContain("Intente de nuevo");
+    expect(screen.getByRole("button", { name: /^turn off access$/i })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: /^turn off access$/i }));
+    await waitFor(() => expect(deactivateCompanyMember).toHaveBeenCalledWith(1));
+  });
+
+  it("un cuerpo que no se entendio tampoco es un 0", async () => {
+    const e = new Error("");
+    e.kind = "ilegible";
+    getCursosCubiertos.mockRejectedValue(e);
+    const d = await abrirDesactivar();
+    await waitFor(() => expect(d.textContent).toMatch(/could not count/i));
+  });
+
+  it("desvincular NO pide el conteo", async () => {
+    getCompanyMembers.mockResolvedValue(respuesta({ members: [miembro()], total: 1 }));
+    render(<AdminCompanyClient />);
+    await tablaCon(1);
+    fireEvent.click(screen.getByRole("button", { name: /^remove juan perez from your team$/i }));
+    await screen.findByRole("dialog");
+    expect(getCursosCubiertos).not.toHaveBeenCalled();
+  });
+
+  it("si se cierra el dialogo antes de que llegue, el conteo no aparece en el siguiente", async () => {
+    let soltar;
+    getCursosCubiertos.mockReturnValueOnce(new Promise((res) => { soltar = res; }));
+    await abrirDesactivar();
+    fireEvent.click(screen.getByRole("button", { name: /^keep as is$/i }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    soltar({ cursos_cubiertos: 9 });
+    getCursosCubiertos.mockReturnValue(new Promise(() => {}));
+    fireEvent.click(screen.getByRole("button", { name: /^turn off access for juan perez$/i }));
+    const d = await screen.findByRole("dialog");
+    expect(d.textContent).not.toMatch(/9 courses/);
+  });
+
+  it("la copia nueva existe en los dos idiomas y no nombra a Moodle", () => {
+    for (const idioma of [en, es]) {
+      for (const k of ["deactivateCoursesLoading", "deactivateCoursesNone", "deactivateCoursesOne",
+        "deactivateCoursesMany", "deactivateCoursesUnknown"]) {
+        expect(idioma.companyAdmin.panel[k]).toBeTruthy();
+        expect(idioma.companyAdmin.panel[k]).not.toMatch(/moodle/i);
       }
     }
   });
