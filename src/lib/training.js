@@ -7,13 +7,15 @@
  * Leer uno con el diccionario del otro pinta "desconocido" en filas reales
  * (`covered` mentiría al suspender), así que la acción viaja en cada llamada.
  *
- * Seis tipos, y la diferencia entre ellos es lo que se le dice al jefe:
+ * Siete tipos, y la diferencia entre ellos es lo que se le dice al jefe:
  *   ok          se hizo.
  *   neutro      no había nada que hacer (no es un fallo).
  *   pendiente   NO se tocó (se agotó el tiempo, o no se pudo leer): reintentar.
  *   incierto    el servidor escribió o pudo escribir: puede estar YA hecho.
  *               Reintentar es seguro, porque matricular es idempotente.
  *   fallo       un rechazo de verdad. Reintentar no lo arregla solo.
+ *   noatendida  el servidor no dijo nada de esa persona (`sin_fila`, fabricada
+ *               aquí): no se sabe, y se puede reintentar.
  *   desconocido un código que esta pantalla no conoce; se dice sin inventar.
  */
 
@@ -29,7 +31,10 @@ export const TAMANO_DE_TANDA = 10;
 export const DET_NO_SE_ENVIO = "no_se_envio";
 export const DET_SIN_RESPUESTA = "sin_respuesta";
 
-const DETALLES = {
+/** Cada detalle que el código consulta, con su tipo. Se exporta para que una
+ *  prueba exija su frase en los dos idiomas: `makeT` imprime la RUTA de la clave
+ *  cuando falta. */
+export const DETALLES = {
   no_se_intento_por_tiempo: "pendiente",
   [DET_NO_SE_ENVIO]: "pendiente",
   moodle_no_respondio_al_leer_sus_cursos: "pendiente",
@@ -43,13 +48,13 @@ const DETALLES = {
   moodle_acepto_pero_sigue_activa: "fallo",
 };
 
-const RESULTADOS = {
+export const RESULTADOS = {
   cubrir: { covered: "ok", already_covered: "ok", account_created: "ok" },
   dejar: { uncovered: "ok", not_covered: "neutro" },
 };
 
 /** Resultados que llevan su motivo en `detalle`, por acción. */
-const CON_DETALLE = {
+export const CON_DETALLE = {
   cubrir: new Set(["account_failed", "enrol_failed"]),
   dejar: new Set(["enrol_failed"]),
 };
@@ -62,7 +67,10 @@ const CON_DETALLE = {
 export function clasificarFila(accion, fila) {
   const resultado = fila && fila.resultado;
   if (resultado === "sin_fila") {
-    return { tipo: "neutro", resultadoKey: "result.noRow", detalleKey: null };
+    // El servidor NO dijo nada de esta persona (la pantalla fabrica la fila): ni
+    // "no había nada que hacer" ni "pudo escribirse". No se sabe, no se la atendió,
+    // y por eso entra al reintento.
+    return { tipo: "noatendida", resultadoKey: "result.noRow", detalleKey: null };
   }
   const propios = RESULTADOS[accion] || {};
   if (Object.hasOwn(propios, resultado)) {
@@ -87,7 +95,7 @@ export function reintentables(accion, filas) {
   return filas
     .filter((f) => {
       const { tipo } = clasificarFila(accion, f);
-      return tipo === "pendiente" || tipo === "incierto";
+      return tipo === "pendiente" || tipo === "incierto" || tipo === "noatendida";
     })
     .map((f) => f.usr_id);
 }

@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { clasificarFila, reintentables, TAMANO_DE_TANDA } from "../training";
+import {
+  CON_DETALLE, DETALLES, RESULTADOS, clasificarFila, reintentables, TAMANO_DE_TANDA,
+} from "../training";
+import en from "../../i18n/messages/en.json";
+import es from "../../i18n/messages/es.json";
 
 const fila = (resultado, detalle = null) => ({ usr_id: 1, email: "a@x.com", resultado, detalle });
 
@@ -80,12 +84,46 @@ it("la tanda es de 10: el tope de 50 del servidor es la red, no el camino", () =
   expect(TAMANO_DE_TANDA).toBe(10);
 });
 
-it("una persona pedida que el servidor no devolvio (`sin_fila`) no es 'desconocida' ni se reintenta", () => {
+it("una persona pedida que el servidor no devolvio (`sin_fila`) NO es 'nada que hacer': no se sabe, y entra al reintento", () => {
   const f = { usr_id: 9, email: "z@x.com", resultado: "sin_fila", detalle: null };
   for (const accion of ["cubrir", "dejar"]) {
     const c = clasificarFila(accion, f);
-    expect(c.tipo).toBe("neutro");
+    // un sexto tipo propio: ni "neutro" (que dice que no habia nada) ni "incierto"
+    // (que dice que el servidor pudo escribir: aqui ni siquiera la atendio)
+    expect(c.tipo).toBe("noatendida");
     expect(c.resultadoKey).toBe("result.noRow");
-    expect(reintentables(accion, [f])).toEqual([]);
+    expect(reintentables(accion, [f])).toEqual([9]);
   }
+});
+
+describe("la copia de cada codigo que el CODIGO consulta existe en los dos idiomas", () => {
+  // `makeT` imprime la RUTA de la clave cuando falta, y cinco de estas claves
+  // empiezan por `moodle_`: un codigo nuevo del backend sin su frase mostraria
+  // "training.detail.moodle_..." en pantalla. Se recorre `DETALLES` (la lista
+  // que el codigo consulta) y no el JSON, que solo dice lo que ya se escribio.
+  const claves = [
+    ...Object.keys(DETALLES).map((d) => `detail.${d}`),
+    "detail.otro",
+    ...Object.entries(RESULTADOS).flatMap(([accion, rs]) =>
+      Object.keys(rs).map((r) => `result.${accion}.${r}`)),
+    ...Object.entries(CON_DETALLE).flatMap(([accion, set]) =>
+      [...set].map((r) => `result.${accion}.${r}`)),
+    "result.unknown",
+    "result.noRow",
+  ];
+
+  it.each([["en", en], ["es", es]])("%s: todas las claves existen y ninguna es la ruta", (_n, idioma) => {
+    for (const k of claves) {
+      const valor = k.split(".").reduce((o, p) => (o ? o[p] : undefined), idioma.training);
+      expect(typeof valor, k).toBe("string");
+      expect(valor.length, k).toBeGreaterThan(0);
+    }
+  });
+
+  it("y cada tipo que puede salir tiene su etiqueta", () => {
+    for (const tipo of ["ok", "neutro", "pendiente", "incierto", "fallo", "desconocido", "noatendida"]) {
+      expect(en.training.results.tipo[tipo], tipo).toBeTruthy();
+      expect(es.training.results.tipo[tipo], tipo).toBeTruthy();
+    }
+  });
 });

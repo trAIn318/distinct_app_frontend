@@ -929,6 +929,7 @@
     "modeStop": "Stop covering",
     "peopleTitle": "Your people",
     "peopleEmpty": "There is nobody on your team to choose yet.",
+    "peopleOnlyInvited": "Your team only has pending invitations so far. People can be covered once they accept.",
     "peopleLoading": "Loading your people...",
     "peopleError": "We could not load your people. Try again in a moment.",
     "chooseCourseFirst": "Choose a course to see your people.",
@@ -955,8 +956,9 @@
     "stop": "Stop covering {n} selected",
     "stopNothing": "Stop covering the selected people",
     "progress": "Sending batch {i} of {n}",
+    "nothingToSend": "There was nothing to send: none of the selected people can take this action right now.",
     "confirm": {
-      "title": "Stop covering this course?",
+      "title": "Stop covering this course for {n} selected?",
       "loses": "Those people lose access to the course.",
       "keeps": "Their progress and grades are kept.",
       "reversible": "You can cover them again whenever you want.",
@@ -965,7 +967,7 @@
     },
     "results": {
       "title": "Result, person by person",
-      "summary": "{ok} done, {neutro} needed nothing, {pendiente} still to send, {incierto} to confirm, {fallo} rejected",
+      "summary": "{ok} done, {neutro} needed nothing, {pendiente} still to send, {incierto} to confirm, {noatendida} not handled, {fallo} rejected, {desconocido} unrecognized",
       "pendingNote": "These people were not reached. Send them again.",
       "uncertainNote": "These people may already be done. Trying again is safe.",
       "retry": "Try again for the {n} not finished",
@@ -977,7 +979,12 @@
         "pendiente": "Not sent yet",
         "incierto": "To confirm",
         "fallo": "Rejected",
-        "desconocido": "Unrecognized"
+        "desconocido": "Unrecognized",
+        "noatendida": "Not handled"
+      },
+      "about": {
+        "cubrir": "Covering this course",
+        "dejar": "Stopping coverage of this course"
       }
     },
     "result": {

@@ -929,6 +929,7 @@
     "modeStop": "Dejar de cubrir",
     "peopleTitle": "Tu gente",
     "peopleEmpty": "Todavía no hay nadie en tu equipo para elegir.",
+    "peopleOnlyInvited": "Tu equipo solo tiene invitaciones pendientes por ahora. Podrás cubrir a las personas cuando las acepten.",
     "peopleLoading": "Cargando a tu gente...",
     "peopleError": "No pudimos cargar a tu gente. Intenta de nuevo en un momento.",
     "chooseCourseFirst": "Elige un curso para ver a tu gente.",
@@ -955,8 +956,9 @@
     "stop": "Dejar de cubrir a {n} seleccionadas",
     "stopNothing": "Dejar de cubrir a las personas seleccionadas",
     "progress": "Enviando tanda {i} de {n}",
+    "nothingToSend": "No había nada que enviar: ninguna de las personas seleccionadas puede recibir esta acción ahora.",
     "confirm": {
-      "title": "¿Dejar de cubrir este curso?",
+      "title": "¿Dejar de cubrir este curso a {n} seleccionadas?",
       "loses": "Esas personas pierden el acceso al curso.",
       "keeps": "Su avance y sus notas se conservan.",
       "reversible": "Puedes volver a cubrirlas cuando quieras.",
@@ -965,7 +967,7 @@
     },
     "results": {
       "title": "Resultado, persona por persona",
-      "summary": "{ok} hechas, {neutro} no necesitaban nada, {pendiente} por enviar, {incierto} por confirmar, {fallo} rechazadas",
+      "summary": "{ok} hechas, {neutro} no necesitaban nada, {pendiente} por enviar, {incierto} por confirmar, {noatendida} sin atender, {fallo} rechazadas, {desconocido} no reconocidas",
       "pendingNote": "A estas personas no se les llegó. Vuelve a enviarlas.",
       "uncertainNote": "Estas personas pueden estar ya listas. Intentar de nuevo es seguro.",
       "retry": "Intentar de nuevo con las {n} sin terminar",
@@ -977,7 +979,12 @@
         "pendiente": "Sin enviar",
         "incierto": "Por confirmar",
         "fallo": "Rechazada",
-        "desconocido": "No reconocido"
+        "desconocido": "No reconocido",
+        "noatendida": "Sin atender"
+      },
+      "about": {
+        "cubrir": "Cubriendo este curso",
+        "dejar": "Dejando de cubrir este curso"
       }
     },
     "result": {
