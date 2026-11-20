@@ -7,6 +7,8 @@ import {
   getCatalogoDeFormacion,
   cubrirCurso,
   dejarDeCubrirCurso,
+  getCoberturaDeCurso,
+  getCursosCubiertos,
 } from "../api";
 
 let fetchMock;
@@ -139,5 +141,74 @@ describe("un 200 que no tiene la forma esperada NO es un exito", () => {
     fetchMock.mockResolvedValue(respuesta({}));
     expect((await falla(cubrirCurso(7, [1]))).kind).toBe("ilegible");
     expect((await falla(dejarDeCubrirCurso(7, [1]))).kind).toBe("ilegible");
+  });
+});
+
+// ── Remate: cobertura y conteo de cursos ───────────────────────────────────
+
+describe("getCoberturaDeCurso", () => {
+  it("GET con course_id y los usr_ids separados por comas, y el token", async () => {
+    fetchMock.mockResolvedValue(respuesta({ filas: [] }));
+    await getCoberturaDeCurso(101, [1, 2, 3]);
+    const { url, opts } = ultimaLlamada();
+    expect(url).toMatch(/\/api\/company-admin\/training\/covered\/\?/);
+    const q = new URL(url).searchParams;
+    expect(q.get("course_id")).toBe("101");
+    expect(q.get("usr_ids")).toBe("1,2,3");
+    expect(opts.method || "GET").toBe("GET");
+    expect(opts.headers.Authorization).toBe("Bearer tok-123");
+  });
+
+  it("devuelve las filas tal cual, con `unknown` intacto (NUNCA lo vuelve not_covered)", async () => {
+    const filas = [
+      { usr_id: 1, email: "a@x.com", resultado: "covered", detalle: null },
+      { usr_id: 2, email: "b@x.com", resultado: "not_covered", detalle: null },
+      { usr_id: 3, email: "c@x.com", resultado: "unknown", detalle: "moodle_no_respondio_al_leer_sus_cursos" },
+    ];
+    fetchMock.mockResolvedValue(respuesta({ filas }));
+    expect(await getCoberturaDeCurso(101, [1, 2, 3])).toEqual({ filas });
+  });
+
+  it("503 es sin_lectura, 400 es pedido, y el texto del servidor no viaja", async () => {
+    fetchMock.mockResolvedValue(respuesta(
+      { detail: "No se pudo consultar a Moodle en este momento." }, { ok: false, status: 503 }));
+    const e503 = await falla(getCoberturaDeCurso(101, [1]));
+    expect(e503.kind).toBe("sin_lectura");
+    expect(e503.message).not.toMatch(/moodle/i);
+    fetchMock.mockResolvedValue(respuesta({ detail: "x" }, { ok: false, status: 400 }));
+    expect((await falla(getCoberturaDeCurso(101, [1]))).kind).toBe("pedido");
+  });
+
+  it("sin red es `red`; un 200 sin `filas` es `ilegible`", async () => {
+    fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
+    expect((await falla(getCoberturaDeCurso(101, [1]))).kind).toBe("red");
+    fetchMock.mockReset().mockResolvedValue(respuesta({}));
+    expect((await falla(getCoberturaDeCurso(101, [1]))).kind).toBe("ilegible");
+  });
+});
+
+describe("getCursosCubiertos", () => {
+  it("GET a /members/<id>/covered-courses/ y devuelve el numero", async () => {
+    fetchMock.mockResolvedValue(respuesta({ cursos_cubiertos: 3 }));
+    expect(await getCursosCubiertos(42)).toEqual({ cursos_cubiertos: 3 });
+    const { url, opts } = ultimaLlamada();
+    expect(url).toMatch(/\/api\/company-admin\/members\/42\/covered-courses\/$/);
+    expect(opts.headers.Authorization).toBe("Bearer tok-123");
+  });
+
+  it("un 0 legitimo SE CONSERVA como 0", async () => {
+    fetchMock.mockResolvedValue(respuesta({ cursos_cubiertos: 0 }));
+    expect(await getCursosCubiertos(42)).toEqual({ cursos_cubiertos: 0 });
+  });
+
+  it("503 es sin_lectura (nunca un 0), y un 200 sin numero es ilegible", async () => {
+    fetchMock.mockResolvedValue(respuesta({ detail: "No se pudo consultar a Moodle." }, { ok: false, status: 503 }));
+    const e = await falla(getCursosCubiertos(42));
+    expect(e.kind).toBe("sin_lectura");
+    expect(e.message).not.toMatch(/moodle/i);
+    fetchMock.mockResolvedValue(respuesta({ cursos_cubiertos: "3" }));
+    expect((await falla(getCursosCubiertos(42))).kind).toBe("ilegible");
+    fetchMock.mockResolvedValue(respuesta({}));
+    expect((await falla(getCursosCubiertos(42))).kind).toBe("ilegible");
   });
 });

@@ -1006,6 +1006,34 @@ export async function dejarDeCubrirCurso(courseId, usrIds) {
 }
 
 /**
+ * GET /api/company-admin/training/covered/?course_id=&usr_ids=1,2,3
+ * → {filas: [{usr_id, email, resultado, detalle}]}
+ *
+ * `resultado` es `covered`, `not_covered` o `unknown`. `unknown` significa
+ * "NO SE PUDO PREGUNTAR" y NUNCA se lee como `not_covered`: esta función
+ * devuelve las filas tal cual y deja esa distinción a quien las consume. El
+ * tope es 10 personas por petición (con 11 el servidor responde 400 sin
+ * preguntar a nadie), que es lo que pagina la pantalla. Quien no es de la
+ * empresa o no es de rol 3 o 4 no recibe fila.
+ */
+export async function getCoberturaDeCurso(courseId, usrIds) {
+  const q = `course_id=${encodeURIComponent(courseId)}&usr_ids=${usrIds.map(encodeURIComponent).join(",")}`;
+  return _apiFormacion(`/company-admin/training/covered/?${q}`, {}, _tieneFilas);
+}
+
+/**
+ * GET /api/company-admin/members/<id>/covered-courses/ → {cursos_cubiertos: n}
+ *
+ * Aparte del botón de desactivar (cuesta 4 llamadas secuenciales, hasta ~45 s).
+ * Un 503 significa "no se pudo contar" y NUNCA es un 0: un 0 es "se preguntó y
+ * no tiene ninguno", y esta función conserva esa diferencia.
+ */
+export async function getCursosCubiertos(usrId) {
+  return _apiFormacion(`/company-admin/members/${encodeURIComponent(usrId)}/covered-courses/`, {},
+    (d) => Boolean(d) && typeof d.cursos_cubiertos === "number" && Number.isFinite(d.cursos_cubiertos));
+}
+
+/**
  * POST /api/contact/ — el formulario de contacto del sitio público.
  *
  * Vive en el backend y no en una ruta de Vercel a propósito: ahí está el envío
