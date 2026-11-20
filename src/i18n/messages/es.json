@@ -924,6 +924,7 @@
     "peopleTitle": "Tu gente",
     "peopleEmpty": "Todavía no hay nadie en tu equipo para elegir.",
     "peopleLoading": "Cargando a tu gente...",
+    "peopleError": "No pudimos cargar a tu gente. Intenta de nuevo en un momento.",
     "chooseCourseFirst": "Elige un curso para ver a tu gente.",
     "selectAllPage": "Seleccionar a todos en esta página",
     "selectPerson": "Seleccionar a {name}",

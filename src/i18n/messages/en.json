@@ -924,6 +924,7 @@
     "peopleTitle": "Your people",
     "peopleEmpty": "There is nobody on your team to choose yet.",
     "peopleLoading": "Loading your people...",
+    "peopleError": "We could not load your people. Try again in a moment.",
     "chooseCourseFirst": "Choose a course to see your people.",
     "selectAllPage": "Select everyone on this page",
     "selectPerson": "Select {name}",

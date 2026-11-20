@@ -442,8 +442,10 @@ describe("el catalogo trae solo un numero de avisos", () => {
     // la nota es EXACTAMENTE la frase: ni cifra pegada ni nombres de secciones
     expect(nota.textContent).toBe(en.training.avisos);
     expect(document.body.textContent).not.toMatch(/37/);
+    // y en NINGUN otro nodo (un hermano de la nota tambien contaria)
     for (const s of CATALOGO.secciones) {
       expect(nota.textContent).not.toContain(s.nombre);
+      expect(document.body.textContent).not.toContain(s.nombre);
     }
   });
 
@@ -608,10 +610,50 @@ describe("las personas desactivadas", () => {
     await waitFor(() => expect(cubrirCurso).toHaveBeenCalledWith(7, [1, 3]));
   });
 
-  it("tambien al dejar de cubrir (no hay nada que dejar en quien no puede entrar)", async () => {
+  it("al DEJAR de cubrir SI se pueden marcar: quien se desactivo despues de ser cubierto sigue ocupando un cupo", async () => {
     await abrir({ gente: gente() });
+    expect(casilla(2)).toBeDisabled(); // al cubrir, no
     fireEvent.click(screen.getByRole("radio", { name: en.training.modeStop }));
-    expect(casilla(2)).toBeDisabled();
+    expect(casilla(2)).not.toBeDisabled(); // al dejar, si: liberar el cupo
+  });
+
+  it("desactivada Y cubierta: se puede descubrir y su fila muestra las DOS cosas", async () => {
+    // La 2 se cubre estando activa; despues se desactiva (la lista, al recargarse, ya la trae asi).
+    let desactivada = false;
+    getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
+    getCompanyMembers.mockImplementation(async ({ offset }) => {
+      const g = personas(offset + 1, Math.min(10, 12 - offset), 12);
+      const m = g.members.find((x) => x.id === 2);
+      if (m && desactivada) m.active = false;
+      return g;
+    });
+    cubrirCurso.mockResolvedValue({ filas: [fila(2, "covered")] });
+    dejarDeCubrirCurso.mockResolvedValue({ filas: [fila(2, "uncovered")] });
+    render(<TrainingClient />);
+    fireEvent.change(await screen.findByLabelText(/^Course/), { target: { value: "7" } });
+    await screen.findByText("Nombre2 Apellido");
+    marcar(2);
+    fireEvent.click(botonCubrir());
+    await screen.findByText(en.training.results.title);
+
+    desactivada = true;
+    fireEvent.click(screen.getByRole("button", { name: en.training.page.next }));
+    await screen.findByText("Nombre11 Apellido");
+    fireEvent.click(screen.getByRole("button", { name: en.training.page.prev }));
+    await screen.findByText("Nombre2 Apellido");
+
+    const li = casilla(2).closest("li");
+    expect(within(li).getByText(en.companyAdmin.status.deactivated)).toBeInTheDocument();
+    expect(within(li).getByText(en.training.coverage.covered)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("radio", { name: en.training.modeStop }));
+    expect(casilla(2)).not.toBeDisabled();
+    marcar(2);
+    fireEvent.click(screen.getByRole("button", { name: /^Stop covering \d+ selected$/ }));
+    fireEvent.click(screen.getByRole("button", { name: en.training.confirm.yes }));
+    await waitFor(() => expect(dejarDeCubrirCurso).toHaveBeenCalledWith(7, [2]));
+    await waitFor(() => expect(within(casilla(2).closest("li")).getByText(en.training.coverage.notCovered)).toBeInTheDocument());
+    expect(within(casilla(2).closest("li")).getByText(en.companyAdmin.status.deactivated)).toBeInTheDocument();
   });
 });
 
@@ -649,5 +691,34 @@ describe("accesibilidad de la lista", () => {
     const claves = espia.mock.calls.filter((c) => /same key/i.test(String(c[0])));
     expect(claves).toHaveLength(0);
     expect(screen.getByRole("option", { name: "B" })).toBeInTheDocument();
+  });
+});
+
+describe("si la lista de gente no carga, el texto es PROPIO y nunca del servidor", () => {
+  function falloDeGente(status) {
+    const e = new Error(FRASE_DEL_SERVIDOR);
+    if (status) e.status = status;
+    return e;
+  }
+  async function abrirConFallo(e) {
+    getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
+    getCompanyMembers.mockRejectedValue(e);
+    render(<TrainingClient />);
+    fireEvent.change(await screen.findByLabelText(/^Course/), { target: { value: "7" } });
+    return screen.findByRole("alert");
+  }
+
+  it.each([
+    [500, en.training.peopleError],
+    [503, en.training.peopleError],
+    [400, en.training.peopleError],
+    [401, en.training.loadError.sesion],
+    [403, en.training.loadError.permiso],
+    [undefined, en.training.loadError.red],
+  ])("con estado %s dice su frase y no la del servidor (que nombra a Moodle)", async (status, frase) => {
+    const alerta = await abrirConFallo(falloDeGente(status));
+    expect(alerta).toHaveTextContent(frase);
+    expect(document.body.textContent).not.toMatch(/moodle/i);
+    expect(document.body.textContent).not.toContain("Intente de nuevo");
   });
 });

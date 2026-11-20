@@ -44,7 +44,6 @@ import { isAuthenticated } from "../../../../lib/session";
 import {
   ROW_STATUS,
   displayNameFor,
-  errorMessageFor,
   memberStatus,
 } from "../../../../lib/companyAdmin";
 import {
@@ -88,10 +87,24 @@ function fusionar(actuales, nuevas) {
   return salida;
 }
 
-/** Una persona desactivada no puede entrar: cubrirla gasta un cupo de curso en
- *  alguien sin acceso. Se decide con el mismo helper que usa el panel de al lado
- *  (`memberStatus`), no con una segunda lectura de `active`. */
+/** Se decide con el mismo helper que usa el panel de al lado (`memberStatus`),
+ *  no con una segunda lectura de `active`.
+ *
+ *  La regla es ASIMÉTRICA a propósito: al CUBRIR se bloquea (no se gasta un cupo
+ *  de curso en quien no puede entrar), pero al DEJAR de cubrir se permite.
+ *  Quien se desactivó DESPUÉS de ser cubierto sigue ocupando un cupo, y liberar
+ *  un cupo que nadie va a usar es justo lo que el jefe necesita. */
 const estaDesactivada = (m) => memberStatus(m) === ROW_STATUS.DEACTIVATED;
+
+/** Texto de la lista de gente que no cargó. Nunca el del servidor: se decide por
+ *  el estado HTTP (esta función no puede leer el mensaje) y la copia es propia. */
+function claveErrorGente(err) {
+  const status = err && err.status;
+  if (status === 401) return "loadError.sesion";
+  if (status === 403) return "loadError.permiso";
+  if (typeof status !== "number") return "loadError.red"; // no llegó respuesta
+  return "peopleError";
+}
 
 export default function TrainingClient() {
   const t = useT("training");
@@ -192,12 +205,12 @@ export default function TrainingClient() {
   }, []);
 
   /** ¿Se puede marcar? Quien ya está cubierto no (al cubrir); quien ya no lo
-   *  está tampoco (al dejar de cubrir); y quien está desactivado, nunca:
-   *  reactivarlo es un clic en la pantalla de al lado, gastar un cupo en
-   *  silencio no. */
+   *  está tampoco (al dejar de cubrir); y quien está desactivado no al CUBRIR
+   *  (reactivarlo es un clic en la pantalla de al lado; gastar un cupo en
+   *  silencio no), pero SÍ al dejar de cubrir (ver `estaDesactivada`). */
   const marcable = useCallback((m) => {
-    if (enCurso || estaDesactivada(m)) return false;
-    if (modo === "cubrir") return cobertura[m.id] !== true;
+    if (enCurso) return false;
+    if (modo === "cubrir") return !estaDesactivada(m) && cobertura[m.id] !== true;
     return cobertura[m.id] !== false;
   }, [enCurso, modo, cobertura]);
 
@@ -436,7 +449,7 @@ export default function TrainingClient() {
           <p className={styles.muted} role="status">{t("peopleLoading")}</p>
         )}
         {cursoId && gente.estado === "error" && (
-          <p className={styles.error} role="alert">{errorMessageFor(gente.err, tPanel)}</p>
+          <p className={styles.error} role="alert">{t(claveErrorGente(gente.err))}</p>
         )}
         {cursoId && gente.estado === "ok" && members.length === 0 && (
           <p className={styles.muted}>{t("peopleEmpty")}</p>
@@ -471,8 +484,11 @@ export default function TrainingClient() {
                     />
                     <span className={styles.nombre}>{nombre}</span>
                     <span className={styles.correo}>{m.email}</span>
+                    {/* Los DOS estados, uno junto al otro: que esté desactivada
+                        no tapa si está cubierta. */}
                     <span className={styles.estado}>
-                      {desactivada ? tPanel("status.deactivated") : t(`coverage.${estado}`)}
+                      {desactivada && <span>{tPanel("status.deactivated")}</span>}
+                      <span>{t(`coverage.${estado}`)}</span>
                     </span>
                   </li>
                 );
