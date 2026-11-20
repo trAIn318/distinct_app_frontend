@@ -13,12 +13,16 @@
  *  - La gente se lista de 10 en 10 por la misma razón: saber quién ya tiene un
  *    curso cuesta UNA llamada por persona a la vista.
  *
- * QUÉ SE SABE DE QUIÉN YA ESTÁ CUBIERTO: el backend no expone una consulta de
- * cobertura (`cubiertos_en` existe pero no tiene ruta). Lo que se sabe sale de
- * lo que respondieron cubrir y dejar de cubrir en esta visita al curso, y se
- * olvida al cambiar de curso. Hasta que exista esa ruta, quien ya estaba
- * cubierto antes sale "sin comprobar"; si se le marca, el servidor responde
- * `already_covered` sin tocarlo (cubrir es idempotente).
+ * QUÉ SE SABE DE QUIÉN YA ESTÁ CUBIERTO: se pregunta al abrir el curso y al
+ * cambiar de página, y SOLO por las personas de la página a la vista (el tope es
+ * 10 por petición y cuesta una llamada por persona). Lo que respondieron cubrir y
+ * dejar de cubrir en esta visita manda sobre una respuesta que llegue tarde, y
+ * todo se olvida al cambiar de curso. La respuesta tiene TRES estados:
+ *   covered / not_covered → se sabe.
+ *   unknown (o cualquier cosa que no reconozcamos, o la petición entera caída)
+ *     → NO SE PUDO PREGUNTAR. Se pinta "no se pudo comprobar" y NO se bloquea
+ *     nada, y NUNCA se lee como "sin cubrir": esa persona podría estar cubierta.
+ *     Se vuelve a preguntar al volver a la página.
  *
  * LO QUE UNA FILA "FALLIDA" NO SIEMPRE ES (ver `lib/training.js`):
  *  - `no_se_intento_por_tiempo` → NO se tocó: pendiente, no error.
@@ -38,6 +42,7 @@ import {
   cubrirCurso,
   dejarDeCubrirCurso,
   getCatalogoDeFormacion,
+  getCoberturaDeCurso,
   getCompanyMembers,
 } from "../../../../lib/api";
 import { isAuthenticated } from "../../../../lib/session";
@@ -121,8 +126,15 @@ export default function TrainingClient() {
   const [gente, setGente] = useState({ estado: "vacio" }); // vacio | cargando | ok | error
   // usr_id → email de quienes están marcados. Sobrevive al cambio de página.
   const [seleccion, setSeleccion] = useState(() => new Map());
-  // usr_id → true (cubierta) | false (sin cubrir), solo de lo respondido aquí.
+  // usr_id → true (cubierta) | false (sin cubrir) | "unknown" (no se pudo
+  // preguntar). Ausente = todavía no se ha preguntado, o no volvió fila.
   const [cobertura, setCobertura] = useState({});
+  // Estado de la última pregunta de cobertura de la página a la vista.
+  const [cobEstado, setCobEstado] = useState("idle"); // idle | cargando | error
+  const [intentoCob, setIntentoCob] = useState(0);
+  // Espejo de `cobertura` para leerlo dentro del efecto sin que el efecto se
+  // vuelva a disparar con cada respuesta (un `unknown` lo haría en bucle).
+  const coberturaRef = useRef({});
 
   const [enCurso, setEnCurso] = useState(null); // null | "cubrir" | "dejar"
   const [progreso, setProgreso] = useState(null); // {i, n}
@@ -181,10 +193,63 @@ export default function TrainingClient() {
     return () => { vigente = false; };
   }, [ready, cursoId, offset]);
 
+  useEffect(() => {
+    coberturaRef.current = cobertura;
+  }, [cobertura]);
+
+  // La cobertura se pide al abrir el curso y al cambiar de página, solo de las
+  // personas a la vista y solo de las que no se sabe (ni cubierta ni sin cubrir).
+  useEffect(() => {
+    if (!ready || !cursoId || gente.estado !== "ok") return undefined;
+    const ids = gente.members
+      .map((m) => m.id)
+      .filter((id) => {
+        const v = coberturaRef.current[id];
+        return v === undefined || v === "unknown";
+      });
+    if (ids.length === 0) {
+      setCobEstado("idle");
+      return undefined;
+    }
+    let vigente = true;
+    setCobEstado("cargando");
+    // Una respuesta SOLO rellena lo que aún no se sabe: lo que cubrir o dejar
+    // de cubrir ya dijeron en esta visita es más reciente que una pregunta hecha antes.
+    const rellenar = (nuevos) => setCobertura((prev) => {
+      const sig = { ...prev };
+      for (const [id, v] of Object.entries(nuevos)) {
+        if (sig[id] === undefined || sig[id] === "unknown") sig[id] = v;
+      }
+      return sig;
+    });
+    getCoberturaDeCurso(Number(cursoId), ids)
+      .then((r) => {
+        if (!vigente) return;
+        const nuevos = {};
+        for (const fila of r.filas) {
+          // Solo `covered` y `not_covered` son respuestas. `unknown`, y cualquier
+          // cosa que no conozcamos, es "no se pudo preguntar": NUNCA "sin cubrir".
+          if (fila.resultado === "covered") nuevos[fila.usr_id] = true;
+          else if (fila.resultado === "not_covered") nuevos[fila.usr_id] = false;
+          else nuevos[fila.usr_id] = "unknown";
+        }
+        rellenar(nuevos);
+        setCobEstado("idle");
+      })
+      .catch(() => {
+        if (!vigente) return;
+        // Toda la página queda desconocida, no "sin cubrir".
+        rellenar(Object.fromEntries(ids.map((id) => [id, "unknown"])));
+        setCobEstado("error");
+      });
+    return () => { vigente = false; };
+  }, [ready, cursoId, gente, intentoCob]);
+
   const reiniciarVisita = useCallback(() => {
     setOffset(0);
     setSeleccion(new Map());
     setCobertura({});
+    setCobEstado("idle");
     setFilas([]);
     setAccionUlt(null);
     setErrorRun(null);
@@ -457,6 +522,19 @@ export default function TrainingClient() {
 
         {cursoId && gente.estado === "ok" && members.length > 0 && (
           <>
+            {cobEstado === "error" && (
+              <div className={styles.notice} role="status">
+                {t("coverageUnavailable")}{" "}
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => setIntentoCob((n) => n + 1)}
+                  disabled={ocupado}
+                >
+                  {t("coverageRetry")}
+                </button>
+              </div>
+            )}
             <label className={styles.todos}>
               <input
                 type="checkbox"
@@ -471,8 +549,11 @@ export default function TrainingClient() {
                 // Último recurso: nunca una casilla con el nombre accesible "Select ".
                 const nombre = displayNameFor(m) || m.name || t("unnamed");
                 const desactivada = estaDesactivada(m);
-                const estado = cobertura[m.id] === true
-                  ? "covered" : (cobertura[m.id] === false ? "notCovered" : "unknown");
+                let estado = "unknown";
+                if (cobertura[m.id] === true) estado = "covered";
+                else if (cobertura[m.id] === false) estado = "notCovered";
+                else if (cobertura[m.id] === "unknown") estado = "couldNotCheck";
+                else if (cobEstado === "cargando") estado = "checking";
                 return (
                   <li key={m.id} className={styles.persona}>
                     <input

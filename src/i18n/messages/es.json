@@ -932,8 +932,12 @@
     "coverage": {
       "covered": "Cubierto",
       "notCovered": "Sin cubrir",
-      "unknown": "Sin comprobar"
+      "unknown": "Sin comprobar",
+      "couldNotCheck": "No se pudo comprobar",
+      "checking": "Comprobando..."
     },
+    "coverageUnavailable": "No pudimos comprobar quién ya tiene este curso, así que nadie se muestra como cubierto o sin cubrir. Puedes continuar igual.",
+    "coverageRetry": "Comprobar de nuevo",
     "page": {
       "prev": "Anterior",
       "next": "Siguiente",

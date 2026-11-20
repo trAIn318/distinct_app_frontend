@@ -14,7 +14,9 @@ const getCatalogoDeFormacion = vi.fn();
 const cubrirCurso = vi.fn();
 const dejarDeCubrirCurso = vi.fn();
 const getCompanyMembers = vi.fn();
+const getCoberturaDeCurso = vi.fn();
 vi.mock("../../../../../lib/api", () => ({
+  getCoberturaDeCurso: (...a) => getCoberturaDeCurso(...a),
   getCatalogoDeFormacion: (...a) => getCatalogoDeFormacion(...a),
   cubrirCurso: (...a) => cubrirCurso(...a),
   dejarDeCubrirCurso: (...a) => dejarDeCubrirCurso(...a),
@@ -82,6 +84,9 @@ beforeEach(() => {
   cubrirCurso.mockReset();
   dejarDeCubrirCurso.mockReset();
   getCompanyMembers.mockReset();
+  // Por omision la cobertura no trae fila de nadie: nadie queda ni cubierto ni
+  // sin cubrir, que es lo que suponian las pruebas anteriores al endpoint.
+  getCoberturaDeCurso.mockReset().mockResolvedValue({ filas: [] });
 });
 afterEach(() => {
   cleanup();
@@ -720,5 +725,191 @@ describe("si la lista de gente no carga, el texto es PROPIO y nunca del servidor
     expect(alerta).toHaveTextContent(frase);
     expect(document.body.textContent).not.toMatch(/moodle/i);
     expect(document.body.textContent).not.toContain("Intente de nuevo");
+  });
+});
+
+// ── Remate: la cobertura se pide al abrir el curso y al cambiar de pagina ───
+
+const cob = (usr_id, resultado, detalle = null) => ({ usr_id, email: `p${usr_id}@x.com`, resultado, detalle });
+const estadoDeCob = (id) => within(casilla(id).closest("li")).getByText(
+  new RegExp(`^(${en.training.coverage.covered}|${en.training.coverage.notCovered}|${en.training.coverage.unknown}|${en.training.coverage.couldNotCheck}|${en.training.coverage.checking})$`));
+
+describe("la cobertura se pide de la pagina a la vista", () => {
+  it("al elegir el curso pide SOLO los ids de la pagina, y al cambiar de pagina SOLO los de la nueva", async () => {
+    getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
+    getCompanyMembers.mockImplementation(async ({ offset }) =>
+      personas(offset + 1, Math.min(10, 25 - offset), 25));
+    render(<TrainingClient />);
+    fireEvent.change(await screen.findByLabelText(/^Course/), { target: { value: "7" } });
+    await screen.findByText("Nombre1 Apellido");
+    await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenCalledTimes(1));
+    expect(getCoberturaDeCurso).toHaveBeenLastCalledWith(7, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    fireEvent.click(screen.getByRole("button", { name: en.training.page.next }));
+    await screen.findByText("Nombre11 Apellido");
+    await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenCalledTimes(2));
+    expect(getCoberturaDeCurso).toHaveBeenLastCalledWith(7, [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+  });
+
+  it("nunca pide mas de 10 por peticion", async () => {
+    getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
+    getCompanyMembers.mockResolvedValue(personas(1, 10, 50));
+    render(<TrainingClient />);
+    fireEvent.change(await screen.findByLabelText(/^Course/), { target: { value: "7" } });
+    await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenCalled());
+    for (const [, ids] of getCoberturaDeCurso.mock.calls) expect(ids.length).toBeLessThanOrEqual(10);
+  });
+
+  it("covered: se ve cubierta y no se puede marcar al cubrir; not_covered: al reves al dejar", async () => {
+    getCoberturaDeCurso.mockResolvedValue({ filas: [cob(1, "covered"), cob(2, "not_covered")] });
+    await abrir();
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.covered));
+    expect(estadoDeCob(2)).toHaveTextContent(en.training.coverage.notCovered);
+    expect(casilla(1)).toBeDisabled();
+    expect(casilla(2)).not.toBeDisabled();
+    fireEvent.click(screen.getByRole("radio", { name: en.training.modeStop }));
+    expect(casilla(1)).not.toBeDisabled();
+    expect(casilla(2)).toBeDisabled();
+  });
+
+  it("una persona cubierta hace meses ya NO se ve 'sin comprobar'", async () => {
+    getCoberturaDeCurso.mockResolvedValue({ filas: [cob(3, "covered")] });
+    await abrir();
+    await waitFor(() => expect(estadoDeCob(3)).toHaveTextContent(en.training.coverage.covered));
+  });
+
+  it("lo que ya se sabe NO se vuelve a preguntar al volver a la pagina", async () => {
+    getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
+    getCompanyMembers.mockImplementation(async ({ offset }) =>
+      personas(offset + 1, Math.min(10, 12 - offset), 12));
+    getCoberturaDeCurso.mockImplementation(async (_c, ids) => ({
+      filas: ids.map((id) => cob(id, id <= 10 ? "covered" : "not_covered")),
+    }));
+    render(<TrainingClient />);
+    fireEvent.change(await screen.findByLabelText(/^Course/), { target: { value: "7" } });
+    await screen.findByText("Nombre1 Apellido");
+    await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: en.training.page.next }));
+    await screen.findByText("Nombre11 Apellido");
+    await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenCalledTimes(2));
+    fireEvent.click(screen.getByRole("button", { name: en.training.page.prev }));
+    await screen.findByText("Nombre1 Apellido");
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.covered));
+    expect(getCoberturaDeCurso).toHaveBeenCalledTimes(2);
+  });
+
+  it("al cambiar de curso se olvida y se vuelve a preguntar", async () => {
+    getCoberturaDeCurso.mockResolvedValue({ filas: [cob(1, "covered")] });
+    const curso = await abrir();
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.covered));
+    getCoberturaDeCurso.mockResolvedValue({ filas: [cob(1, "not_covered")] });
+    fireEvent.change(curso, { target: { value: "9" } });
+    await screen.findByText("Nombre1 Apellido");
+    await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenLastCalledWith(9, [1, 2, 3, 4]));
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.notCovered));
+  });
+
+  it("una respuesta que llega TARDE no pisa lo que una accion ya dijo", async () => {
+    let soltar;
+    getCoberturaDeCurso.mockReturnValue(new Promise((res) => { soltar = res; }));
+    cubrirCurso.mockResolvedValue({ filas: [fila(1, "covered")] });
+    await abrir();
+    marcar(1);
+    fireEvent.click(botonCubrir());
+    await screen.findByText(en.training.results.title);
+    expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.covered);
+    soltar({ filas: [cob(1, "not_covered")] }); // preguntada ANTES de cubrir
+    await waitFor(() => expect(estadoDeCob(2)).toBeInTheDocument());
+    expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.covered);
+  });
+
+  it("mientras se pregunta dice que esta comprobando", async () => {
+    getCoberturaDeCurso.mockReturnValue(new Promise(() => {}));
+    await abrir();
+    expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.checking);
+  });
+});
+
+describe("cobertura UNKNOWN: no se pudo preguntar, y NO es 'sin cubrir'", () => {
+  const desconocida = (id) => cob(id, "unknown", "moodle_no_respondio_al_leer_sus_cursos");
+
+  it("una fila unknown se ve 'no se pudo comprobar', no 'sin cubrir', y se puede marcar en los DOS modos", async () => {
+    getCoberturaDeCurso.mockResolvedValue({ filas: [desconocida(1), cob(2, "not_covered")] });
+    await abrir();
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.couldNotCheck));
+    expect(estadoDeCob(2)).toHaveTextContent(en.training.coverage.notCovered);
+    expect(casilla(1)).not.toBeDisabled();
+    fireEvent.click(screen.getByRole("radio", { name: en.training.modeStop }));
+    // not_covered se bloquea al dejar; unknown NO (podria estar cubierta)
+    expect(casilla(2)).toBeDisabled();
+    expect(casilla(1)).not.toBeDisabled();
+  });
+
+  it("la_persona_no_tiene_correo tambien es unknown", async () => {
+    getCoberturaDeCurso.mockResolvedValue({ filas: [cob(1, "unknown", "la_persona_no_tiene_correo")] });
+    await abrir();
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.couldNotCheck));
+  });
+
+  it("un resultado que no conocemos tampoco se lee como 'sin cubrir'", async () => {
+    getCoberturaDeCurso.mockResolvedValue({ filas: [cob(1, "algo_nuevo")] });
+    await abrir();
+    await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenCalled());
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.couldNotCheck));
+    expect(casilla(1)).not.toBeDisabled();
+  });
+
+  it("si TODA la peticion falla (503): toda la pagina queda desconocida, con su aviso propio y sin el texto del servidor", async () => {
+    getCoberturaDeCurso.mockRejectedValue(error("sin_lectura", 503));
+    await abrir();
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.couldNotCheck));
+    for (const id of [2, 3, 4]) expect(estadoDeCob(id)).toHaveTextContent(en.training.coverage.couldNotCheck);
+    expect(screen.queryByText(en.training.coverage.notCovered)).toBeNull();
+    expect(document.body.textContent).toContain(en.training.coverageUnavailable);
+    expect(document.body.textContent).not.toMatch(/moodle/i);
+    expect(document.body.textContent).not.toContain("Intente de nuevo");
+    // y se puede seguir: nada se bloquea
+    expect(casilla(1)).not.toBeDisabled();
+  });
+
+  it("'check again' vuelve a preguntar solo por esa pagina y rellena", async () => {
+    getCoberturaDeCurso.mockRejectedValueOnce(error("sin_lectura", 503));
+    getCoberturaDeCurso.mockResolvedValue({ filas: [cob(1, "covered"), cob(2, "not_covered")] });
+    await abrir();
+    fireEvent.click(await screen.findByRole("button", { name: en.training.coverageRetry }));
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.covered));
+    expect(estadoDeCob(2)).toHaveTextContent(en.training.coverage.notCovered);
+    expect(screen.queryByText(en.training.coverageUnavailable)).toBeNull();
+    expect(getCoberturaDeCurso).toHaveBeenCalledTimes(2);
+  });
+
+  it("un unknown se vuelve a preguntar al volver a la pagina (no se da por sabido)", async () => {
+    getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
+    getCompanyMembers.mockImplementation(async ({ offset }) =>
+      personas(offset + 1, Math.min(10, 12 - offset), 12));
+    getCoberturaDeCurso.mockImplementation(async (_c, ids) => ({
+      filas: ids.map((id) => (id === 1 ? desconocida(1) : cob(id, "not_covered"))),
+    }));
+    render(<TrainingClient />);
+    fireEvent.change(await screen.findByLabelText(/^Course/), { target: { value: "7" } });
+    await screen.findByText("Nombre1 Apellido");
+    await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: en.training.page.next }));
+    await screen.findByText("Nombre11 Apellido");
+    await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenCalledTimes(2));
+    fireEvent.click(screen.getByRole("button", { name: en.training.page.prev }));
+    await screen.findByText("Nombre1 Apellido");
+    await waitFor(() => expect(getCoberturaDeCurso).toHaveBeenCalledTimes(3));
+    expect(getCoberturaDeCurso).toHaveBeenLastCalledWith(7, [1]);
+  });
+});
+
+describe("la copia nueva del remate", () => {
+  it("no nombra a Moodle y existe en los dos idiomas", () => {
+    for (const idioma of [en, es]) {
+      for (const k of ["couldNotCheck", "checking"]) expect(idioma.training.coverage[k]).toBeTruthy();
+      expect(idioma.training.coverageUnavailable).toBeTruthy();
+      expect(idioma.training.coverageRetry).toBeTruthy();
+      expect(JSON.stringify(idioma.training)).not.toMatch(/moodle[^_"]/i);
+    }
   });
 });

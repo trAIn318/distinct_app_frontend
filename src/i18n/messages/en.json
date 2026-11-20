@@ -932,8 +932,12 @@
     "coverage": {
       "covered": "Covered",
       "notCovered": "Not covered",
-      "unknown": "Not checked"
+      "unknown": "Not checked",
+      "couldNotCheck": "Could not check",
+      "checking": "Checking..."
     },
+    "coverageUnavailable": "We could not check who already has this course, so nobody is shown as covered or not covered. You can still continue.",
+    "coverageRetry": "Check again",
     "page": {
       "prev": "Previous",
       "next": "Next",
