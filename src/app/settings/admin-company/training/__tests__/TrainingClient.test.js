@@ -936,3 +936,279 @@ describe("la copia nueva del remate", () => {
     }
   });
 });
+
+// ── Ola final: la seleccion es una fuente de verdad mas ─────────────────────
+
+const modoDejarFinal = () => fireEvent.click(screen.getByRole("radio", { name: en.training.modeStop }));
+const seleccionadas = (n) => screen.getByText(`${n} selected`);
+
+/** Una lista de 12 en dos paginas; `flags.desactivada` convierte a la 2 en desactivada. */
+function dosPaginas(flags) {
+  getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
+  getCompanyMembers.mockImplementation(async ({ offset }) => {
+    const g = personas(offset + 1, Math.min(10, 12 - offset), 12);
+    const m = g.members.find((x) => x.id === 2);
+    if (m && flags.desactivada) m.active = false;
+    return g;
+  });
+}
+async function abrirDosPaginas() {
+  render(<TrainingClient />);
+  fireEvent.change(await screen.findByLabelText(/^Course/), { target: { value: "7" } });
+  await screen.findByText("Nombre1 Apellido");
+}
+async function irYVolver() {
+  fireEvent.click(screen.getByRole("button", { name: en.training.page.next }));
+  await screen.findByText("Nombre11 Apellido");
+  fireEvent.click(screen.getByRole("button", { name: en.training.page.prev }));
+  await screen.findByText("Nombre1 Apellido");
+}
+
+describe("la seleccion se poda cuando lo que la invalidaba cambia", () => {
+  it("se marca mientras 'Checking...' y llega covered: el contador y lo que se manda bajan con la respuesta", async () => {
+    let soltar;
+    getCoberturaDeCurso.mockReturnValue(new Promise((res) => { soltar = res; }));
+    cubrirCurso.mockResolvedValue({ filas: [fila(3, "covered")] });
+    await abrir();
+    marcar(1, 2, 3); // las casillas estan vivas: todavia no se sabe nada
+    expect(seleccionadas(3)).toBeInTheDocument();
+    soltar({ filas: [cob(1, "covered"), cob(2, "covered"), cob(3, "not_covered")] });
+    // el HECHO: el contador baja porque la seleccion se podo
+    await waitFor(() => expect(seleccionadas(1)).toBeInTheDocument());
+    expect(botonCubrir()).toHaveTextContent("Cover 1 selected");
+    fireEvent.click(botonCubrir());
+    await waitFor(() => expect(cubrirCurso).toHaveBeenCalledWith(7, [3]));
+    // y del resto no queda una tabla que no diga nada de ellas
+    await screen.findByText(en.training.results.title);
+    expect(within(screen.getByRole("table")).getAllByRole("row")).toHaveLength(2);
+  });
+
+  it("si las TRES marcadas resultan cubiertas, queda 0 y el boton apagado: no hay clic que no haga nada", async () => {
+    let soltar;
+    getCoberturaDeCurso.mockReturnValue(new Promise((res) => { soltar = res; }));
+    await abrir();
+    marcar(1, 2);
+    soltar({ filas: [cob(1, "covered"), cob(2, "covered")] });
+    await waitFor(() => expect(seleccionadas(0)).toBeInTheDocument());
+    expect(botonCubrir()).toBeDisabled();
+    expect(cubrirCurso).not.toHaveBeenCalled();
+  });
+
+  it("alguien desactivado ENTRE dos cargas de la pagina deja de estar seleccionado y NO viaja", async () => {
+    const flags = { desactivada: false };
+    dosPaginas(flags);
+    cubrirCurso.mockResolvedValue({ filas: [fila(1, "covered")] });
+    await abrirDosPaginas();
+    marcar(1, 2);
+    expect(seleccionadas(2)).toBeInTheDocument();
+    flags.desactivada = true;
+    await irYVolver();
+    await waitFor(() => expect(seleccionadas(1)).toBeInTheDocument());
+    fireEvent.click(botonCubrir());
+    await waitFor(() => expect(cubrirCurso).toHaveBeenCalledWith(7, [1]));
+  });
+
+  it("REINTENTAR tambien refiltra: quien se desactivo no se reenvia, y se dice que no habia nada que enviar", async () => {
+    const flags = { desactivada: false };
+    dosPaginas(flags);
+    cubrirCurso.mockResolvedValue({
+      filas: [fila(1, "covered"), fila(2, "enrol_failed", "no_se_intento_por_tiempo")],
+    });
+    await abrirDosPaginas();
+    marcar(1, 2);
+    fireEvent.click(botonCubrir());
+    const reintentar = await screen.findByRole("button", { name: "Try again for the 1 not finished" });
+    flags.desactivada = true;
+    await irYVolver();
+    fireEvent.click(reintentar);
+    expect(await screen.findByText(en.training.nothingToSend)).toBeInTheDocument();
+    expect(cubrirCurso).toHaveBeenCalledTimes(1); // no hubo segundo envio
+    // el resultado anterior sigue siendo la respuesta de lo que SI se envio
+    expect(screen.getByText(en.training.results.title)).toBeInTheDocument();
+  });
+
+  it("el aviso de 'nada que enviar' se va al marcar de nuevo", async () => {
+    const flags = { desactivada: false };
+    dosPaginas(flags);
+    cubrirCurso.mockResolvedValue({ filas: [fila(2, "enrol_failed", "no_se_intento_por_tiempo")] });
+    await abrirDosPaginas();
+    marcar(2);
+    fireEvent.click(botonCubrir());
+    const reintentar = await screen.findByRole("button", { name: "Try again for the 1 not finished" });
+    flags.desactivada = true;
+    await irYVolver();
+    fireEvent.click(reintentar);
+    await screen.findByText(en.training.nothingToSend);
+    marcar(1);
+    await waitFor(() => expect(screen.queryByText(en.training.nothingToSend)).toBeNull());
+  });
+});
+
+describe("tras una fila INCIERTA la lista deja de afirmar lo que ya no sabe", () => {
+  it("cubrir con error_inesperado: de 'Not covered' pasa a 'Could not check'", async () => {
+    getCoberturaDeCurso.mockResolvedValue({ filas: [cob(1, "not_covered")] });
+    cubrirCurso.mockResolvedValue({ filas: [fila(1, "enrol_failed", "error_inesperado")] });
+    await abrir();
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.notCovered));
+    marcar(1);
+    fireEvent.click(botonCubrir());
+    await screen.findByText(en.training.results.title);
+    expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.couldNotCheck);
+  });
+
+  it("dejar con moodle_acepto_pero_no_pude_releer: de 'Covered' pasa a 'Could not check'", async () => {
+    getCoberturaDeCurso.mockResolvedValue({ filas: [cob(1, "covered")] });
+    dejarDeCubrirCurso.mockResolvedValue({ filas: [fila(1, "enrol_failed", "moodle_acepto_pero_no_pude_releer")] });
+    await abrir();
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.covered));
+    modoDejarFinal();
+    marcar(1);
+    fireEvent.click(screen.getByRole("button", { name: /^Stop covering \d+ selected$/ }));
+    fireEvent.click(screen.getByRole("button", { name: en.training.confirm.yes }));
+    await screen.findByText(en.training.results.title);
+    expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.couldNotCheck);
+  });
+
+  it("una fila PENDIENTE no cambia lo que se sabia (no se toco nada)", async () => {
+    getCoberturaDeCurso.mockResolvedValue({ filas: [cob(1, "not_covered")] });
+    cubrirCurso.mockResolvedValue({ filas: [fila(1, "enrol_failed", "no_se_intento_por_tiempo")] });
+    await abrir();
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.notCovered));
+    marcar(1);
+    fireEvent.click(botonCubrir());
+    await screen.findByText(en.training.results.title);
+    expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.notCovered);
+  });
+});
+
+describe("el resumen suma las filas, y el panel dice de que accion habla", () => {
+  it("con una fila de cada tipo, los numeros del resumen SUMAN las filas de la tabla", async () => {
+    cubrirCurso.mockResolvedValue({
+      filas: [
+        fila(1, "covered"),
+        fila(2, "enrol_failed", "no_se_intento_por_tiempo"),
+        fila(3, "enrol_failed", "error_inesperado"),
+        fila(4, "account_failed", "moodle_no_creo_la_cuenta"),
+        fila(5, "resultado_que_no_conocemos"),
+        // la 6 no vuelve: sin_fila
+        fila(7, "covered"),
+      ],
+    });
+    await abrir({ gente: personas(1, 7, 7) });
+    fireEvent.click(screen.getByRole("checkbox", { name: en.training.selectAllPage }));
+    fireEvent.click(botonCubrir());
+    await screen.findByText(en.training.results.title);
+    const filasTabla = within(screen.getByRole("table")).getAllByRole("row").length - 1;
+    const resumen = document.body.textContent.match(/(\d+) done, .*unrecognized/)[0];
+    const suma = (resumen.match(/\d+/g) || []).reduce((a, x) => a + Number(x), 0);
+    expect(filasTabla).toBe(7);
+    expect(suma).toBe(filasTabla);
+    expect(resumen).toMatch(/1 not handled/);
+    expect(resumen).toMatch(/1 unrecognized/);
+  });
+
+  it("una persona sin atender (sin_fila) trae su nota y entra al boton de reintentar", async () => {
+    cubrirCurso.mockResolvedValue({ filas: [] }); // la 1 no vuelve
+    await abrir();
+    marcar(1);
+    fireEvent.click(botonCubrir());
+    await screen.findByText(en.training.results.title);
+    expect(screen.getByText(en.training.results.pendingNote)).toBeInTheDocument();
+    expect(screen.getByText(en.training.results.tipo.noatendida)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try again for the 1 not finished" })).toBeInTheDocument();
+  });
+
+  it("tras cubrir y cambiar el radio a 'dejar', el panel sigue diciendo CUBRIR y reintentar cubre", async () => {
+    cubrirCurso
+      .mockResolvedValueOnce({ filas: [fila(1, "enrol_failed", "no_se_intento_por_tiempo")] })
+      .mockResolvedValueOnce({ filas: [fila(1, "covered")] });
+    await abrir();
+    marcar(1);
+    fireEvent.click(botonCubrir());
+    const reintentar = await screen.findByRole("button", { name: "Try again for the 1 not finished" });
+    expect(screen.getByText(en.training.results.about.cubrir)).toBeInTheDocument();
+    modoDejarFinal();
+    // el radio dice una cosa; el resultado, la suya, y el boton la describe
+    expect(screen.getByText(en.training.results.about.cubrir)).toBeInTheDocument();
+    expect(screen.queryByText(en.training.results.about.dejar)).toBeNull();
+    expect(reintentar).toHaveAccessibleDescription(en.training.results.about.cubrir);
+    fireEvent.click(reintentar);
+    await waitFor(() => expect(cubrirCurso).toHaveBeenCalledTimes(2));
+    expect(dejarDeCubrirCurso).not.toHaveBeenCalled();
+  });
+
+  it("y tras dejar de cubrir dice 'dejar'", async () => {
+    dejarDeCubrirCurso.mockResolvedValue({ filas: [fila(1, "uncovered")] });
+    await abrir();
+    modoDejarFinal();
+    marcar(1);
+    fireEvent.click(screen.getByRole("button", { name: /^Stop covering \d+ selected$/ }));
+    fireEvent.click(screen.getByRole("button", { name: en.training.confirm.yes }));
+    await screen.findByText(en.training.results.title);
+    expect(screen.getByText(en.training.results.about.dejar)).toBeInTheDocument();
+  });
+});
+
+describe("la confirmacion en linea dice sobre cuantas, atiende Escape y congela lo de abajo", () => {
+  async function abrirConfirmacion() {
+    const flags = { desactivada: false };
+    dosPaginas(flags);
+    await abrirDosPaginas();
+    modoDejarFinal();
+    marcar(1, 3);
+    fireEvent.click(screen.getByRole("button", { name: /^Stop covering \d+ selected$/ }));
+    return screen.getByRole("alertdialog");
+  }
+
+  it("el titulo dice SOBRE CUANTAS personas", async () => {
+    const d = await abrirConfirmacion();
+    expect(within(d).getByRole("heading", { name: "Stop covering this course for 2 selected?" })).toBeInTheDocument();
+  });
+
+  it("Escape la cierra y devuelve el foco al boton que la abrio, sin llamar a nada", async () => {
+    await abrirConfirmacion();
+    fireEvent.keyDown(document, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: /^Stop covering \d+ selected$/ }));
+    expect(dejarDeCubrirCurso).not.toHaveBeenCalled();
+  });
+
+  it("mientras esta abierta no se puede cambiar de pagina, de curso, de accion ni de seleccion", async () => {
+    await abrirConfirmacion();
+    expect(screen.getByRole("button", { name: en.training.page.next })).toBeDisabled();
+    expect(screen.getByLabelText(/^Course/)).toBeDisabled();
+    expect(screen.getByRole("radio", { name: en.training.modeCover })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: en.training.selectAllPage })).toBeDisabled();
+    expect(casilla(2)).toBeDisabled();
+  });
+
+  it("al cancelarla todo vuelve a estar vivo", async () => {
+    await abrirConfirmacion();
+    fireEvent.click(screen.getByRole("button", { name: en.training.confirm.no }));
+    expect(screen.getByRole("button", { name: en.training.page.next })).not.toBeDisabled();
+    expect(casilla(2)).not.toBeDisabled();
+  });
+});
+
+describe("un equipo que solo tiene invitaciones pendientes", () => {
+  it("lo dice, en vez de 'no hay nadie' mientras el panel de al lado muestra filas", async () => {
+    getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
+    getCompanyMembers.mockResolvedValue({
+      members: [], total: 0,
+      invitations: [{ id: 1, email: "a@x.com" }, { id: 2, email: "b@x.com" }],
+    });
+    render(<TrainingClient />);
+    fireEvent.change(await screen.findByLabelText(/^Course/), { target: { value: "7" } });
+    expect(await screen.findByText(en.training.peopleOnlyInvited)).toBeInTheDocument();
+    expect(screen.queryByText(en.training.peopleEmpty)).toBeNull();
+  });
+
+  it("y con un equipo realmente vacio sigue diciendo que no hay nadie", async () => {
+    getCatalogoDeFormacion.mockResolvedValue(CATALOGO);
+    getCompanyMembers.mockResolvedValue({ members: [], invitations: [], total: 0 });
+    render(<TrainingClient />);
+    fireEvent.change(await screen.findByLabelText(/^Course/), { target: { value: "7" } });
+    expect(await screen.findByText(en.training.peopleEmpty)).toBeInTheDocument();
+    expect(screen.queryByText(en.training.peopleOnlyInvited)).toBeNull();
+  });
+});

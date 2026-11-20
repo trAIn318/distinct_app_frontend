@@ -73,7 +73,7 @@ const kindDe = (err) => (err && KINDS.includes(err.kind) ? err.kind : "generico"
  *  haberse ejecutado: la tanda queda "por confirmar". */
 const SIN_ESCRIBIR = new Set(["sin_lectura", "pedido", "permiso", "sesion"]);
 
-const TIPOS = ["ok", "neutro", "pendiente", "incierto", "fallo", "desconocido"];
+const TIPOS = ["ok", "neutro", "pendiente", "incierto", "noatendida", "fallo", "desconocido"];
 
 function trocear(lista, n) {
   const tandas = [];
@@ -100,6 +100,22 @@ function fusionar(actuales, nuevas) {
  *  Quien se desactivó DESPUÉS de ser cubierto sigue ocupando un cupo, y liberar
  *  un cupo que nadie va a usar es justo lo que el jefe necesita. */
 const estaDesactivada = (m) => memberStatus(m) === ROW_STATUS.DEACTIVATED;
+
+/** ¿Puede esta persona recibir esta acción ahora? UNA sola regla, que usan las
+ *  casillas, la poda de la selección y el filtro de lo que de verdad viaja en
+ *  cubrir, dejar de cubrir y reintentar. `m` puede faltar (se reintenta a
+ *  alguien de otra página que ya no se tiene a la vista): entonces solo manda la
+ *  cobertura.
+ *
+ *  Quien ya está cubierto no se cubre; quien ya no lo está no se descubre; y quien
+ *  está desactivado no se cubre (ver `estaDesactivada`). */
+function puede(accion, m, cobertura, id) {
+  if (accion === "cubrir") {
+    if (m && estaDesactivada(m)) return false;
+    return cobertura[id] !== true;
+  }
+  return cobertura[id] !== false;
+}
 
 /** Texto de la lista de gente que no cargó. Nunca el del servidor: se decide por
  *  el estado HTTP (esta función no puede leer el mensaje) y la copia es propia. */
@@ -142,6 +158,8 @@ export default function TrainingClient() {
   const [accionUlt, setAccionUlt] = useState(null);
   const [errorRun, setErrorRun] = useState(null);
   const [confirmando, setConfirmando] = useState(false);
+  // "No había nada que enviar": se dijo en vez de volver en silencio.
+  const [avisoNada, setAvisoNada] = useState(false);
 
   // El guard de verdad es el REF: dos clics en el mismo tick leen el mismo
   // estado viejo.
@@ -149,6 +167,10 @@ export default function TrainingClient() {
   const dialogoRef = useRef(null);
   const botonDejarRef = useRef(null);
   const tituloGenteRef = useRef(null);
+  // La última versión que se vio de cada persona (id → miembro). La selección
+  // viaja entre páginas y una persona puede cambiar (desactivarse) entre dos
+  // cargas: lo que viaja se decide con lo último que se supo.
+  const vistosRef = useRef(new Map());
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -185,7 +207,12 @@ export default function TrainingClient() {
       .then((datos) => {
         if (!vigente) return;
         const members = Array.isArray(datos && datos.members) ? datos.members : [];
-        setGente({ estado: "ok", members, total: Number(datos && datos.total) || members.length });
+        for (const m of members) vistosRef.current.set(m.id, m);
+        const invitaciones = Array.isArray(datos && datos.invitations) ? datos.invitations.length : 0;
+        setGente({
+          estado: "ok", members, invitaciones,
+          total: Number(datos && datos.total) || members.length,
+        });
       })
       .catch((err) => {
         if (vigente) setGente({ estado: "error", err });
@@ -259,6 +286,8 @@ export default function TrainingClient() {
     setErrorRun(null);
     setConfirmando(false);
     setProgreso(null);
+    setAvisoNada(false);
+    vistosRef.current = new Map();
   }, []);
 
   const elegirCurso = useCallback((ev) => {
@@ -271,19 +300,37 @@ export default function TrainingClient() {
     setModo(nuevo);
     setSeleccion(new Map());
     setConfirmando(false);
+    setAvisoNada(false);
   }, []);
+
+  // La selección es una fuente de verdad MÁS, y sobrevive a lo que invalida a las
+  // otras (la cobertura que llega, la lista que se recarga, el modo): se poda
+  // cuando cambia cualquiera de ellas. Sin esto quedan casillas apagadas pero
+  // marcadas, un contador inflado, y alguien desactivado entre dos cargas que
+  // todavía viaja.
+  useEffect(() => {
+    setSeleccion((prev) => {
+      let cambio = false;
+      const sig = new Map();
+      for (const [id, email] of prev) {
+        if (puede(modo, vistosRef.current.get(id), cobertura, id)) sig.set(id, email);
+        else cambio = true;
+      }
+      return cambio ? sig : prev;
+    });
+  }, [cobertura, gente, modo]);
 
   /** ¿Se puede marcar? Quien ya está cubierto no (al cubrir); quien ya no lo
    *  está tampoco (al dejar de cubrir); y quien está desactivado no al CUBRIR
    *  (reactivarlo es un clic en la pantalla de al lado; gastar un cupo en
    *  silencio no), pero SÍ al dejar de cubrir (ver `estaDesactivada`). */
   const marcable = useCallback((m) => {
-    if (enCurso) return false;
-    if (modo === "cubrir") return !estaDesactivada(m) && cobertura[m.id] !== true;
-    return cobertura[m.id] !== false;
-  }, [enCurso, modo, cobertura]);
+    if (enCurso || confirmando) return false;
+    return puede(modo, m, cobertura, m.id);
+  }, [enCurso, confirmando, modo, cobertura]);
 
   const alternar = useCallback((m) => {
+    setAvisoNada(false);
     setSeleccion((prev) => {
       const sig = new Map(prev);
       if (sig.has(m.id)) sig.delete(m.id);
@@ -297,6 +344,7 @@ export default function TrainingClient() {
   const todosMarcados = delaPagina.length > 0 && delaPagina.every((m) => seleccion.has(m.id));
 
   const alternarPagina = useCallback(() => {
+    setAvisoNada(false);
     setSeleccion((prev) => {
       const sig = new Map(prev);
       if (delaPagina.length > 0 && delaPagina.every((m) => sig.has(m.id))) {
@@ -314,6 +362,7 @@ export default function TrainingClient() {
   const correr = useCallback(async (accion, ids, base, correos) => {
     if (ocupadoRef.current || ids.length === 0) return;
     ocupadoRef.current = true;
+    setAvisoNada(false);
     // El botón (o el diálogo) que tenía el foco se apaga o desaparece: sin esto
     // el foco cae al <body> justo cuando arranca la operación larga.
     if (tituloGenteRef.current) tituloGenteRef.current.focus();
@@ -359,8 +408,13 @@ export default function TrainingClient() {
         setCobertura((prev) => {
           const sig = { ...prev };
           for (const f of nuevas) {
-            if (accion === "cubrir") {
-              if (clasificarFila(accion, f).tipo === "ok") sig[f.usr_id] = true;
+            const { tipo } = clasificarFila(accion, f);
+            if (tipo === "incierto") {
+              // El servidor pudo escribir: lo que se sabía de esta persona dejó
+              // de ser verdad. Se vuelve a preguntar al volver a su página.
+              sig[f.usr_id] = "unknown";
+            } else if (accion === "cubrir") {
+              if (tipo === "ok") sig[f.usr_id] = true;
             } else if (f.resultado === "uncovered" || f.resultado === "not_covered") {
               // SOLO lo que el servidor dijo. La fila `sin_fila` la fabrica esta
               // pantalla: de esa persona no se sabe nada y no cambia su estado.
@@ -380,11 +434,30 @@ export default function TrainingClient() {
     }
   }, [cursoId]);
 
+  /** Lo que de verdad viaja: la selección refiltrada con la MISMA regla de las
+   *  casillas, en los tres caminos (cubrir, dejar de cubrir y reintentar). */
+  const vigentes = useCallback((accion, ids) => ids.filter(
+    (id) => puede(accion, vistosRef.current.get(id), cobertura, id)), [cobertura]);
+
+  /** Sin nada que enviar se DICE, en vez de volver en silencio. `limpiar` borra
+   *  la tabla vieja (cubrir y dejar de cubrir): si no, quedaría haciendo de
+   *  respuesta a un clic que no mandó nada. Al reintentar se conserva, porque
+   *  sigue siendo la respuesta de lo que sí se envió. */
+  const avisarSinNada = useCallback((limpiar) => {
+    if (limpiar) {
+      setFilas([]);
+      setAccionUlt(null);
+    }
+    setErrorRun(null);
+    setConfirmando(false);
+    setAvisoNada(true);
+  }, []);
+
   const cubrir = useCallback(() => {
-    // Quien ya se sabe cubierto no se vuelve a mandar.
-    const ids = [...seleccion.keys()].filter((id) => cobertura[id] !== true);
+    const ids = vigentes("cubrir", [...seleccion.keys()]);
+    if (ids.length === 0) { avisarSinNada(true); return; }
     correr("cubrir", ids, [], seleccion);
-  }, [seleccion, cobertura, correr]);
+  }, [seleccion, vigentes, avisarSinNada, correr]);
 
   const pedirConfirmacion = useCallback(() => {
     if (seleccion.size === 0) return;
@@ -397,14 +470,28 @@ export default function TrainingClient() {
   }, []);
 
   const dejarDeCubrir = useCallback(() => {
-    correr("dejar", [...seleccion.keys()], [], seleccion);
-  }, [seleccion, correr]);
+    const ids = vigentes("dejar", [...seleccion.keys()]);
+    if (ids.length === 0) { avisarSinNada(true); return; }
+    correr("dejar", ids, [], seleccion);
+  }, [seleccion, vigentes, avisarSinNada, correr]);
 
   const reintentar = useCallback(() => {
     if (!accionUlt) return;
     const correos = new Map(filas.map((f) => [f.usr_id, f.email]));
-    correr(accionUlt, reintentables(accionUlt, filas), filas, correos);
-  }, [accionUlt, filas, correr]);
+    const ids = vigentes(accionUlt, reintentables(accionUlt, filas));
+    if (ids.length === 0) { avisarSinNada(false); return; }
+    correr(accionUlt, ids, filas, correos);
+  }, [accionUlt, filas, vigentes, avisarSinNada, correr]);
+
+  // Escape cierra la confirmación en línea y devuelve el foco a quien la abrió.
+  useEffect(() => {
+    if (!confirmando) return undefined;
+    function alTeclear(ev) {
+      if (ev.key === "Escape") cancelarConfirmacion();
+    }
+    document.addEventListener("keydown", alTeclear);
+    return () => document.removeEventListener("keydown", alTeclear);
+  }, [confirmando, cancelarConfirmacion]);
 
   // Al abrir la confirmación el foco pasa a ella: quien usa teclado o lector de
   // pantalla no se queda en un botón que ya no es lo importante.
@@ -444,6 +531,10 @@ export default function TrainingClient() {
   }
 
   const ocupado = Boolean(enCurso);
+  // Con la confirmación abierta, lo de abajo no se mueve (no es un modal: el
+  // foco no se atrapa, pero tampoco se puede cambiar la selección o la página
+  // que la confirmación está describiendo).
+  const congelado = ocupado || confirmando;
   const n = seleccion.size;
   const total = gente.estado === "ok" ? gente.total : 0;
   const hayMas = offset + TAMANO_DE_TANDA < total;
@@ -452,7 +543,7 @@ export default function TrainingClient() {
   const conteo = Object.fromEntries(TIPOS.map((x) => [x, 0]));
   const clasif = filas.map((f) => ({ f, c: clasificarFila(accionUlt, f) }));
   clasif.forEach(({ c }) => { conteo[c.tipo] += 1; });
-  const hayPendientes = clasif.some(({ c }) => c.tipo === "pendiente");
+  const hayPendientes = clasif.some(({ c }) => c.tipo === "pendiente" || c.tipo === "noatendida");
   const hayInciertas = clasif.some(({ c }) => c.tipo === "incierto");
 
   return (
@@ -472,7 +563,7 @@ export default function TrainingClient() {
             className={styles.select}
             value={cursoId}
             onChange={elegirCurso}
-            disabled={ocupado}
+            disabled={congelado}
           >
             <option value="">{t("coursePlaceholder")}</option>
             {secciones.map((s, i) => (
@@ -487,7 +578,7 @@ export default function TrainingClient() {
           </select>
         </div>
 
-        <fieldset className={styles.modos} disabled={ocupado}>
+        <fieldset className={styles.modos} disabled={congelado}>
           <legend className={styles.fieldLabel}>{t("modeLabel")}</legend>
           <label className={styles.modo}>
             <input
@@ -521,7 +612,11 @@ export default function TrainingClient() {
           <p className={styles.error} role="alert">{t(claveErrorGente(gente.err))}</p>
         )}
         {cursoId && gente.estado === "ok" && members.length === 0 && (
-          <p className={styles.muted}>{t("peopleEmpty")}</p>
+          // Con invitaciones pendientes el panel de al lado SÍ muestra filas:
+          // "no hay nadie" sería falso a medias.
+          <p className={styles.muted}>
+            {gente.invitaciones > 0 ? t("peopleOnlyInvited") : t("peopleEmpty")}
+          </p>
         )}
 
         {cursoId && gente.estado === "ok" && members.length > 0 && (
@@ -544,7 +639,7 @@ export default function TrainingClient() {
                 type="checkbox"
                 checked={todosMarcados}
                 onChange={alternarPagina}
-                disabled={ocupado || delaPagina.length === 0}
+                disabled={congelado || delaPagina.length === 0}
               />
               <span>{t("selectAllPage")}</span>
             </label>
@@ -584,7 +679,7 @@ export default function TrainingClient() {
                 <button
                   type="button"
                   className="btn-ghost"
-                  disabled={ocupado || offset === 0}
+                  disabled={congelado || offset === 0}
                   onClick={() => setOffset(Math.max(0, offset - TAMANO_DE_TANDA))}
                 >
                   {t("page.prev")}
@@ -595,7 +690,7 @@ export default function TrainingClient() {
                 <button
                   type="button"
                   className="btn-ghost"
-                  disabled={ocupado || !hayMas}
+                  disabled={congelado || !hayMas}
                   onClick={() => setOffset(offset + TAMANO_DE_TANDA)}
                 >
                   {t("page.next")}
@@ -633,6 +728,8 @@ export default function TrainingClient() {
           </div>
         )}
 
+        {avisoNada && <p className={styles.notice} role="status">{t("nothingToSend")}</p>}
+
         {progreso && (
           <p className={styles.progreso} role="status" aria-live="polite">
             {t("progress", { i: progreso.i, n: progreso.n })}
@@ -649,7 +746,7 @@ export default function TrainingClient() {
             aria-labelledby="training-confirm-title"
             tabIndex={-1}
           >
-            <h3 id="training-confirm-title" className={styles.blockTitle}>{t("confirm.title")}</h3>
+            <h3 id="training-confirm-title" className={styles.blockTitle}>{t("confirm.title", { n })}</h3>
             <ul className={styles.hechos}>
               <li>{t("confirm.loses")}</li>
               <li>{t("confirm.keeps")}</li>
@@ -672,6 +769,11 @@ export default function TrainingClient() {
       {filas.length > 0 && (
         <section className={styles.card} aria-labelledby="training-results-title">
           <h2 id="training-results-title" className={styles.cardTitle}>{t("results.title")}</h2>
+          {/* De QUÉ acción habla este panel: el radio de arriba puede haber
+              cambiado, y reintentar repite la acción de ESTE resultado. */}
+          <p id="training-results-about" className={styles.total}>
+            {t(`results.about.${accionUlt === "cubrir" ? "cubrir" : "dejar"}`)}
+          </p>
           <p className={styles.total}>{t("results.summary", conteo)}</p>
           {hayPendientes && <p className={styles.muted}>{t("results.pendingNote")}</p>}
           {hayInciertas && <p className={styles.muted}>{t("results.uncertainNote")}</p>}
@@ -702,7 +804,13 @@ export default function TrainingClient() {
 
           {pendientes.length > 0 && (
             <div className={styles.actions}>
-              <button type="button" className="btn-ghost" onClick={reintentar} disabled={ocupado}>
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={reintentar}
+                disabled={ocupado}
+                aria-describedby="training-results-about"
+              >
                 {t("results.retry", { n: pendientes.length })}
               </button>
             </div>
