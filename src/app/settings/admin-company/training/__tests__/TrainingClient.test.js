@@ -825,7 +825,8 @@ describe("la cobertura se pide de la pagina a la vista", () => {
   it("mientras se pregunta dice que esta comprobando", async () => {
     getCoberturaDeCurso.mockReturnValue(new Promise(() => {}));
     await abrir();
-    expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.checking);
+    // el efecto marca "cargando" despues de pintar la lista: se espera, no se asume
+    await waitFor(() => expect(estadoDeCob(1)).toHaveTextContent(en.training.coverage.checking));
   });
 });
 
