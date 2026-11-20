@@ -889,5 +889,114 @@
       "errSave": "No pudimos guardar el catálogo. Inténtalo de nuevo.",
       "errForbidden": "Tu cuenta no puede cambiar el catálogo."
     }
+  },
+  "training": {
+    "pageTitle": "Cursos para tu equipo",
+    "intro": "Elige un curso, marca a las personas que deben tenerlo y cúbrelas a todas de una vez.",
+    "backToTeam": "Volver a tu equipo",
+    "loadingCatalog": "Cargando los cursos...",
+    "retryLoad": "Intentar de nuevo",
+    "loadError": {
+      "sin_lectura": "No pudimos leer la lista de cursos en este momento. No se cambió nada. Intenta de nuevo en unos minutos.",
+      "red": "No pudimos contactar el servidor. Revisa tu conexión e intenta de nuevo.",
+      "sesion": "Tu sesión terminó. Inicia sesión de nuevo.",
+      "permiso": "No tienes permiso para gestionar los cursos de tu equipo.",
+      "pedido": "No pudimos cargar los cursos de tu empresa.",
+      "generico": "Algo salió mal al cargar los cursos. Intenta de nuevo.",
+      "ilegible": "La lista de cursos llegó en una forma que no pudimos leer. Intenta de nuevo."
+    },
+    "runError": {
+      "sin_lectura": "No pudimos leer la información de los cursos, así que no se envió el resto. No se cambió nada para esas personas.",
+      "red": "Se perdió la conexión. La tanda que iba en camino pudo haberse hecho o no.",
+      "sesion": "Tu sesión terminó. Inicia sesión de nuevo.",
+      "permiso": "No tienes permiso para hacer eso.",
+      "pedido": "La solicitud no fue aceptada. No se cambió nada para esas personas.",
+      "generico": "Algo salió mal. La tanda que iba en camino pudo haberse hecho o no.",
+      "ilegible": "La respuesta llegó en una forma que no pudimos leer. La tanda que iba en camino pudo haberse hecho o no."
+    },
+    "noCourses": "Todavía no hay cursos disponibles para tu empresa.",
+    "avisos": "Algunos cursos no se pudieron emparejar y pueden faltar en esta lista. Si no ves un curso que esperas, contacta al administrador de la plataforma.",
+    "courseLabel": "Curso",
+    "coursePlaceholder": "Elige un curso",
+    "modeLabel": "¿Qué quieres hacer?",
+    "modeCover": "Cubrir el curso",
+    "modeStop": "Dejar de cubrir",
+    "peopleTitle": "Tu gente",
+    "peopleEmpty": "Todavía no hay nadie en tu equipo para elegir.",
+    "peopleLoading": "Cargando a tu gente...",
+    "chooseCourseFirst": "Elige un curso para ver a tu gente.",
+    "selectAllPage": "Seleccionar a todos en esta página",
+    "selectPerson": "Seleccionar a {name}",
+    "coverage": {
+      "covered": "Cubierto",
+      "notCovered": "Sin cubrir",
+      "unknown": "Sin comprobar"
+    },
+    "page": {
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "range": "{from}-{to} de {total}"
+    },
+    "selected": "{n} seleccionadas",
+    "cover": "Cubrir a {n} seleccionadas",
+    "coverNothing": "Cubrir a las personas seleccionadas",
+    "stop": "Dejar de cubrir a {n} seleccionadas",
+    "stopNothing": "Dejar de cubrir a las personas seleccionadas",
+    "progress": "Enviando tanda {i} de {n}",
+    "confirm": {
+      "title": "¿Dejar de cubrir este curso?",
+      "loses": "Esas personas pierden el acceso al curso.",
+      "keeps": "Su avance y sus notas se conservan.",
+      "reversible": "Puedes volver a cubrirlas cuando quieras.",
+      "yes": "Sí, dejar de cubrir",
+      "no": "Seguir cubriendo"
+    },
+    "results": {
+      "title": "Resultado, persona por persona",
+      "summary": "{ok} hechas, {neutro} no necesitaban nada, {pendiente} por enviar, {incierto} por confirmar, {fallo} rechazadas",
+      "pendingNote": "A estas personas no se les llegó. Vuelve a enviarlas.",
+      "uncertainNote": "Estas personas pueden estar ya listas. Intentar de nuevo es seguro.",
+      "retry": "Intentar de nuevo con las {n} sin terminar",
+      "person": "Persona",
+      "outcome": "Resultado",
+      "tipo": {
+        "ok": "Hecho",
+        "neutro": "Nada que hacer",
+        "pendiente": "Sin enviar",
+        "incierto": "Por confirmar",
+        "fallo": "Rechazada",
+        "desconocido": "No reconocido"
+      }
+    },
+    "result": {
+      "unknown": "No reconocemos este resultado.",
+      "noRow": "A esta persona no se la pudo atender desde aquí.",
+      "cubrir": {
+        "covered": "Ahora tiene el curso.",
+        "already_covered": "Ya tenía el curso.",
+        "account_created": "Se creó la cuenta y se le dio el curso.",
+        "account_failed": "No se pudo crear la cuenta.",
+        "enrol_failed": "No se pudo darle el curso."
+      },
+      "dejar": {
+        "uncovered": "Ya no tiene acceso. Su avance y sus notas se conservan.",
+        "not_covered": "No tenía el curso activo. No se tocó nada.",
+        "enrol_failed": "No se pudo dejar de cubrir."
+      }
+    },
+    "detail": {
+      "no_se_intento_por_tiempo": "Se acabó el tiempo antes de llegar a esta persona. No se cambió nada. Intenta de nuevo.",
+      "no_se_envio": "Esto no se envió. No se cambió nada. Intenta de nuevo.",
+      "sin_respuesta": "No volvió respuesta, así que puede estar ya hecho. Intentar de nuevo es seguro.",
+      "moodle_no_respondio_al_leer_sus_cursos": "No pudimos leer los cursos de esta persona. No se cambió nada. Intenta de nuevo.",
+      "error_inesperado": "Pasó algo inesperado. Puede estar ya hecho. Intentar de nuevo es seguro.",
+      "moodle_acepto_pero_no_lo_confirma": "La plataforma lo aceptó pero no pudimos confirmarlo. Puede estar ya hecho. Intentar de nuevo es seguro.",
+      "moodle_acepto_pero_no_pude_releer": "La plataforma lo aceptó pero no pudimos confirmarlo. El acceso puede estar ya retirado. Intentar de nuevo es seguro.",
+      "roleid_de_estudiante_no_configurado": "La asignación de cursos todavía no está configurada. Contacta al administrador de la plataforma.",
+      "la_persona_no_tiene_correo": "Esta persona no tiene correo registrado.",
+      "moodle_no_creo_la_cuenta": "No se pudo crear la cuenta.",
+      "moodle_acepto_pero_sigue_activa": "El cambio fue aceptado pero la persona sigue con acceso.",
+      "otro": "La plataforma rechazó este caso."
+    }
   }
 }

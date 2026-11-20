@@ -61,6 +61,9 @@ const CON_DETALLE = {
  */
 export function clasificarFila(accion, fila) {
   const resultado = fila && fila.resultado;
+  if (resultado === "sin_fila") {
+    return { tipo: "neutro", resultadoKey: "result.noRow", detalleKey: null };
+  }
   const propios = RESULTADOS[accion] || {};
   if (Object.hasOwn(propios, resultado)) {
     return { tipo: propios[resultado], resultadoKey: `result.${accion}.${resultado}`, detalleKey: null };

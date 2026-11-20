@@ -1,0 +1,430 @@
+/* Cubrir un curso a varias personas del equipo.
+
+   Mismo lenguaje visual que la carga por archivo de al lado (card / field /
+   error / tabla), con tokens únicamente y esquinas rectas.
+
+   DORADO: `.btn-primary` (global) es el ÚNICO elemento dorado de la vista y
+   solo se pinta en modo "cubrir". Dejar de cubrir, su confirmación, reintentar
+   y paginar son fantasma, así que en ningún estado hay dos dorados.
+
+   CONTRASTES (mismas parejas que la pantalla de al lado, ya medidas en ambos
+   temas): marfil y platino sobre la tarjeta, y el color de peligro sobre su
+   superficie. `--color-smoke` NO se usa para texto de cuerpo (3.36 sobre este
+   fondo, y AA pide 4.5): solo aparece en controles apagados, que WCAG deja fuera
+   del mínimo.
+
+   HEREDADO Y NO ARREGLADO AQUÍ: `.card` usa `--color-surface-dark`, que en
+   `[data-theme=light]` vale #FFFFFF; es una línea de `tokens.css` que afecta a
+   todo el repositorio y está diferida al usuario. */
+
+.page {
+  background: var(--color-obsidian);
+  color: var(--color-text-inverse);
+  min-height: calc(100vh - 80px);
+  padding: var(--space-8) 0;
+}
+
+.pageWrapper {
+  margin: 0 auto;
+  animation: trainingEnter 0.6s var(--ease-luxe) both;
+}
+
+@media (min-width: 48rem) {
+  .page {
+    padding: var(--space-12) 0;
+  }
+}
+
+@keyframes trainingEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  margin: 0 0 var(--space-4) 0;
+  color: var(--color-ivory);
+}
+
+@media (min-width: 48rem) {
+  .h1 {
+    font-size: var(--text-2xl);
+  }
+}
+
+.wrapper {
+  display: block;
+}
+
+.intro {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.618;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.backRow {
+  margin: 0 0 var(--space-6) 0;
+}
+
+.card {
+  background: var(--color-surface-dark);
+  border: 1px solid var(--ivory-08);
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+  animation: trainingEnter 0.6s var(--ease-luxe) 0.08s both;
+}
+
+@media (min-width: 48rem) {
+  .card {
+    padding: var(--space-8);
+  }
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.blockTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.muted {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-platinum);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* Cifras en DM Mono (claude.md §2.2). */
+.total {
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.error {
+  background: var(--color-danger-surface);
+  border-left: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  margin: 0 0 var(--space-5) 0;
+}
+
+/* Un aviso informativo no usa el color de peligro: no es un fallo. */
+.notice {
+  border-left: 2px solid var(--color-platinum);
+  background: var(--ivory-08);
+  color: var(--color-ivory);
+  padding: var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.618;
+  margin: 0 0 var(--space-5) 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.fieldLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+.select {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+  background: var(--color-obsidian);
+  border: 1px solid var(--color-platinum);
+  border-radius: 0;
+  padding: var(--space-3) var(--space-4);
+  width: 100%;
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--color-ivory);
+  outline-offset: 2px;
+}
+
+.modos {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+}
+
+.modos legend {
+  padding: 0;
+  margin: 0 0 var(--space-2) 0;
+  width: 100%;
+}
+
+.modo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+  cursor: pointer;
+}
+
+.modo input,
+.todos input,
+.persona input {
+  width: var(--space-5);
+  height: var(--space-5);
+  accent-color: var(--color-ivory);
+  flex: none;
+}
+
+.modo input:focus-visible,
+.todos input:focus-visible,
+.persona input:focus-visible {
+  outline: 2px solid var(--color-ivory);
+  outline-offset: 2px;
+}
+
+.todos {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--ivory-08);
+}
+
+.gente {
+  list-style: none;
+  margin: 0 0 var(--space-4) 0;
+  padding: 0;
+}
+
+.persona {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--ivory-08);
+}
+
+@media (min-width: 48rem) {
+  .persona {
+    grid-template-columns: auto 1fr 1fr auto;
+  }
+}
+
+.nombre {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-ivory);
+}
+
+/* Un correo es un dato técnico: DM Mono (claude.md §2.2). */
+.correo {
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+  color: var(--color-ivory);
+  overflow-wrap: anywhere;
+}
+
+.estado {
+  grid-column: 2;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+}
+
+@media (min-width: 48rem) {
+  .estado {
+    grid-column: auto;
+  }
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin: 0 0 var(--space-4) 0;
+}
+
+.pager .total {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin: var(--space-2) 0 var(--space-4) 0;
+}
+
+.actions .total {
+  margin: 0;
+}
+
+.progreso {
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* Confirmación en línea de dejar de cubrir. */
+.confirm {
+  border: 1px solid var(--color-platinum);
+  padding: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+.confirm:focus-visible {
+  outline: 2px solid var(--color-ivory);
+  outline-offset: 2px;
+}
+
+.hechos {
+  margin: 0 0 var(--space-4) 0;
+  padding-left: var(--space-5);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.618;
+  color: var(--color-ivory);
+}
+
+.link {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ivory);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.link:hover {
+  color: var(--color-platinum);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-ivory);
+  outline-offset: 2px;
+}
+
+/* ── La tabla del resultado ──────────────────────────────────────────── */
+
+.tablaWrap {
+  overflow-x: auto;
+  border: 1px solid var(--ivory-08);
+  margin-bottom: var(--space-4);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ivory);
+}
+
+.tabla th,
+.tabla td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--ivory-08);
+}
+
+.tabla thead th {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-platinum);
+  white-space: nowrap;
+}
+
+/* La etiqueta del tipo va SIEMPRE en texto: el color solo no distingue. */
+.etiqueta {
+  display: block;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ivory);
+}
+
+.frase {
+  display: block;
+  line-height: 1.618;
+  color: var(--color-ivory);
+}
+
+/* El rechazo de verdad se marca además con el color de peligro. Lo pendiente
+   y lo incierto NO: no son errores. */
+.tipo_fallo {
+  border-left: 2px solid var(--color-danger);
+}
+
+.tipo_fallo .etiqueta {
+  color: var(--color-danger);
+}
+
+.tipo_pendiente,
+.tipo_incierto {
+  border-left: 2px solid var(--color-platinum);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageWrapper,
+  .card {
+    animation: none;
+  }
+  .link {
+    transition: none;
+  }
+}

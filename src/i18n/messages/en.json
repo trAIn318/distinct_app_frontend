@@ -889,5 +889,114 @@
       "errSave": "We could not save the catalog. Try again.",
       "errForbidden": "Your account cannot change the catalog."
     }
+  },
+  "training": {
+    "pageTitle": "Courses for your team",
+    "intro": "Choose a course, mark the people who should have it, and cover them all in one go.",
+    "backToTeam": "Back to your team",
+    "loadingCatalog": "Loading the courses...",
+    "retryLoad": "Try again",
+    "loadError": {
+      "sin_lectura": "We could not read the course list right now. Nothing was changed. Try again in a few minutes.",
+      "red": "We could not reach the server. Check your connection and try again.",
+      "sesion": "Your session ended. Sign in again.",
+      "permiso": "You do not have permission to manage courses for your team.",
+      "pedido": "We could not load the courses for your company.",
+      "generico": "Something went wrong while loading the courses. Try again.",
+      "ilegible": "The course list came back in a form we could not read. Try again."
+    },
+    "runError": {
+      "sin_lectura": "We could not read the course information, so the rest was not sent. Nothing was changed for those people.",
+      "red": "We lost the connection. The batch that was on its way may or may not have gone through.",
+      "sesion": "Your session ended. Sign in again.",
+      "permiso": "You do not have permission to do that.",
+      "pedido": "The request was not accepted. Nothing was changed for those people.",
+      "generico": "Something went wrong. The batch that was on its way may or may not have gone through.",
+      "ilegible": "The answer came back in a form we could not read. The batch that was on its way may or may not have gone through."
+    },
+    "noCourses": "There are no courses available for your company yet.",
+    "avisos": "Some course listings could not be matched and may be missing from this list. If a course you expect is not here, contact the platform administrator.",
+    "courseLabel": "Course",
+    "coursePlaceholder": "Choose a course",
+    "modeLabel": "What do you want to do?",
+    "modeCover": "Cover the course",
+    "modeStop": "Stop covering",
+    "peopleTitle": "Your people",
+    "peopleEmpty": "There is nobody on your team to choose yet.",
+    "peopleLoading": "Loading your people...",
+    "chooseCourseFirst": "Choose a course to see your people.",
+    "selectAllPage": "Select everyone on this page",
+    "selectPerson": "Select {name}",
+    "coverage": {
+      "covered": "Covered",
+      "notCovered": "Not covered",
+      "unknown": "Not checked"
+    },
+    "page": {
+      "prev": "Previous",
+      "next": "Next",
+      "range": "{from}-{to} of {total}"
+    },
+    "selected": "{n} selected",
+    "cover": "Cover {n} selected",
+    "coverNothing": "Cover the selected people",
+    "stop": "Stop covering {n} selected",
+    "stopNothing": "Stop covering the selected people",
+    "progress": "Sending batch {i} of {n}",
+    "confirm": {
+      "title": "Stop covering this course?",
+      "loses": "Those people lose access to the course.",
+      "keeps": "Their progress and grades are kept.",
+      "reversible": "You can cover them again whenever you want.",
+      "yes": "Yes, stop covering",
+      "no": "Keep covering"
+    },
+    "results": {
+      "title": "Result, person by person",
+      "summary": "{ok} done, {neutro} needed nothing, {pendiente} still to send, {incierto} to confirm, {fallo} rejected",
+      "pendingNote": "These people were not reached. Send them again.",
+      "uncertainNote": "These people may already be done. Trying again is safe.",
+      "retry": "Try again for the {n} not finished",
+      "person": "Person",
+      "outcome": "Result",
+      "tipo": {
+        "ok": "Done",
+        "neutro": "Nothing to do",
+        "pendiente": "Not sent yet",
+        "incierto": "To confirm",
+        "fallo": "Rejected",
+        "desconocido": "Unrecognized"
+      }
+    },
+    "result": {
+      "unknown": "We do not recognize this result.",
+      "noRow": "This person could not be handled from here.",
+      "cubrir": {
+        "covered": "Now has the course.",
+        "already_covered": "Already had the course.",
+        "account_created": "Account created and course given.",
+        "account_failed": "Could not create the account.",
+        "enrol_failed": "Could not give the course."
+      },
+      "dejar": {
+        "uncovered": "No longer has access. Progress and grades are kept.",
+        "not_covered": "Did not have the course active. Nothing was touched.",
+        "enrol_failed": "Could not stop covering."
+      }
+    },
+    "detail": {
+      "no_se_intento_por_tiempo": "Time ran out before reaching this person. Nothing was changed. Try again.",
+      "no_se_envio": "This was not sent. Nothing was changed. Try again.",
+      "sin_respuesta": "No answer came back, so it may already be done. Trying again is safe.",
+      "moodle_no_respondio_al_leer_sus_cursos": "We could not read this person's courses. Nothing was changed. Try again.",
+      "error_inesperado": "Something unexpected happened. It may already be done. Trying again is safe.",
+      "moodle_acepto_pero_no_lo_confirma": "The platform accepted it but we could not confirm it. It may already be done. Trying again is safe.",
+      "moodle_acepto_pero_no_pude_releer": "The platform accepted it but we could not confirm it. Access may already be removed. Trying again is safe.",
+      "roleid_de_estudiante_no_configurado": "Course assignment is not set up yet. Contact the platform administrator.",
+      "la_persona_no_tiene_correo": "This person has no email address on file.",
+      "moodle_no_creo_la_cuenta": "The account could not be created.",
+      "moodle_acepto_pero_sigue_activa": "The change was accepted but the person still has access.",
+      "otro": "The platform rejected this one."
+    }
   }
 }

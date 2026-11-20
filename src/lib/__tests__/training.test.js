@@ -79,3 +79,13 @@ describe("reintentables", () => {
 it("la tanda es de 10: el tope de 50 del servidor es la red, no el camino", () => {
   expect(TAMANO_DE_TANDA).toBe(10);
 });
+
+it("una persona pedida que el servidor no devolvio (`sin_fila`) no es 'desconocida' ni se reintenta", () => {
+  const f = { usr_id: 9, email: "z@x.com", resultado: "sin_fila", detalle: null };
+  for (const accion of ["cubrir", "dejar"]) {
+    const c = clasificarFila(accion, f);
+    expect(c.tipo).toBe("neutro");
+    expect(c.resultadoKey).toBe("result.noRow");
+    expect(reintentables(accion, [f])).toEqual([]);
+  }
+});
