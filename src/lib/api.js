@@ -367,9 +367,15 @@ export async function getMiEstadoDePago() {
   return _apiAuth("/pay/mi-estado/", { respaldo: "Could not load your billing." });
 }
 
-/** POST /api/pay/checkout/ → {url} de Stripe Checkout. */
-export async function iniciarCheckout() {
-  return _apiAuth("/pay/checkout/", { method: "POST", respaldo: "Could not start the payment." });
+/**
+ * POST /api/pay/checkout/ → {url} de Stripe Checkout.
+ * `planCode` solo lo usa una empresa SIN plan asignado, que elige el suyo; sin
+ * argumento no se manda cuerpo y el backend cobra el plan ya asignado.
+ */
+export async function iniciarCheckout(planCode) {
+  const opciones = { method: "POST", respaldo: "Could not start the payment." };
+  if (typeof planCode === "string" && planCode) opciones.body = { plan_code: planCode };
+  return _apiAuth("/pay/checkout/", opciones);
 }
 
 /** POST /api/pay/portal/ → {url} del portal de facturación de Stripe. */

@@ -756,6 +756,8 @@
     "planTitle": "Tu plan",
     "noPlanTitle": "Aún no tienes un plan asignado",
     "noPlanBody": "Tu empresa todavía no tiene un plan. Lo asigna Distinct — escríbenos si esperas uno.",
+    "choosePlanTitle": "Elige tu plan",
+    "implementationFeeAmount": "Cuota de implementación: ${price}, una sola vez",
     "plans": {
       "essential": "Essential",
       "performance": "Performance",
