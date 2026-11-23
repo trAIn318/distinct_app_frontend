@@ -62,8 +62,11 @@ export default function ContactForm() {
     }
   };
 
+  // `id="contact"` es el destino del enlace de contacto de la cabecera
+  // (`Navigation`). El `id` del titulo se queda como estaba: es el que observa
+  // `ScrollRail` para marcar la seccion activa.
   return (
-    <section className={styles.section} aria-labelledby="contact-heading">
+    <section id="contact" className={styles.section} aria-labelledby="contact-heading">
       <div className="container">
         <h2 id="contact-heading" className={styles.headline}>
           {t("title")}

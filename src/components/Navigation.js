@@ -68,6 +68,11 @@ export default function Navigation() {
     { label: t("courses"), href: "/courses" },
     { label: t("insights"), href: "/insights" },
     { label: t("about"), href: "/about" },
+    // La seccion de contacto vive en la portada (`ContactForm`), no en una ruta
+    // propia: desde cualquier otra pagina este enlace vuelve a la raiz y baja
+    // hasta ella. El ancla es el `id` de la seccion, no el de su titulo, para
+    // que el navegador pare arriba del bloque y no a media altura.
+    { label: t("contact"), href: "/#contact" },
   ];
 
   const displayName =

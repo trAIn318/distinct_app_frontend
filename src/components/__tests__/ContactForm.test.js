@@ -108,3 +108,14 @@ describe("ContactForm -- el aviso de exito", () => {
     }
   });
 });
+
+describe("ContactForm -- el ancla de la cabecera", () => {
+  it("la seccion lleva id=contact, que es a donde apunta el nav", () => {
+    // El enlace "Contacto" de `Navigation` es "/#contact". Si este id
+    // desaparece, el enlace deja de bajar a ninguna parte y nadie se entera:
+    // no hay error, solo una cabecera que no lleva a donde dice.
+    const { container } = render(<ContactForm />);
+
+    expect(container.querySelector("#contact")).not.toBeNull();
+  });
+});
