@@ -133,12 +133,21 @@ export default function PayClient({ pago }) {
   // cada uno con su texto, porque lo que aparecerá es un plan o una membresía.
   const compra = estado.soy === "empresa" || estado.soy === "individuo";
 
+  // "Lo comprado YA apareció" = el backend ya no ofrece pagar Y ya no ofrece
+  // elegir plan. `!puede_pagar` a secas no alcanza: una empresa sin plan
+  // asignado tiene `puede_pagar` falso porque no hay plan que cobrar, y aun así
+  // el selector sigue en pantalla esperando a que el webhook lo reemplace. Con
+  // un plan asignado por ventas `planes_ofrecidos` llega vacío y esta cuenta se
+  // reduce a la de antes.
+  const haySelector = !estado.plan_code
+    && Array.isArray(estado.planes_ofrecidos) && estado.planes_ofrecidos.length > 0;
+
   return (
     <>
       {compra && (
         <AvisoDePago
           pago={pago}
-          yaAparecio={!estado.puede_pagar}
+          yaAparecio={!estado.puede_pagar && !haySelector}
           claveOk={estado.soy === "individuo" ? "membership.payOk" : "payOk"}
           t={t}
         />

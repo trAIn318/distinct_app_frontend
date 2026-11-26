@@ -123,12 +123,73 @@ function AutorizarCupos({ estado, enCurso, onAutorizar, t }) {
   );
 }
 
+/**
+ * Los planes que el backend ofrece a una empresa sin plan, cada uno con su
+ * botón de pago, y Enterprise aparte, solo como contacto. Los precios y cupos
+ * vienen de `planes_ofrecidos`; nada se calcula ni se escribe aquí.
+ *
+ * Con `pagoRecibido` NO se pinta ni un botón de pago: el cliente acaba de
+ * volver de Stripe y el webhook puede no haber llegado, así que el backend
+ * sigue ofreciendo los planes. Un segundo clic ahí crearía una SEGUNDA
+ * suscripción (el candado de 60 s del servidor ya expiró mientras el cliente
+ * estaba en la página de Stripe). Se ofrece revisar, que es lo único que falta.
+ */
+function ElegirPlan({ planes, enCurso, elegido, pagaImplementacion, pagoRecibido, onPagar, onRevisar, t }) {
+  return (
+    <>
+      <h2 className={styles.cardTitle}>{t("choosePlanTitle")}</h2>
+      <div className={styles.plans}>
+        {planes.map((plan) => {
+          const nombre = traducido(t, "plans", plan.plan_code);
+          const tituloId = `plan-${plan.plan_code}`;
+          return (
+            <article key={plan.plan_code} className={styles.plan} aria-labelledby={tituloId}>
+              <h3 id={tituloId} className={styles.planName}>{nombre}</h3>
+              <p className={styles.data}>{t("pricePerMonth", { price: plan.precio_mensual_usd })}</p>
+              <p className={styles.data}>{t("seatsIncluded", { count: plan.cupos_incluidos })}</p>
+              <p className={styles.data}>{t("seatsCost", { price: plan.precio_cupo_extra_usd })}</p>
+              {pagaImplementacion && (
+                <p className={styles.muted}>
+                  {t("implementationFeeAmount", { price: plan.precio_implementacion_usd })}
+                </p>
+              )}
+              {!pagoRecibido && (
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => onPagar(plan.plan_code)}
+                  disabled={enCurso !== null}
+                >
+                  {enCurso === "pay" && elegido === plan.plan_code ? t("redirecting") : t("pay")}
+                </button>
+              )}
+            </article>
+          );
+        })}
+        <article className={styles.plan} aria-labelledby="plan-enterprise">
+          <h3 id="plan-enterprise" className={styles.planName}>{traducido(t, "plans", "enterprise")}</h3>
+          <p className={styles.muted}>{t("enterpriseBody")}</p>
+          <ContactOwnersButton subject={ASUNTO_ENTERPRISE} label={t("enterpriseContact")} className="btn-ghost" />
+        </article>
+      </div>
+      {pagoRecibido && (
+        <div className={styles.block}>
+          <button type="button" className="btn-ghost" onClick={onRevisar} disabled={enCurso !== null}>
+            {t("checkAgain")}
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
   const t = useT("pay");
   const locale = useLocale();
 
   const ocupadoRef = useRef(false);
   const [enCurso, setEnCurso] = useState(null);   // null | "pay" | "portal" | "seats" | "refresh"
+  const [elegido, setElegido] = useState(null);   // plan_code del botón pulsado al elegir plan
   const [fallo, setFallo] = useState(null);       // {accion, err}
   const [cupos, setCupos] = useState(null);       // {cupos_extra, precio_cupos_usd}
   const [refrescoFallo, setRefrescoFallo] = useState(false);  // autorizó, pero no pudo releer
@@ -164,6 +225,10 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
   }
 
   const pagar = () => ejecutar("pay", () => irA(iniciarCheckout));
+  const pagarPlan = (planCode) => {
+    setElegido(planCode);
+    return ejecutar("pay", () => irA(() => iniciarCheckout(planCode)));
+  };
   const portal = () => ejecutar("portal", () => irA(abrirPortal));
   const revisar = () => ejecutar("refresh", async () => { await onRefresh(); });
   const autorizar = (total) => ejecutar("seats", async () => {
@@ -189,6 +254,24 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
   }
 
   if (!estado.plan_code) {
+    const ofrecidos = estado.planes_ofrecidos;
+    if (Array.isArray(ofrecidos) && ofrecidos.length > 0) {
+      return (
+        <section className={styles.card}>
+          <ElegirPlan
+            planes={ofrecidos}
+            enCurso={enCurso}
+            elegido={elegido}
+            pagaImplementacion={estado.paga_implementacion}
+            pagoRecibido={pagoRecibido}
+            onPagar={pagarPlan}
+            onRevisar={revisar}
+            t={t}
+          />
+          {fallo && <p className={styles.error} role="alert">{t(claveDeError(fallo.err))}</p>}
+        </section>
+      );
+    }
     return (
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>{t("noPlanTitle")}</h2>

@@ -756,6 +756,8 @@
     "planTitle": "Your plan",
     "noPlanTitle": "No plan assigned yet",
     "noPlanBody": "Your company does not have a plan yet. Distinct assigns it — contact us if you are expecting one.",
+    "choosePlanTitle": "Choose your plan",
+    "implementationFeeAmount": "One-time implementation fee: ${price}",
     "plans": {
       "essential": "Essential",
       "performance": "Performance",

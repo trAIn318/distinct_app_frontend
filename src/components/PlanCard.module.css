@@ -81,6 +81,23 @@
   margin: 0 0 var(--space-2) 0;
 }
 
+/* Selector de plan: una columna en móvil, las tarjetas lado a lado desde 48rem. */
+.plans {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.plan {
+  border: 1px solid var(--ivory-08);
+  padding: var(--space-5);
+}
+
+@media (min-width: 48rem) {
+  .plans {
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  }
+}
+
 .block {
   border-top: 1px solid var(--ivory-08);
   margin-top: var(--space-5);
