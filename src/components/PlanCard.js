@@ -127,8 +127,14 @@ function AutorizarCupos({ estado, enCurso, onAutorizar, t }) {
  * Los planes que el backend ofrece a una empresa sin plan, cada uno con su
  * botón de pago, y Enterprise aparte, solo como contacto. Los precios y cupos
  * vienen de `planes_ofrecidos`; nada se calcula ni se escribe aquí.
+ *
+ * Con `pagoRecibido` NO se pinta ni un botón de pago: el cliente acaba de
+ * volver de Stripe y el webhook puede no haber llegado, así que el backend
+ * sigue ofreciendo los planes. Un segundo clic ahí crearía una SEGUNDA
+ * suscripción (el candado de 60 s del servidor ya expiró mientras el cliente
+ * estaba en la página de Stripe). Se ofrece revisar, que es lo único que falta.
  */
-function ElegirPlan({ planes, enCurso, elegido, onPagar, t }) {
+function ElegirPlan({ planes, enCurso, elegido, pagaImplementacion, pagoRecibido, onPagar, onRevisar, t }) {
   return (
     <>
       <h2 className={styles.cardTitle}>{t("choosePlanTitle")}</h2>
@@ -142,17 +148,21 @@ function ElegirPlan({ planes, enCurso, elegido, onPagar, t }) {
               <p className={styles.data}>{t("pricePerMonth", { price: plan.precio_mensual_usd })}</p>
               <p className={styles.data}>{t("seatsIncluded", { count: plan.cupos_incluidos })}</p>
               <p className={styles.data}>{t("seatsCost", { price: plan.precio_cupo_extra_usd })}</p>
-              <p className={styles.muted}>
-                {t("implementationFeeAmount", { price: plan.precio_implementacion_usd })}
-              </p>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => onPagar(plan.plan_code)}
-                disabled={enCurso !== null}
-              >
-                {enCurso === "pay" && elegido === plan.plan_code ? t("redirecting") : t("pay")}
-              </button>
+              {pagaImplementacion && (
+                <p className={styles.muted}>
+                  {t("implementationFeeAmount", { price: plan.precio_implementacion_usd })}
+                </p>
+              )}
+              {!pagoRecibido && (
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => onPagar(plan.plan_code)}
+                  disabled={enCurso !== null}
+                >
+                  {enCurso === "pay" && elegido === plan.plan_code ? t("redirecting") : t("pay")}
+                </button>
+              )}
             </article>
           );
         })}
@@ -162,6 +172,13 @@ function ElegirPlan({ planes, enCurso, elegido, onPagar, t }) {
           <ContactOwnersButton subject={ASUNTO_ENTERPRISE} label={t("enterpriseContact")} className="btn-ghost" />
         </article>
       </div>
+      {pagoRecibido && (
+        <div className={styles.block}>
+          <button type="button" className="btn-ghost" onClick={onRevisar} disabled={enCurso !== null}>
+            {t("checkAgain")}
+          </button>
+        </div>
+      )}
     </>
   );
 }
@@ -241,7 +258,16 @@ export default function PlanCard({ estado, pagoRecibido = false, onRefresh }) {
     if (Array.isArray(ofrecidos) && ofrecidos.length > 0) {
       return (
         <section className={styles.card}>
-          <ElegirPlan planes={ofrecidos} enCurso={enCurso} elegido={elegido} onPagar={pagarPlan} t={t} />
+          <ElegirPlan
+            planes={ofrecidos}
+            enCurso={enCurso}
+            elegido={elegido}
+            pagaImplementacion={estado.paga_implementacion}
+            pagoRecibido={pagoRecibido}
+            onPagar={pagarPlan}
+            onRevisar={revisar}
+            t={t}
+          />
           {fallo && <p className={styles.error} role="alert">{t(claveDeError(fallo.err))}</p>}
         </section>
       );

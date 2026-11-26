@@ -28,6 +28,7 @@ function sinPlan(extra = {}) {
     facturacion_activa: true,
     plan_code: null,
     miembros: 3,
+    paga_implementacion: true,
     planes_ofrecidos: [ESSENTIAL, PERFORMANCE],
     ...extra,
   };
@@ -76,6 +77,29 @@ describe("PlanCard sin plan asignado", () => {
     expect(screen.getByText("No plan assigned yet")).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Choose your plan" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Pay" })).toBeNull();
+  });
+
+  it("al volver de Stripe no ofrece pagar otra vez: solo deja revisar", () => {
+    // El webhook puede no haber llegado: `plan_code` sigue nulo y el backend
+    // sigue ofreciendo los planes. Un segundo clic en Pagar seria una SEGUNDA
+    // suscripcion, y el candado de 60 s del servidor ya expiro.
+    render(<PlanCard estado={sinPlan()} pagoRecibido onRefresh={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: "Pay" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Check again" })).toBeTruthy();
+  });
+
+  it("el boton de revisar relee el estado en vez de cobrar", async () => {
+    const onRefresh = vi.fn().mockResolvedValue(undefined);
+    render(<PlanCard estado={sinPlan()} pagoRecibido onRefresh={onRefresh} />);
+    fireEvent.click(screen.getByRole("button", { name: "Check again" }));
+    await waitFor(() => expect(onRefresh).toHaveBeenCalledTimes(1));
+    expect(iniciarCheckout).not.toHaveBeenCalled();
+  });
+
+  it("no afirma la cuota de implementacion si esa empresa no la paga", () => {
+    render(<PlanCard estado={sinPlan({ paga_implementacion: false })} />);
+    expect(screen.queryByText(/One-time implementation fee/)).toBeNull();
+    expect(screen.getAllByRole("button", { name: "Pay" })).toHaveLength(2);
   });
 
   it("desactiva los botones mientras el pago está en curso", async () => {

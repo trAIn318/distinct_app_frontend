@@ -434,6 +434,23 @@ describe("regreso de Stripe (?pago=)", () => {
     expect(screen.getByRole("button", { name: /check again/i })).toBeTruthy();
   });
 
+  it("pago=ok con el selector de planes todavia en pantalla avisa del pago recibido", async () => {
+    // El webhook no llego: `plan_code` sigue nulo y el backend sigue ofreciendo
+    // los planes. "Ya aparecio" no puede deducirse de `puede_pagar` a secas,
+    // que es falso porque no hay plan que cobrar.
+    await conEstado(empresa({
+      plan_code: null, precio_mensual_usd: null, cupos_incluidos: null,
+      puede_pagar: false,
+      planes_ofrecidos: [{
+        plan_code: "essential", precio_mensual_usd: 299, cupos_incluidos: 25,
+        precio_cupo_extra_usd: 4, precio_implementacion_usd: 500,
+      }],
+    }), { pago: "ok" });
+    expect(await screen.findByText(/payment received/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^pay/i })).toBeNull();
+    expect(screen.getByRole("button", { name: /check again/i })).toBeTruthy();
+  });
+
   it("pago=ok desaparece cuando el plan ya aparecio", async () => {
     await conEstado(viva(), { pago: "ok" });
     await screen.findByRole("button", { name: /manage billing/i });
