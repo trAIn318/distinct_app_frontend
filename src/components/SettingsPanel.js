@@ -2,11 +2,20 @@
 
 /**
  * SettingsPanel — engranaje ⚙ como panel deslizante desde la derecha.
- * Contiene secciones plegables:
- *   - RECLUTADOR: accesos del grupo RECRUITER del rol (→ /coming-soon).
- *   - CONFIGURACIÓN: accesos del grupo SETTINGS (→ /coming-soon) + los
- *     controles reales de Idioma y Tema.
+ *
+ * Repite la estructura del Tablero (`DashboardMenu`), que es la referencia de
+ * los paneles laterales: SETTINGS como título arriba, los accesos a OTRAS
+ * pantallas como chips en la cabecera, y debajo lo que se maneja aquí dentro.
+ *   - cabecera: accesos del grupo SETTINGS con pantalla propia (Admin Company).
+ *   - cuerpo: accesos del grupo RECRUITER + los controles de Idioma y Tema.
  * Sin sesión (menu vacío) muestra solo Idioma + Tema.
+ *
+ * POR QUÉ NO ES UN PLEGABLE NI UNAS PESTAÑAS. Admin Company se pintaba como
+ * texto platino plano dentro de un <details>, debajo de los toggles, y la
+ * dirección reportó que "pasa desapercibido; en la primera revisión no se vio".
+ * El chip dorado lo arregla. Idioma y Tema se quedan los DOS a la vista, sin un
+ * clic previo que los seleccione: cambiar el idioma es la acción más frecuente
+ * del panel y costaba un clic, no dos. Decisión del usuario, 2026-11-27.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -22,6 +31,7 @@ import {
 } from "../lib/preferences";
 import { splitMenuByGroup, resolveMenuTarget, getMenuLabel } from "../lib/menuTargets";
 import NavDrawer from "./NavDrawer";
+import MenuIcon from "./MenuIcon";
 import { useT } from "../i18n/client";
 import styles from "./SettingsPanel.module.css";
 
@@ -86,90 +96,84 @@ export default function SettingsPanel({ menu = [] }) {
     </svg>
   );
 
+  // Misma fila de chips en la cabecera y en el bloque de Reclutador: el estilo
+  // es la clase global `chip-nav`, compartida con el Tablero.
+  const filaDeChips = (items) => (
+    <ul className={styles.chipRow}>
+      {items.map((it) => (
+        <li key={it.url}>
+          <a className="chip-nav" href={resolveMenuTarget(it.url).href}>
+            <MenuIcon icon={it.icon} className="chip-nav__icon" />
+            <span>{getMenuLabel(it, tMenu)}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <NavDrawer
       open={open}
       onOpenChange={setOpen}
       label={t("title")}
+      title={t("title")}
+      titleTone="gold"
       width="min(380px, 92vw)"
       triggerClassName={styles.gearButton}
       trigger={gearIcon}
+      headerActions={settingsLinks.length > 0 ? filaDeChips(settingsLinks) : null}
     >
       <>
         {grouped.recruiter.length > 0 && (
-          <details className={styles.section} open>
-            <summary className={styles.sectionSummary}>{t("recruiter")}</summary>
-            <ul className={styles.linkList}>
-              {grouped.recruiter.map((it) => (
-                <li key={it.url}>
-                  <a className={styles.link} href={resolveMenuTarget(it.url).href}>
-                    {getMenuLabel(it, tMenu)}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </details>
+          <section className={styles.block}>
+            <h3 className={styles.blockLabel}>{t("recruiter")}</h3>
+            {filaDeChips(grouped.recruiter)}
+          </section>
         )}
 
-        <details className={styles.section} open>
-          <summary className={styles.sectionSummary}>{t("title")}</summary>
-
-          {settingsLinks.length > 0 && (
-            <ul className={styles.linkList}>
-              {settingsLinks.map((it) => (
-                <li key={it.url}>
-                  <a className={styles.link} href={resolveMenuTarget(it.url).href}>
-                    {getMenuLabel(it, tMenu)}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <div className={styles.settingGroup}>
-            <span className={styles.settingLabel}>{t("language")}</span>
-            <div className={styles.segmented} role="radiogroup" aria-label="UI language">
-              {SUPPORTED_LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  type="button"
-                  role="radio"
-                  aria-checked={language === l.code}
-                  className={`${styles.segment} ${language === l.code ? styles.segmentActive : ""}`}
-                  onClick={() => handleLanguage(l.code)}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.settingGroup}>
-            <span className={styles.settingLabel}>{t("theme")}</span>
-            <div className={styles.segmented} role="radiogroup" aria-label="Theme">
+        <div className={styles.settingGroup}>
+          <span className={styles.settingLabel}>{t("language")}</span>
+          <div className={styles.segmented} role="radiogroup" aria-label="UI language">
+            {SUPPORTED_LANGUAGES.map((l) => (
               <button
+                key={l.code}
                 type="button"
                 role="radio"
-                aria-checked={theme === "dark"}
-                className={`${styles.segment} ${theme === "dark" ? styles.segmentActive : ""}`}
-                onClick={() => handleTheme("dark")}
+                aria-checked={language === l.code}
+                className={`${styles.segment} ${language === l.code ? styles.segmentActive : ""}`}
+                onClick={() => handleLanguage(l.code)}
               >
-                {t("dark")}
+                {l.label}
               </button>
-              <button
-                type="button"
-                role="radio"
-                aria-checked={theme === "light"}
-                className={`${styles.segment} ${theme === "light" ? styles.segmentActive : ""}`}
-                onClick={() => handleTheme("light")}
-              >
-                {t("light")}
-              </button>
-            </div>
+            ))}
           </div>
+        </div>
 
-          <p className={styles.note}>{t("note")}</p>
-        </details>
+        <div className={styles.settingGroup}>
+          <span className={styles.settingLabel}>{t("theme")}</span>
+          <div className={styles.segmented} role="radiogroup" aria-label="Theme">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={theme === "dark"}
+              className={`${styles.segment} ${theme === "dark" ? styles.segmentActive : ""}`}
+              onClick={() => handleTheme("dark")}
+            >
+              {t("dark")}
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={theme === "light"}
+              className={`${styles.segment} ${theme === "light" ? styles.segmentActive : ""}`}
+              onClick={() => handleTheme("light")}
+            >
+              {t("light")}
+            </button>
+          </div>
+        </div>
+
+        <p className={styles.note}>{t("note")}</p>
       </>
     </NavDrawer>
   );

@@ -1,4 +1,4 @@
-/* SettingsPanel — ⚙: secciones plegables dentro del panel lateral (NavDrawer) */
+/* SettingsPanel — ⚙: misma estructura que el Tablero dentro del panel lateral */
 
 .gearButton {
   display: inline-flex;
@@ -26,48 +26,33 @@
   transform: rotate(45deg);
 }
 
-.section {
-  border-bottom: 1px solid var(--ivory-08);
-  padding-bottom: var(--space-4);
-}
-
-.section:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.sectionSummary {
-  font-family: var(--font-label);
-  font-size: var(--text-xs);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-gold);
-  cursor: pointer;
+/* ── Accesos a otras pantallas ───────────────────────────────────
+   Fila de chips: en la cabecera (Admin Company) y en el bloque de Reclutador.
+   El aspecto del chip es la clase global `chip-nav`, que comparte con el
+   Tablero; aqui solo se resuelve como se reparten en la fila. */
+.chipRow {
   list-style: none;
-  padding: var(--space-2) 0;
-}
-
-.sectionSummary::-webkit-details-marker {
-  display: none;
-}
-
-.linkList {
-  list-style: none;
-  padding: var(--space-2) 0;
+  padding: 0;
   margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.block {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-.link {
-  color: var(--color-platinum);
-  text-decoration: none;
-  font-size: var(--text-sm);
-}
-
-.link:hover {
+/* Mismo rotulo dorado que `sectionTitle` del Tablero ("MY COURSES"). */
+.blockLabel {
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--color-gold);
+  margin: 0;
 }
 
 /* ── Grupos de ajustes ───────────────────────────────────────────── */

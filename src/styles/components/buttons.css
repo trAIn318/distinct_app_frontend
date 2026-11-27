@@ -133,3 +133,57 @@
     transform: none;
   }
 }
+
+/* ── Chip de navegación ──────────────────────────────────────────
+   Acceso a OTRA pantalla desde dentro de un panel lateral. Lo comparten el
+   Tablero (Analytics / Eval / Pay) y la rueda de ajustes (Admin Company): una
+   sola definición para que los dos paneles no puedan separarse con el tiempo.
+   Bordeado y en versalitas para que se lea como control y no como texto —
+   Admin Company vivía como texto plano y pasaba desapercibido—; se rellena de
+   dorado al pasar el cursor, coherente con .btn-primary.
+
+   El texto del hover usa --color-on-gold y NO --color-obsidian: obsidiana se
+   invierte con el tema y el dorado no, así que en tema claro quedaba texto casi
+   blanco sobre dorado, bajo el 4.5:1 de AA. Ver el porqué del token en
+   tokens.css. */
+.chip-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--gold-30);
+  color: var(--color-ivory);
+  text-decoration: none;
+  font-family: var(--font-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.chip-nav:hover {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-on-gold);
+}
+
+/* El icono acompaña al rótulo y se invierte con él al rellenarse de dorado. */
+.chip-nav__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--color-gold);
+}
+
+.chip-nav:hover .chip-nav__icon {
+  color: var(--color-on-gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-nav {
+    transition: none;
+  }
+}
