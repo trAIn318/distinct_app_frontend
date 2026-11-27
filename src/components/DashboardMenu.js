@@ -129,8 +129,10 @@ export default function DashboardMenu({ menu = [] }) {
           <ul className={styles.headerLinks}>
             {routeLinks.map((it) => (
               <li key={it.url}>
-                <a className={styles.link} href={resolveMenuTarget(it.url).href}>
-                  <MenuIcon icon={it.icon} className={styles.linkIcon} />
+                {/* `chip-nav` es global y la comparte la rueda de ajustes: los
+                    dos paneles no pueden separarse con el tiempo. */}
+                <a className="chip-nav" href={resolveMenuTarget(it.url).href}>
+                  <MenuIcon icon={it.icon} className="chip-nav__icon" />
                   <span>{getMenuLabel(it, tMenu)}</span>
                 </a>
               </li>

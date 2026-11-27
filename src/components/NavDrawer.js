@@ -19,6 +19,11 @@ export default function NavDrawer({
   onOpenChange,
   label,
   title,
+  // El tono del título lo resuelve ESTE componente, no quien lo usa: las dos
+  // reglas viven en NavDrawer.module.css, donde el orden del archivo decide
+  // cuál gana. Desde otro módulo CSS las dos clases tendrían la misma
+  // especificidad y el color dependería de en qué orden quedaran empaquetadas.
+  titleTone,
   headerActions,
   trigger,
   triggerClassName = "",
@@ -87,7 +92,15 @@ export default function NavDrawer({
       >
         <div className={styles.panelHeader}>
           <div className={styles.panelHeaderLeft}>
-            {title && <h2 className={styles.panelTitle}>{title}</h2>}
+            {title && (
+              <h2
+                className={`${styles.panelTitle} ${
+                  titleTone === "gold" ? styles.panelTitleGold : ""
+                }`}
+              >
+                {title}
+              </h2>
+            )}
             {headerActions}
           </div>
           <button

@@ -78,6 +78,16 @@
   margin: 0;
 }
 
+/* Variante dorada y en versales del mismo sitio del título (la usa la rueda de
+   ajustes). Va DESPUÉS de .panelTitle a propósito: con la misma especificidad
+   gana la última regla del archivo, y así el color no depende del orden en que
+   se empaqueten dos módulos CSS distintos. */
+.panelTitleGold {
+  color: var(--color-gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .closeButton {
   font-size: 26px;
   line-height: 1;
